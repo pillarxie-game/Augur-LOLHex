@@ -10,7 +10,7 @@
   "use strict";
 
   const K = { champ: 200, hexAll: 100, champHex: 150, ctx: 300, pair: 120, round: 300,
-              item: 100, slot: 150, personal: 20, bench: 200 };
+              item: 100, slot: 150, personal: 20, bench: 200, champOpgg: 2000 };
   const GRADES = [[4.5, "S+"], [3, "S"], [1.5, "A"], [0, "B"], [-1.5, "C"], [-Infinity, "D"]];
   const TIERS = [[2.5, "S+"], [1.5, "S"], [0.5, "A"], [-0.5, "B"], [-1.5, "C"], [-Infinity, "D"]];
   const ON_HIT_CASTERS = new Set(["Kayle", "Teemo", "KogMaw", "Varus", "Kennen", "Kaisa", "Gwen", "Nilah"]);
@@ -76,6 +76,18 @@
     }
 
     champWR(cid) { return smooth((this.s.champ || {})[String(cid)], this.g, K.champ); }
+
+    /* How strong a champion is, for ranking champions. Never uses your personal record.
+       OP.GG's ARAM win rate (tens of thousands of games) is the base; Augur's collected games
+       only move it once there are thousands of them, so a few of your own games can't reorder champions. */
+    champRating(cid) {
+      const own = (this.s.champ || {})[String(cid)], oc = this.opggChamps[String(cid)];
+      if (oc && oc.win_rate && oc.play) {
+        const w = smooth(own, oc.win_rate, K.champOpgg);
+        return { wr: w, games: oc.play + n(own), src: n(own) >= 500 ? "mixed" : "opgg", op: oc, own };
+      }
+      return { wr: smooth(own, this.g, K.bench), games: n(own), src: n(own) ? "own" : "none", own };
+    }
 
     hexAllDelta(h) { return (smooth((this.s.hex_all || {})[String(h)], this.g, K.hexAll) - this.g) * 100; }
 
@@ -374,15 +386,14 @@
       const apCount = team.filter((c) => (this.champ(c) || { flags: {} }).flags.apdmg).length;
       return [ctx.me, ...(ctx.bench || [])].filter(Boolean).map((cid) => {
         const c = this.champ(cid) || { flags: {} }, cell = (this.s.champ || {})[String(cid)], parts = [];
-        const oc = this.opggChamps[String(cid)];
-        if (n(cell) > 0) {
-          const d = (smooth(cell, this.g, K.bench) - this.g) * 100;
-          parts.push({ v: d, text: this.t("champWr", { wr: pct(wr(cell)), n: games(n(cell)) }) });
-        } else if (oc && oc.win_rate && oc.play) {
-          // No games of our own yet: OP.GG's ARAM win rate by default
-          parts.push({ v: shrink(oc.play, (oc.win_rate - 0.5) * 100, 0, 2000), src: "opgg",
-                       text: this.t("opggChampWr", { wr: pct(oc.win_rate), n: games(oc.play), t: oc.tier }) });
-        } else parts.push({ v: 0, text: this.t("champNoData") });
+        const rt = this.champRating(cid);
+        if (rt.src === "opgg" || rt.src === "mixed")
+          parts.push({ v: (rt.wr - 0.5) * 100, src: "opgg",
+                       text: this.t("opggChampWr", { wr: pct(rt.op.win_rate), n: games(rt.op.play), t: rt.op.tier })
+                         + (rt.src === "mixed" ? " · " + this.t("champWr", { wr: pct(wr(rt.own)), n: games(n(rt.own)) }) : "") });
+        else if (rt.src === "own")
+          parts.push({ v: (rt.wr - this.g) * 100, text: this.t("champWr", { wr: pct(wr(cell)), n: games(n(cell)) }) });
+        else parts.push({ v: 0, text: this.t("champNoData") });
         if (team.length >= 3 && front === 0 && c.flags.front) parts.push({ v: 1.0, text: this.t("needFront") });
         if (team.length >= 3 && apCount >= 3 && !c.flags.apdmg) parts.push({ v: 0.7, text: this.t("needAd") });
         if (team.length >= 3 && apCount === 0 && c.flags.apdmg) parts.push({ v: 0.7, text: this.t("needAp") });
