@@ -69,9 +69,9 @@
   };
 
   T.zh = {
-    opggCoreR: "OP.GG 大乱斗出装核心：胜率 {wr}（{n} 场）", opggItemR: "OP.GG 大乱斗：作为第 {s} 件胜率 {wr}（{n} 场）", opggBuildTitle: "OP.GG 大乱斗出装", opggCore: "核心装备", opggBoots: "鞋子", opggSlot: "第 {s} 件可选", opggChampLine: "OP.GG 大乱斗：{t} 级，胜率 {wr}（{n} 场）", opggCol: "OP.GG",
+    opggCoreR: "OP.GG 大乱斗出装核心：胜率 {wr}（{n} 场）", opggItemR: "OP.GG 大乱斗：作为第 {s} 件胜率 {wr}（{n} 场）", opggBuildTitle: "OP.GG 大乱斗出装", opggCore: "核心装备", opggBoots: "鞋子", opggSlot: "第 {s} 件可选", opggChampLine: "OP.GG 大乱斗：T{t}，胜率 {wr}（{n} 场）", opggCol: "OP.GG",
     settings: "设置", sAutoRead: "自动从屏幕读取海克斯卡", sInterval: "检查间隔（秒）", sOverlay: "游戏中显示悬浮窗", sPosition: "悬浮窗位置", posTR: "右上", posTL: "左上", posBR: "右下", posBL: "左下", sOpacity: "悬浮窗透明度", sOpgg: "评分中使用 OP.GG 的大乱斗海克斯数据", sOcr: "额外识别语言", sRiotIds: "你的 Riot ID（名字#标签），每行一个——用于你自己的战绩", sLockfile: "英雄联盟客户端 lockfile 位置，每行一个", sSave: "保存", sSaved: "已保存。", sData: "数据", sDataFolder: "你的数据保存在", sCollect: "从英雄联盟客户端收集对局", sCollectHelp: "请先打开并登录客户端。需要一段时间，期间可以继续使用 Augur。", sRebuild: "重新计算统计", sRunning: "处理中…", sDone: "完成。", ovWaiting: "等待海克斯卡出现…", ovSetChamp: "在主窗口选择你的英雄，或开始一局游戏。", sNoOcr: "这台电脑无法使用屏幕识别。", sReading: "卡片识别",
-    opggR: "OP.GG：{c} 的 {t} 级，表现分 {p}（中位数 {m}）", opggMissing: "不在 OP.GG 的 {c} 列表中（OP.GG 不公开前两个等级）",
+    opggR: "OP.GG：{c} 的 T{t} 海克斯，表现分 {p}（中位数 {m}）", opggMissing: "不在 OP.GG 的 {c} 列表中（OP.GG 不公开前两个等级）",
     hexes: "海克斯", champions: "英雄", grade: "对局助手", history: "我的对局", about: "关于",
     loading: "加载中…", search: "搜索…", all: "全部", silver: "白银", gold: "黄金", prismatic: "棱彩",
     tier: "评级", hex: "海克斯", rarity: "品质", winrate: "胜率", delta: "比平均", pickrate: "选取率", games: "场次",
@@ -114,9 +114,9 @@
   };
 
   T["zh-TW"] = {
-    opggCoreR: "OP.GG ARAM 出裝核心：勝率 {wr}（{n} 場）", opggItemR: "OP.GG ARAM：作為第 {s} 件勝率 {wr}（{n} 場）", opggBuildTitle: "OP.GG ARAM 出裝", opggCore: "核心裝備", opggBoots: "鞋子", opggSlot: "第 {s} 件可選", opggChampLine: "OP.GG ARAM：{t} 級，勝率 {wr}（{n} 場）", opggCol: "OP.GG",
+    opggCoreR: "OP.GG ARAM 出裝核心：勝率 {wr}（{n} 場）", opggItemR: "OP.GG ARAM：作為第 {s} 件勝率 {wr}（{n} 場）", opggBuildTitle: "OP.GG ARAM 出裝", opggCore: "核心裝備", opggBoots: "鞋子", opggSlot: "第 {s} 件可選", opggChampLine: "OP.GG ARAM：T{t}，勝率 {wr}（{n} 場）", opggCol: "OP.GG",
     settings: "設定", sAutoRead: "自動從螢幕讀取海克斯卡", sInterval: "檢查間隔（秒）", sOverlay: "遊戲中顯示浮動視窗", sPosition: "浮動視窗位置", posTR: "右上", posTL: "左上", posBR: "右下", posBL: "左下", sOpacity: "浮動視窗透明度", sOpgg: "評分中使用 OP.GG 的 ARAM 海克斯資料", sOcr: "額外辨識語言", sRiotIds: "你的 Riot ID（名稱#標籤），每行一個——用於你自己的戰績", sLockfile: "英雄聯盟客戶端 lockfile 位置，每行一個", sSave: "儲存", sSaved: "已儲存。", sData: "資料", sDataFolder: "你的資料儲存在", sCollect: "從英雄聯盟客戶端收集對戰", sCollectHelp: "請先開啟並登入客戶端。需要一段時間，期間可以繼續使用 Augur。", sRebuild: "重新計算統計", sRunning: "處理中…", sDone: "完成。", ovWaiting: "等待海克斯卡出現…", ovSetChamp: "在主視窗選擇你的英雄，或開始一場遊戲。", sNoOcr: "這台電腦無法使用螢幕辨識。", sReading: "卡片辨識",
-    opggR: "OP.GG：{c} 的 {t} 級，表現分 {p}（中位數 {m}）", opggMissing: "不在 OP.GG 的 {c} 列表中（OP.GG 不公開前兩個等級）",
+    opggR: "OP.GG：{c} 的 T{t} 海克斯，表現分 {p}（中位數 {m}）", opggMissing: "不在 OP.GG 的 {c} 列表中（OP.GG 不公開前兩個等級）",
     hexes: "海克斯", champions: "英雄", grade: "對戰助手", history: "我的對戰", about: "關於",
     loading: "載入中…", search: "搜尋…", all: "全部", silver: "白銀", gold: "黃金", prismatic: "稜彩",
     tier: "評級", hex: "海克斯", rarity: "品質", winrate: "勝率", delta: "比平均", pickrate: "選取率", games: "場次",

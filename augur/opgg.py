@@ -74,10 +74,15 @@ def aram_augments(champ_id, refresh=False):
         cached = json.loads(path.read_text(encoding="utf-8"))
         if time.time() - cached.get("fetched", 0) < CACHE_HOURS * 3600:
             return cached
-    text = call_tool("lol_list_aram_augments", {
-        "champion_id": int(champ_id),
-        "desired_output_fields": ["data.augments[].{id,tier,performance,popular}"],
-    })
+    try:
+        text = call_tool("lol_list_aram_augments", {
+            "champion_id": int(champ_id),
+            "desired_output_fields": ["data.augments[].{id,tier,performance,popular}"],
+        })
+    except Exception:
+        if path.exists():  # OP.GG unreachable: an older copy beats nothing
+            return {**json.loads(path.read_text(encoding="utf-8")), "stale": True}
+        raise
     data = {"champion": int(champ_id), "augments": parse_augments(text), "fetched": int(time.time()),
             "source": "OP.GG (mcp-api.op.gg)"}
     path.write_text(json.dumps(data), encoding="utf-8")
@@ -150,16 +155,8 @@ def _items(v):
     return {"ids": ids, "play": play, "win": win, "pick": pick}
 
 
-def champion_build(champ_key, champ_id, refresh=False):
-    """OP.GG ARAM build for one champion: win rate, tier, core items, boots and 4th-6th item options."""
-    folder = config.ROOT / "data" / "opgg"
-    folder.mkdir(parents=True, exist_ok=True)
-    path = folder / f"build_{int(champ_id)}.json"
-    if path.exists() and not refresh:
-        cached = json.loads(path.read_text(encoding="utf-8"))
-        if time.time() - cached.get("fetched", 0) < CACHE_HOURS * 3600:
-            return cached
-    text = call_tool("lol_get_champion_analysis", {
+def _build_text(champ_key):
+    return call_tool("lol_get_champion_analysis", {
         "game_mode": "aram", "position": "mid", "champion": champ_key.upper(),
         "desired_output_fields": [
             "data.summary.average_stats.{play,win_rate,pick_rate,tier,rank}",
@@ -170,6 +167,23 @@ def champion_build(champ_key, champ_id, refresh=False):
             "data.sixth_items[].{ids[],ids_names[],play,win,pick_rate}",
         ],
     })
+
+
+def champion_build(champ_key, champ_id, refresh=False):
+    """OP.GG ARAM build for one champion: win rate, tier, core items, boots and 4th-6th item options."""
+    folder = config.ROOT / "data" / "opgg"
+    folder.mkdir(parents=True, exist_ok=True)
+    path = folder / f"build_{int(champ_id)}.json"
+    if path.exists() and not refresh:
+        cached = json.loads(path.read_text(encoding="utf-8"))
+        if time.time() - cached.get("fetched", 0) < CACHE_HOURS * 3600:
+            return cached
+    try:
+        text = _build_text(champ_key)
+    except Exception:
+        if path.exists():  # OP.GG unreachable: an older copy beats nothing
+            return {**json.loads(path.read_text(encoding="utf-8")), "stale": True}
+        raise
     body = text[text.index("LolGetChampionAnalysis("):]
     data = parse_value(body)[0]  # [Summary, core, boots, fourth[], fifth[], sixth[]?, message?]
 
