@@ -134,10 +134,11 @@
         const c = S.stats.hex_all ? S.stats.hex_all[a.id] : null;
         const d = g.hexAllDelta(a.id);
         const op = S.opggAll && S.opggAll.hexes[a.id];
-        const useOp = !hasStats() && op && op.score != null;
-        return { a, name: nameOf("augments", a.id), tierv: hasStats() ? d : useOp ? op.score : -99,
+        const useOp = !hasStats() && op && op.strength != null;
+        return { a, name: nameOf("augments", a.id), tierv: hasStats() ? d : useOp ? op.strength : -99,
                  tier: hasStats() && n(c) ? g.hexTier(a.id) : useOp ? g.opggTier(a.id) : "-",
                  ops: op && op.score != null ? op.score : -99, opn: op ? op.listed : 0,
+                 optop: op && op.strength != null ? op.top_champs : -1,
                  wr: wr(c) ?? 0, d, pick: n(c) ? n(c) / players : op && op.pick_rate != null ? op.pick_rate : 0,
                  pickOp: !n(c) && op && op.pick_rate != null, games: n(c), rar: a.rarity };
       });
@@ -152,8 +153,9 @@
         { label: T("games"), key: "games", num: true, render: (r) => num(r.games) },
       ];
       if (S.opggAll) cols.splice(3, 0,
-        { label: T("opggScore"), key: "ops", num: true, render: (r) => (r.ops === -99 ? el("span", { class: "muted" }, "-") : signed(r.ops)) },
-        { label: T("opggListed"), key: "opn", num: true, render: (r) => r.opn || "-" });
+        { label: T("opggTopCol"), key: "optop", num: true, render: (r) => (r.optop < 0 ? el("span", { class: "muted" }, "-")
+          : el("span", { title: T("opggAllR2").replace("{k}", r.optop).replace("{n}", S.opggAll.champions) }, r.optop + " / " + S.opggAll.champions)) },
+        { label: T("opggScore"), key: "ops", num: true, render: (r) => (r.ops === -99 ? el("span", { class: "muted" }, "-") : signed(r.ops)) });
       box.replaceChildren(table(cols, rows, hasStats() || S.opggAll ? "tierv" : "name", hasStats() || !!S.opggAll));
     }
     const tabs = el("div", { class: "tabs", role: "tablist" }, ["all", "silver", "gold", "prismatic"].map((r) =>

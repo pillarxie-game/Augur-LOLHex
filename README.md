@@ -57,7 +57,8 @@ The match helper reads the 3 hex cards from your screen: OCR reads each card's n
 When you run the local helper (`start.bat`), Augur asks OP.GG's official data server for your champion's ARAM hex stats (tier, performance and popularity) and adds a line to every grade, for example `+0.9 OP.GG: tier 4 for Yasuo, performance 96.5 (median 88.0)`. Answers are cached for 12 hours in `data/opgg/` on your PC. OP.GG data is never saved into this repository or the published website, and the source is credited on the page.
 
 What OP.GG gives and doesn't give:
-- It lists about 95 of the current Mayhem hexes per champion. It **leaves out its own top 2 tiers**, so the strongest hexes show "Not in OP.GG's list", which counts as neutral, not bad.
+- It lists about 95 of the current Mayhem hexes per champion, only its **tiers 3–5**. A hex OP.GG tracks but leaves out for a champion is in that champion's **top tiers (T1–T2)**. We checked this against an independent ranking: 18 of 18 recommended hexes for Yasuo and for Lux were missing from OP.GG's lists. So Augur counts "not listed" as **T1–T2, a strong positive**, except for ability hexes (only some champions can get them) and hexes OP.GG lists for fewer than 5 champions, where it means "no data".
+- OP.GG's **tier** drives the OP.GG part of a grade (T1–T2 +2.0, T3 +0.8, T4 0, T5 −0.8); its performance score only adjusts it slightly, because it doesn't decide OP.GG's own tiers (DOOM has a high score but is T3–T5 for every champion).
 - Rarely picked hexes have unreliable scores, so a hex's OP.GG score counts less the less popular it is.
 - Your own collected games count more as they grow, and OP.GG counts less.
 
@@ -189,7 +190,7 @@ Augur 是免费开源的**海克斯大乱斗**助手：海克斯排行、英雄�
 
 不使用 Hexdata 或 WeGame 的数据。
 
-**关于 OP.GG 数据：** 每个英雄大约列出 95 个海克斯，**不公开它自己的前两个等级**，所以最强的海克斯会显示「不在 OP.GG 的列表中」，这按中性处理，不扣分。很少有人选的海克斯数据不可靠，权重会降低。你自己收集的对局越多，OP.GG 的权重越低。
+**关于 OP.GG 数据：** 每个英雄大约列出 95 个海克斯，只包含 **T3–T5**。OP.GG 有追踪、但没有列给某个英雄的海克斯，就是这个英雄的**顶级海克斯（T1–T2）**——我们用独立排行验证过：亚索和拉克丝各 18 个推荐海克斯，全部不在 OP.GG 的列表中。所以 Augur 把「未列出」算作 **T1–T2，明显加分**；技能海克斯（只有部分英雄能拿到）和 OP.GG 只给不到 5 个英雄列出的海克斯除外，这些视为「没有数据」。评分里 OP.GG 部分主要看**梯队**（T1–T2 +2.0，T3 +0.8，T4 0，T5 −0.8），表现分只做小幅调整。很少有人选的海克斯数据不可靠，权重会降低。你自己收集的对局越多，OP.GG 的权重越低。
 
 ### 收集对局（不需要 API key）
 

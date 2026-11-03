@@ -10,6 +10,8 @@
 
   const T = {};
   T.en = {
+    opggListedOnly: "OP.GG: only listed for {n} champions (ability hex or rarely offered)",
+    opggTop: "OP.GG: top tier (T1-T2) for {c}", opggNone: "OP.GG has no data for this hex", opggAllR2: "OP.GG: top tier (T1-T2) for {k} of {n} champions", opggTopCol: "OP.GG T1-T2",
     opggChampWr: "OP.GG ARAM: {wr} win rate ({n} games, tier {t})", opggWr: "Win rate (OP.GG)",
     opggTierNote: "Tiers come from OP.GG (all champions) until you collect your own games.",
     opggAllR: "OP.GG, all champions: {s} vs each champion's median ({n} champions)", opggScore: "OP.GG score", opggListed: "Champions", opggAllBtn: "Download OP.GG data for all champions", opggBestChamps: "Best champions (OP.GG)",
@@ -72,6 +74,8 @@
   };
 
   T.zh = {
+    opggListedOnly: "OP.GG：只对 {n} 个英雄有数据（技能海克斯或很少出现）",
+    opggTop: "OP.GG：{c} 的顶级海克斯（T1-T2）", opggNone: "OP.GG 没有这个海克斯的数据", opggAllR2: "OP.GG：在 {n} 个英雄中有 {k} 个是顶级（T1-T2）", opggTopCol: "OP.GG T1-T2",
     opggChampWr: "OP.GG 大乱斗：胜率 {wr}（{n} 场，T{t}）", opggWr: "胜率（OP.GG）",
     opggTierNote: "在你收集自己的对局之前，评级来自 OP.GG（全英雄）数据。",
     opggAllR: "OP.GG 全英雄：比各英雄中位数 {s}（{n} 个英雄）", opggScore: "OP.GG 分数", opggListed: "英雄数", opggAllBtn: "下载全英雄 OP.GG 数据", opggBestChamps: "最适合的英雄（OP.GG）",
@@ -120,6 +124,8 @@
   };
 
   T["zh-TW"] = {
+    opggListedOnly: "OP.GG：只對 {n} 個英雄有資料（技能海克斯或很少出現）",
+    opggTop: "OP.GG：{c} 的頂級海克斯（T1-T2）", opggNone: "OP.GG 沒有這個海克斯的資料", opggAllR2: "OP.GG：在 {n} 個英雄中有 {k} 個是頂級（T1-T2）", opggTopCol: "OP.GG T1-T2",
     opggChampWr: "OP.GG ARAM：勝率 {wr}（{n} 場，T{t}）", opggWr: "勝率（OP.GG）",
     opggTierNote: "在你收集自己的對戰之前，評級來自 OP.GG（全英雄）資料。",
     opggAllR: "OP.GG 全英雄：比各英雄中位數 {s}（{n} 個英雄）", opggScore: "OP.GG 分數", opggListed: "英雄數", opggAllBtn: "下載全英雄 OP.GG 資料", opggBestChamps: "最適合的英雄（OP.GG）",
@@ -168,6 +174,8 @@
   };
 
   T.ko = {
+    opggListedOnly: "OP.GG: 챔피언 {n}명만 데이터 있음 (스킬 증강이거나 드물게 등장)",
+    opggTop: "OP.GG: {c}의 최상위 증강 (T1-T2)", opggNone: "OP.GG에 이 증강 데이터가 없음", opggAllR2: "OP.GG: 챔피언 {n}명 중 {k}명에게 최상위 (T1-T2)", opggTopCol: "OP.GG T1-T2",
     opggChampWr: "OP.GG 칼바람: 승률 {wr} ({n}게임, {t}티어)", opggWr: "승률 (OP.GG)",
     opggTierNote: "직접 게임을 수집하기 전까지 티어는 OP.GG(전체 챔피언) 기준입니다.",
     opggAllR: "OP.GG 전체 챔피언: 각 챔피언 중앙값 대비 {s} ({n}명)", opggScore: "OP.GG 점수", opggListed: "챔피언 수", opggAllBtn: "모든 챔피언의 OP.GG 데이터 받기", opggBestChamps: "잘 맞는 챔피언 (OP.GG)",
@@ -220,6 +228,8 @@
   };
 
   T.ja = {
+    opggListedOnly: "OP.GG：{n} 体のみデータあり（スキル強化か、まれにしか出ない）",
+    opggTop: "OP.GG：{c} の最上位オーグメント（T1-T2）", opggNone: "OP.GG にこのオーグメントのデータはありません", opggAllR2: "OP.GG：{n} 体中 {k} 体で最上位（T1-T2）", opggTopCol: "OP.GG T1-T2",
     opggChampWr: "OP.GG ARAM：勝率 {wr}（{n} 試合、ティア {t}）", opggWr: "勝率（OP.GG）",
     opggTierNote: "自分の試合を集めるまで、ティアは OP.GG（全チャンピオン）に基づきます。",
     opggAllR: "OP.GG 全チャンピオン：各チャンピオンの中央値比 {s}（{n} 体）", opggScore: "OP.GG スコア", opggListed: "チャンピオン数", opggAllBtn: "全チャンピオンの OP.GG データを取得", opggBestChamps: "相性の良いチャンピオン（OP.GG）",
@@ -272,6 +282,8 @@
   };
 
   T.es = {
+    opggListedOnly: "OP.GG: solo tiene datos de {n} campeones (aumento de habilidad o poco frecuente)",
+    opggTop: "OP.GG: nivel superior (T1-T2) para {c}", opggNone: "OP.GG no tiene datos de este aumento", opggAllR2: "OP.GG: nivel superior (T1-T2) para {k} de {n} campeones", opggTopCol: "OP.GG T1-T2",
     opggChampWr: "OP.GG ARAM: {wr} de victorias ({n} partidas, nivel {t})", opggWr: "Victorias (OP.GG)",
     opggTierNote: "Los niveles vienen de OP.GG (todos los campeones) hasta que recojas tus propias partidas.",
     opggAllR: "OP.GG, todos los campeones: {s} vs la mediana de cada campeón ({n} campeones)", opggScore: "Puntuación OP.GG", opggListed: "Campeones", opggAllBtn: "Descargar datos de OP.GG de todos los campeones", opggBestChamps: "Mejores campeones (OP.GG)",
@@ -325,6 +337,8 @@
   };
 
   T.pt = {
+    opggListedOnly: "OP.GG: só tem dados de {n} campeões (aprimoramento de habilidade ou raro)",
+    opggTop: "OP.GG: tier mais alto (T1-T2) para {c}", opggNone: "O OP.GG não tem dados deste aprimoramento", opggAllR2: "OP.GG: tier mais alto (T1-T2) para {k} de {n} campeões", opggTopCol: "OP.GG T1-T2",
     opggChampWr: "OP.GG ARAM: {wr} de vitórias ({n} partidas, tier {t})", opggWr: "Vitórias (OP.GG)",
     opggTierNote: "Os tiers vêm do OP.GG (todos os campeões) até você coletar suas próprias partidas.",
     opggAllR: "OP.GG, todos os campeões: {s} vs a mediana de cada campeão ({n} campeões)", opggScore: "Pontuação OP.GG", opggListed: "Campeões", opggAllBtn: "Baixar dados do OP.GG de todos os campeões", opggBestChamps: "Melhores campeões (OP.GG)",
@@ -378,6 +392,8 @@
   };
 
   T.fr = {
+    opggListedOnly: "OP.GG : données pour {n} champions seulement (augment de compétence ou rare)",
+    opggTop: "OP.GG : rang supérieur (T1-T2) pour {c}", opggNone: "OP.GG n'a pas de données pour cet augment", opggAllR2: "OP.GG : rang supérieur (T1-T2) pour {k} champions sur {n}", opggTopCol: "OP.GG T1-T2",
     opggChampWr: "OP.GG ARAM : {wr} de victoires ({n} parties, rang {t})", opggWr: "Victoires (OP.GG)",
     opggTierNote: "Les rangs viennent d'OP.GG (tous les champions) jusqu'à ce que vous collectiez vos propres parties.",
     opggAllR: "OP.GG, tous les champions : {s} vs la médiane de chaque champion ({n} champions)", opggScore: "Score OP.GG", opggListed: "Champions", opggAllBtn: "Télécharger les données OP.GG de tous les champions", opggBestChamps: "Meilleurs champions (OP.GG)",
@@ -431,6 +447,8 @@
   };
 
   T.de = {
+    opggListedOnly: "OP.GG: nur Daten für {n} Champions (Fähigkeits-Augment oder selten)",
+    opggTop: "OP.GG: Top-Stufe (T1-T2) für {c}", opggNone: "OP.GG hat keine Daten zu diesem Augment", opggAllR2: "OP.GG: Top-Stufe (T1-T2) für {k} von {n} Champions", opggTopCol: "OP.GG T1-T2",
     opggChampWr: "OP.GG ARAM: {wr} Siegrate ({n} Spiele, Stufe {t})", opggWr: "Siegrate (OP.GG)",
     opggTierNote: "Die Stufen stammen von OP.GG (alle Champions), bis du eigene Spiele sammelst.",
     opggAllR: "OP.GG, alle Champions: {s} vs. Median jedes Champions ({n} Champions)", opggScore: "OP.GG-Wert", opggListed: "Champions", opggAllBtn: "OP.GG-Daten für alle Champions laden", opggBestChamps: "Beste Champions (OP.GG)",
@@ -484,6 +502,8 @@
   };
 
   T.it = {
+    opggListedOnly: "OP.GG: dati solo per {n} campioni (potenziamento di abilità o raro)",
+    opggTop: "OP.GG: livello massimo (T1-T2) per {c}", opggNone: "OP.GG non ha dati su questo potenziamento", opggAllR2: "OP.GG: livello massimo (T1-T2) per {k} campioni su {n}", opggTopCol: "OP.GG T1-T2",
     opggChampWr: "OP.GG ARAM: {wr} di vittorie ({n} partite, livello {t})", opggWr: "Vittorie (OP.GG)",
     opggTierNote: "I livelli vengono da OP.GG (tutti i campioni) finché non raccogli le tue partite.",
     opggAllR: "OP.GG, tutti i campioni: {s} vs la mediana di ogni campione ({n} campioni)", opggScore: "Punteggio OP.GG", opggListed: "Campioni", opggAllBtn: "Scarica i dati OP.GG di tutti i campioni", opggBestChamps: "Campioni migliori (OP.GG)",
@@ -537,6 +557,8 @@
   };
 
   T.pl = {
+    opggListedOnly: "OP.GG: dane tylko dla {n} bohaterów (wzmocnienie umiejętności lub rzadkie)",
+    opggTop: "OP.GG: najwyższy poziom (T1-T2) dla {c}", opggNone: "OP.GG nie ma danych o tym wzmocnieniu", opggAllR2: "OP.GG: najwyższy poziom (T1-T2) dla {k} z {n} bohaterów", opggTopCol: "OP.GG T1-T2",
     opggChampWr: "OP.GG ARAM: {wr} wygranych ({n} gier, poziom {t})", opggWr: "Wygrane (OP.GG)",
     opggTierNote: "Poziomy pochodzą z OP.GG (wszyscy bohaterowie), dopóki nie zbierzesz własnych gier.",
     opggAllR: "OP.GG, wszyscy bohaterowie: {s} vs mediana każdego bohatera ({n} bohaterów)", opggScore: "Wynik OP.GG", opggListed: "Bohaterowie", opggAllBtn: "Pobierz dane OP.GG dla wszystkich bohaterów", opggBestChamps: "Najlepsi bohaterowie (OP.GG)",
@@ -590,6 +612,8 @@
   };
 
   T.ru = {
+    opggListedOnly: "OP.GG: данные только для {n} чемпионов (усиление умения или редкое)",
+    opggTop: "OP.GG: высший тир (T1-T2) для {c}", opggNone: "У OP.GG нет данных об этом усилении", opggAllR2: "OP.GG: высший тир (T1-T2) у {k} из {n} чемпионов", opggTopCol: "OP.GG T1-T2",
     opggChampWr: "OP.GG ARAM: {wr} побед ({n} игр, тир {t})", opggWr: "Победы (OP.GG)",
     opggTierNote: "Тиры берутся из OP.GG (все чемпионы), пока вы не соберёте свои игры.",
     opggAllR: "OP.GG, все чемпионы: {s} к медиане каждого чемпиона ({n} чемпионов)", opggScore: "Оценка OP.GG", opggListed: "Чемпионы", opggAllBtn: "Загрузить данные OP.GG для всех чемпионов", opggBestChamps: "Лучшие чемпионы (OP.GG)",
@@ -643,6 +667,8 @@
   };
 
   T.tr = {
+    opggListedOnly: "OP.GG: yalnızca {n} şampiyon için veri var (yetenek güçlendirmesi veya nadir)",
+    opggTop: "OP.GG: {c} için en üst seviye (T1-T2)", opggNone: "OP.GG'de bu güçlendirmenin verisi yok", opggAllR2: "OP.GG: {n} şampiyonun {k} tanesi için en üst seviye (T1-T2)", opggTopCol: "OP.GG T1-T2",
     opggChampWr: "OP.GG ARAM: {wr} kazanma ({n} maç, seviye {t})", opggWr: "Kazanma (OP.GG)",
     opggTierNote: "Kendi maçlarını toplayana kadar seviyeler OP.GG'den (tüm şampiyonlar) gelir.",
     opggAllR: "OP.GG, tüm şampiyonlar: her şampiyonun medyanına göre {s} ({n} şampiyon)", opggScore: "OP.GG puanı", opggListed: "Şampiyon", opggAllBtn: "Tüm şampiyonlar için OP.GG verisini indir", opggBestChamps: "En uygun şampiyonlar (OP.GG)",
@@ -696,6 +722,8 @@
   };
 
   T.vi = {
+    opggListedOnly: "OP.GG: chỉ có dữ liệu cho {n} tướng (lõi kỹ năng hoặc hiếm gặp)",
+    opggTop: "OP.GG: hạng cao nhất (T1-T2) cho {c}", opggNone: "OP.GG không có dữ liệu về lõi này", opggAllR2: "OP.GG: hạng cao nhất (T1-T2) cho {k}/{n} tướng", opggTopCol: "OP.GG T1-T2",
     opggChampWr: "OP.GG ARAM: thắng {wr} ({n} trận, hạng {t})", opggWr: "Tỉ lệ thắng (OP.GG)",
     opggTierNote: "Hạng lấy từ OP.GG (mọi tướng) cho đến khi bạn thu thập trận của mình.",
     opggAllR: "OP.GG, mọi tướng: {s} so với trung vị của từng tướng ({n} tướng)", opggScore: "Điểm OP.GG", opggListed: "Số tướng", opggAllBtn: "Tải dữ liệu OP.GG cho mọi tướng", opggBestChamps: "Tướng hợp nhất (OP.GG)",
@@ -749,6 +777,8 @@
   };
 
   T.th = {
+    opggListedOnly: "OP.GG: มีข้อมูลแค่ {n} แชมเปียน (ออกเมนต์สกิลหรือพบน้อย)",
+    opggTop: "OP.GG: ระดับสูงสุด (T1-T2) สำหรับ {c}", opggNone: "OP.GG ไม่มีข้อมูลออกเมนต์นี้", opggAllR2: "OP.GG: ระดับสูงสุด (T1-T2) สำหรับ {k} จาก {n} แชมเปียน", opggTopCol: "OP.GG T1-T2",
     opggChampWr: "OP.GG ARAM: ชนะ {wr} ({n} เกม, ระดับ {t})", opggWr: "อัตราชนะ (OP.GG)",
     opggTierNote: "ระดับมาจาก OP.GG (ทุกแชมเปียน) จนกว่าคุณจะเก็บเกมของตัวเอง",
     opggAllR: "OP.GG ทุกแชมเปียน: {s} เทียบค่ากลางของแต่ละแชมเปียน ({n} แชมเปียน)", opggScore: "คะแนน OP.GG", opggListed: "จำนวนแชมเปียน", opggAllBtn: "ดาวน์โหลดข้อมูล OP.GG ของทุกแชมเปียน", opggBestChamps: "แชมเปียนที่เข้ากันที่สุด (OP.GG)",
@@ -802,6 +832,8 @@
   };
 
   T.id = {
+    opggListedOnly: "OP.GG: hanya ada data untuk {n} champion (augment skill atau jarang muncul)",
+    opggTop: "OP.GG: tier teratas (T1-T2) untuk {c}", opggNone: "OP.GG tidak punya data augment ini", opggAllR2: "OP.GG: tier teratas (T1-T2) untuk {k} dari {n} champion", opggTopCol: "OP.GG T1-T2",
     opggChampWr: "OP.GG ARAM: win rate {wr} ({n} game, tier {t})", opggWr: "Win rate (OP.GG)",
     opggTierNote: "Tier berasal dari OP.GG (semua champion) sampai kamu mengumpulkan game sendiri.",
     opggAllR: "OP.GG, semua champion: {s} vs median tiap champion ({n} champion)", opggScore: "Skor OP.GG", opggListed: "Champion", opggAllBtn: "Unduh data OP.GG untuk semua champion", opggBestChamps: "Champion terbaik (OP.GG)",

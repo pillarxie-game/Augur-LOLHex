@@ -182,25 +182,28 @@
       return out;
     }
 
-    /* OP.GG across all champions: used when there is nothing for this champion. */
+    /* OP.GG across all champions: tier-based strength (used when there is nothing for this champion). */
     opggAllPart(h) {
       const a = this.opggAll[String(h)];
-      if (!a || a.score == null) return null;
-      return { v: Math.max(-1.5, Math.min(1.5, a.score / 8)), text: this.t("opggAllR", { s: (a.score >= 0 ? "+" : "") + a.score.toFixed(1), n: a.listed }) };
+      if (!a || a.strength == null) return null;
+      if (!a.infer_top) return { v: Math.max(-1.5, Math.min(1.5, a.strength)) * 0.5, src: "opgg",
+                                 text: this.t("opggListedOnly", { n: a.listed }) };
+      return { v: Math.max(-1.5, Math.min(1.5, a.strength)), src: "opgg",
+               text: this.t("opggAllR2", { k: a.top_champs, n: a.top_champs + a.listed }) };
     }
 
     opggTier(h) {
       const a = this.opggAll[String(h)];
-      if (!a || a.score == null) return null;
-      return letter(a.score, [[8, "S+"], [4, "S"], [1.5, "A"], [-1.5, "B"], [-4, "C"], [-Infinity, "D"]]);
+      if (!a || a.strength == null) return null;
+      return letter(a.strength, [[1.4, "S+"], [0.9, "S"], [0.4, "A"], [-0.2, "B"], [-0.5, "C"], [-Infinity, "D"]]);
     }
 
-    /* OP.GG's performance score for this champion, as win-rate points vs the champion's median hex. */
+    /* OP.GG for this champion. OP.GG lists only its tiers 3-5; a hex it tracks but leaves out for this
+       champion is in that champion's top tiers (1-2). The tier counts most; performance is a small adjustment. */
     opggPart(cid, h) {
       const o = this.opgg[String(cid)];
       if (!o || !o.augments) return this.opggAllPart(h);
       if (!o._stats) {
-        // Only hexes OP.GG has a fair sample for set the scale (popular >= 1%).
         const perf = Object.values(o.augments).filter((x) => x[2] >= 0.01).map((x) => x[1]).sort((a, b) => a - b);
         const med = perf[Math.floor(perf.length / 2)] || 0;
         const sd = Math.sqrt(perf.reduce((t, x) => t + (x - med) ** 2, 0) / Math.max(1, perf.length)) || 1;
@@ -208,11 +211,16 @@
       }
       const e = o.augments[String(h)];
       const cname = this.name("champions", cid);
-      if (!e) return this.opggAllPart(h) || { v: 0, text: this.t("opggMissing", { c: cname }) };
+      if (!e) {
+        const known = this.opggAll[String(h)];
+        if (known && known.infer_top) return { v: 2.0, src: "opgg", text: this.t("opggTop", { c: cname }) };
+        return { v: 0, text: this.t("opggNone") };
+      }
       const [tier, perf, pop] = e;
-      const trust = Math.min(1, pop / 0.03); // popularity stands in for OP.GG's sample size
-      const v = trust * Math.max(-2.5, Math.min(2.5, (perf - o._stats.med) / o._stats.sd));
-      return { v, text: this.t("opggR", { c: cname, t: tier, p: perf.toFixed(1), m: o._stats.med.toFixed(1) }) };
+      const tierV = { 3: 0.8, 4: 0, 5: -0.8 }[tier] ?? 0;
+      const trust = Math.min(1, pop / 0.03);
+      const adj = 0.5 * trust * Math.max(-1, Math.min(1, (perf - o._stats.med) / o._stats.sd));
+      return { v: tierV + adj, src: "opgg", text: this.t("opggR", { c: cname, t: tier, p: perf.toFixed(1), m: o._stats.med.toFixed(1) }) };
     }
 
     gradeHex(ctx, h) {
