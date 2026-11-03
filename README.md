@@ -17,7 +17,7 @@ Free, open-source stats and advice for **ARAM: Mayhem** (海克斯大乱斗).
   It also tells you whether a reroll is worth it, grades your next item, grades the ARAM bench in champion select, and keeps a record of your picks ("My games": best / good / OK / missed).
 - **16 languages**: English, 简体中文, 繁體中文, 한국어, 日本語, Español, Português, Français, Deutsch, Italiano, Polski, Русский, Türkçe, Tiếng Việt, ไทย, Bahasa Indonesia. Hex, champion and item names come from the game's own translations; the website and every grade reason are translated.
 
-Everything is free. No Hexdata, OP.GG or WeGame data is used: all statistics are computed from Riot's own match data.
+Everything is free. Statistics come from Riot's own match data, plus **OP.GG's ARAM hex stats** fetched live from [OP.GG's official public data server](https://github.com/opgginc/opgg-mcp) by the local helper. No Hexdata or WeGame data is used.
 
 ## Quick start (Windows)
 
@@ -33,6 +33,17 @@ The website starts **without statistics**. Collect games first (next section), a
 The match helper reads the 3 hex cards from your screen: OCR reads each card's name, and its icon is compared with the official hex icons as a second check. It works at any resolution (tested 720p, 1080p, 1440p, ultrawide) and with clients in any of the 16 languages: names are matched against every translation, Korean and Japanese use extra OCR models (downloaded on first use, about 7 MB), and when a name can't be read (for example Russian, or a very long name) the card's rarity color and icon are used. If Augur isn't sure, it never fills the card in: it shows its 3 best guesses for you to tap. A hex that is no longer in the current pool is reported instead of being guessed.
 
 `start.bat` installs what this needs the first time (`requirements-screen.txt`: Pillow, numpy, RapidOCR, all free and offline). To try it on a saved screenshot: `python -m augur read screenshot.png`. Play in **borderless** or **windowed** mode so screenshots can see the game.
+
+## OP.GG hex data
+
+When you run the local helper (`start.bat`), Augur asks OP.GG's official data server for your champion's ARAM hex stats (tier, performance and popularity) and adds a line to every grade, for example `+0.9 OP.GG: tier 4 for Yasuo, performance 96.5 (median 88.0)`. Answers are cached for 12 hours in `data/opgg/` on your PC. OP.GG data is never saved into this repository or the published website, and the source is credited on the page.
+
+What OP.GG gives and doesn't give:
+- It lists about 95 of the current Mayhem hexes per champion. It **leaves out its own top 2 tiers**, so the strongest hexes show "Not in OP.GG's list", which counts as neutral, not bad.
+- Rarely picked hexes have unreliable scores, so a hex's OP.GG score counts less the less popular it is.
+- Your own collected games count more as they grow, and OP.GG counts less.
+
+Try it: `python -m augur opgg Yasuo`.
 
 ## Collecting games
 
@@ -109,6 +120,7 @@ python -m augur collect-client    collect games (League client, any server)
 python -m augur build             compute stats and build docs/
 python -m augur serve             local match helper (reads your live game and champ select)
 python -m augur info              games per patch
+python -m augur opgg Yasuo        OP.GG's ARAM hex stats for a champion
 python -m augur read [image]      recognize the offered hexes (screenshot file, or the screen now)
 python -m augur tierlist --champ Yasuo
 python -m augur export / import   share games

@@ -10,7 +10,7 @@
   };
 
   const S = { lang: store.get("lang", I18N.best(navigator.language)), game: null, stats: null,
-              personal: null, local: false, grader: null, match: store.get("match", { champ: null, allies: [], enemies: [], owned: [], offers: [], items: [] }) };
+              personal: null, local: false, grader: null, opgg: {}, match: store.get("match", { champ: null, allies: [], enemies: [], owned: [], offers: [], items: [] }) };
   if (!I18N.T[S.lang]) S.lang = "en";
   const T = (k) => I18N.pick(S.lang, k) ?? k;
 
@@ -96,7 +96,15 @@
     makeGrader();
     return true;
   }
-  function makeGrader() { S.grader = new Grader(S.game, S.stats, { lang: S.lang, personal: S.personal }); }
+  function makeGrader() { S.grader = new Grader(S.game, S.stats, { lang: S.lang, personal: S.personal, opgg: S.opgg }); }
+  /* OP.GG hex stats for one champion (local helper only). Calls back once loaded. */
+  async function loadOpgg(cid, then) {
+    if (!S.local || !cid || S.opgg[cid]) return;
+    S.opgg[cid] = { loading: true };
+    const r = await fetch("api/opgg?champ=" + cid).then((x) => x.json()).catch(() => null);
+    if (r && r.augments) { S.opgg[cid] = r; makeGrader(); if (then) then(); }
+    else delete S.opgg[cid];
+  }
   const hasStats = () => (S.stats.meta.total_games || 0) > 0;
 
   /* ---------- pages ---------- */
@@ -172,6 +180,7 @@
   }
 
   function pageChampion(cid) {
+    if (S.local && !S.opgg[cid]) loadOpgg(cid, () => { if (location.hash.startsWith("#/champion/" + cid)) route(); });
     const c = S.game.champions[cid];
     if (!c) return [el("p", {}, "Unknown champion")];
     const g = S.grader, cell = (S.stats.champ || {})[cid];
@@ -385,6 +394,7 @@
     }
 
     function draw(bench) {
+      if (M.champ && S.local && !S.opgg[M.champ]) loadOpgg(M.champ, () => draw(bench));
       const g = S.grader;
       const form = el("div", { class: "panel" }, el("div", { class: "form-grid" },
         el("label", {}, T("yourChamp")), el("div", { class: "chips" },
@@ -542,7 +552,9 @@
     document.getElementById("foot").replaceChildren(
       el("p", {}, `Augur · game data ${S.game.version} · ${hasStats() ? num(m.total_games) + " games" : "no games yet"}`),
       el("p", {}, "Augur isn't endorsed by Riot Games and doesn't reflect the views or opinions of Riot Games or anyone officially involved in producing or managing Riot Games properties. Riot Games, and all associated properties are trademarks or registered trademarks of Riot Games, Inc."),
-      el("p", {}, "Hex descriptions: League of Legends Wiki, CC BY-SA 3.0."));
+      el("p", {}, "Hex descriptions: League of Legends Wiki, CC BY-SA 3.0."),
+      S.local ? el("p", {}, "Lines marked OP.GG: ARAM hex stats from ", el("a", { href: "https://op.gg", target: "_blank", rel: "noopener" }, "OP.GG"),
+        " (official public data server), fetched by your copy of Augur.") : null);
   }
   document.getElementById("lang").addEventListener("change", (e) => {
     S.lang = e.target.value; store.set("lang", S.lang); makeGrader(); chrome(); route();

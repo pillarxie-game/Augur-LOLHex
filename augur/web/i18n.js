@@ -10,6 +10,7 @@
 
   const T = {};
   T.en = {
+    opggR: "OP.GG: tier {t} for {c}, performance {p} (median {m})", opggMissing: "Not in OP.GG's list for {c} (OP.GG leaves out its top 2 tiers)",
     // navigation and pages
     hexes: "Hexes", champions: "Champions", grade: "Match helper", history: "My games", about: "About",
     loading: "Loading…", search: "Search…", all: "All", silver: "Silver", gold: "Gold", prismatic: "Prismatic",
@@ -66,6 +67,7 @@
   };
 
   T.zh = {
+    opggR: "OP.GG：{c} 的 {t} 级，表现分 {p}（中位数 {m}）", opggMissing: "不在 OP.GG 的 {c} 列表中（OP.GG 不公开前两个等级）",
     hexes: "海克斯", champions: "英雄", grade: "对局助手", history: "我的对局", about: "关于",
     loading: "加载中…", search: "搜索…", all: "全部", silver: "白银", gold: "黄金", prismatic: "棱彩",
     tier: "评级", hex: "海克斯", rarity: "品质", winrate: "胜率", delta: "比平均", pickrate: "选取率", games: "场次",
@@ -108,6 +110,7 @@
   };
 
   T["zh-TW"] = {
+    opggR: "OP.GG：{c} 的 {t} 級，表現分 {p}（中位數 {m}）", opggMissing: "不在 OP.GG 的 {c} 列表中（OP.GG 不公開前兩個等級）",
     hexes: "海克斯", champions: "英雄", grade: "對戰助手", history: "我的對戰", about: "關於",
     loading: "載入中…", search: "搜尋…", all: "全部", silver: "白銀", gold: "黃金", prismatic: "稜彩",
     tier: "評級", hex: "海克斯", rarity: "品質", winrate: "勝率", delta: "比平均", pickrate: "選取率", games: "場次",
@@ -150,6 +153,7 @@
   };
 
   T.ko = {
+    opggR: "OP.GG: {c} {t}티어, 성능 {p} (중앙값 {m})", opggMissing: "OP.GG의 {c} 목록에 없음 (OP.GG는 상위 2개 티어를 공개하지 않음)",
     hexes: "증강", champions: "챔피언", grade: "매치 도우미", history: "내 게임", about: "소개",
     loading: "불러오는 중…", search: "검색…", all: "전체", silver: "실버", gold: "골드", prismatic: "프리즘",
     tier: "티어", hex: "증강", rarity: "등급", winrate: "승률", delta: "평균 대비", pickrate: "픽률", games: "게임 수",
@@ -196,6 +200,7 @@
   };
 
   T.ja = {
+    opggR: "OP.GG：{c} でティア {t}、パフォーマンス {p}（中央値 {m}）", opggMissing: "OP.GG の {c} リストにない（OP.GG は上位 2 ティアを公開していません）",
     hexes: "オーグメント", champions: "チャンピオン", grade: "試合アシスト", history: "自分の試合", about: "概要",
     loading: "読み込み中…", search: "検索…", all: "すべて", silver: "シルバー", gold: "ゴールド", prismatic: "プリズム",
     tier: "ティア", hex: "オーグメント", rarity: "レア度", winrate: "勝率", delta: "平均比", pickrate: "ピック率", games: "試合数",
@@ -242,6 +247,7 @@
   };
 
   T.es = {
+    opggR: "OP.GG: nivel {t} para {c}, rendimiento {p} (mediana {m})", opggMissing: "No está en la lista de OP.GG para {c} (OP.GG omite sus 2 niveles más altos)",
     hexes: "Aumentos", champions: "Campeones", grade: "Asistente de partida", history: "Mis partidas", about: "Acerca de",
     loading: "Cargando…", search: "Buscar…", all: "Todos", silver: "Plata", gold: "Oro", prismatic: "Prismático",
     tier: "Nivel", hex: "Aumento", rarity: "Rareza", winrate: "Victorias", delta: "vs media", pickrate: "Elección", games: "Partidas",
@@ -289,6 +295,7 @@
   };
 
   T.pt = {
+    opggR: "OP.GG: tier {t} para {c}, desempenho {p} (mediana {m})", opggMissing: "Não está na lista do OP.GG para {c} (o OP.GG omite seus 2 tiers mais altos)",
     hexes: "Aprimoramentos", champions: "Campeões", grade: "Assistente de partida", history: "Minhas partidas", about: "Sobre",
     loading: "Carregando…", search: "Buscar…", all: "Todos", silver: "Prata", gold: "Ouro", prismatic: "Prismático",
     tier: "Tier", hex: "Aprimoramento", rarity: "Raridade", winrate: "Vitórias", delta: "vs média", pickrate: "Escolha", games: "Partidas",
@@ -336,6 +343,7 @@
   };
 
   T.fr = {
+    opggR: "OP.GG : rang {t} pour {c}, performance {p} (médiane {m})", opggMissing: "Absent de la liste OP.GG pour {c} (OP.GG masque ses 2 meilleurs rangs)",
     hexes: "Augments", champions: "Champions", grade: "Assistant de partie", history: "Mes parties", about: "À propos",
     loading: "Chargement…", search: "Rechercher…", all: "Tous", silver: "Argent", gold: "Or", prismatic: "Prismatique",
     tier: "Rang", hex: "Augment", rarity: "Rareté", winrate: "Victoires", delta: "vs moyenne", pickrate: "Choix", games: "Parties",
@@ -383,6 +391,7 @@
   };
 
   T.de = {
+    opggR: "OP.GG: Stufe {t} für {c}, Leistung {p} (Median {m})", opggMissing: "Nicht in OP.GGs Liste für {c} (OP.GG lässt seine 2 besten Stufen weg)",
     hexes: "Augments", champions: "Champions", grade: "Match-Helfer", history: "Meine Spiele", about: "Info",
     loading: "Lädt…", search: "Suchen…", all: "Alle", silver: "Silber", gold: "Gold", prismatic: "Prismatisch",
     tier: "Stufe", hex: "Augment", rarity: "Seltenheit", winrate: "Siegrate", delta: "vs. Schnitt", pickrate: "Wahlrate", games: "Spiele",
@@ -430,6 +439,7 @@
   };
 
   T.it = {
+    opggR: "OP.GG: livello {t} per {c}, prestazione {p} (mediana {m})", opggMissing: "Non è nella lista di OP.GG per {c} (OP.GG omette i suoi 2 livelli migliori)",
     hexes: "Potenziamenti", champions: "Campioni", grade: "Assistente partita", history: "Le mie partite", about: "Info",
     loading: "Caricamento…", search: "Cerca…", all: "Tutti", silver: "Argento", gold: "Oro", prismatic: "Prismatico",
     tier: "Livello", hex: "Potenziamento", rarity: "Rarità", winrate: "Vittorie", delta: "vs media", pickrate: "Scelta", games: "Partite",
@@ -477,6 +487,7 @@
   };
 
   T.pl = {
+    opggR: "OP.GG: poziom {t} dla {c}, wynik {p} (mediana {m})", opggMissing: "Brak na liście OP.GG dla {c} (OP.GG pomija swoje 2 najwyższe poziomy)",
     hexes: "Wzmocnienia", champions: "Bohaterowie", grade: "Asystent meczu", history: "Moje gry", about: "Informacje",
     loading: "Ładowanie…", search: "Szukaj…", all: "Wszystkie", silver: "Srebrne", gold: "Złote", prismatic: "Pryzmatyczne",
     tier: "Poziom", hex: "Wzmocnienie", rarity: "Rzadkość", winrate: "Wygrane", delta: "vs średnia", pickrate: "Wybór", games: "Gry",
@@ -524,6 +535,7 @@
   };
 
   T.ru = {
+    opggR: "OP.GG: тир {t} для {c}, результативность {p} (медиана {m})", opggMissing: "Нет в списке OP.GG для {c} (OP.GG не показывает свои 2 верхних тира)",
     hexes: "Усиления", champions: "Чемпионы", grade: "Помощник матча", history: "Мои игры", about: "О проекте",
     loading: "Загрузка…", search: "Поиск…", all: "Все", silver: "Серебро", gold: "Золото", prismatic: "Призма",
     tier: "Тир", hex: "Усиление", rarity: "Редкость", winrate: "Победы", delta: "к среднему", pickrate: "Выбор", games: "Игры",
@@ -571,6 +583,7 @@
   };
 
   T.tr = {
+    opggR: "OP.GG: {c} için seviye {t}, performans {p} (medyan {m})", opggMissing: "OP.GG'nin {c} listesinde yok (OP.GG en üst 2 seviyesini göstermiyor)",
     hexes: "Güçlendirmeler", champions: "Şampiyonlar", grade: "Maç yardımcısı", history: "Maçlarım", about: "Hakkında",
     loading: "Yükleniyor…", search: "Ara…", all: "Tümü", silver: "Gümüş", gold: "Altın", prismatic: "Prizmatik",
     tier: "Seviye", hex: "Güçlendirme", rarity: "Nadirlik", winrate: "Kazanma", delta: "ort. göre", pickrate: "Seçilme", games: "Maç",
@@ -618,6 +631,7 @@
   };
 
   T.vi = {
+    opggR: "OP.GG: hạng {t} cho {c}, hiệu suất {p} (trung vị {m})", opggMissing: "Không có trong danh sách OP.GG cho {c} (OP.GG ẩn 2 hạng cao nhất)",
     hexes: "Lõi nâng cấp", champions: "Tướng", grade: "Trợ lý trận đấu", history: "Trận của tôi", about: "Giới thiệu",
     loading: "Đang tải…", search: "Tìm…", all: "Tất cả", silver: "Bạc", gold: "Vàng", prismatic: "Lăng kính",
     tier: "Hạng", hex: "Lõi", rarity: "Độ hiếm", winrate: "Tỉ lệ thắng", delta: "so với TB", pickrate: "Tỉ lệ chọn", games: "Trận",
@@ -665,6 +679,7 @@
   };
 
   T.th = {
+    opggR: "OP.GG: ระดับ {t} สำหรับ {c}, ประสิทธิภาพ {p} (ค่ากลาง {m})", opggMissing: "ไม่อยู่ในรายการ OP.GG ของ {c} (OP.GG ไม่แสดง 2 ระดับสูงสุด)",
     hexes: "ออกเมนต์", champions: "แชมเปียน", grade: "ผู้ช่วยในเกม", history: "เกมของฉัน", about: "เกี่ยวกับ",
     loading: "กำลังโหลด…", search: "ค้นหา…", all: "ทั้งหมด", silver: "เงิน", gold: "ทอง", prismatic: "ปริซึม",
     tier: "ระดับ", hex: "ออกเมนต์", rarity: "ความหายาก", winrate: "อัตราชนะ", delta: "เทียบเฉลี่ย", pickrate: "อัตราเลือก", games: "เกม",
@@ -712,6 +727,7 @@
   };
 
   T.id = {
+    opggR: "OP.GG: tier {t} untuk {c}, performa {p} (median {m})", opggMissing: "Tidak ada di daftar OP.GG untuk {c} (OP.GG tidak menampilkan 2 tier teratasnya)",
     hexes: "Augment", champions: "Champion", grade: "Asisten match", history: "Game saya", about: "Tentang",
     loading: "Memuat…", search: "Cari…", all: "Semua", silver: "Perak", gold: "Emas", prismatic: "Prismatik",
     tier: "Tier", hex: "Augment", rarity: "Kelangkaan", winrate: "Win rate", delta: "vs rata-rata", pickrate: "Pick rate", games: "Game",

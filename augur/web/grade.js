@@ -37,6 +37,7 @@
       this.game = game;
       this.s = stats || {};
       this.me = opts.personal || null;
+      this.opgg = opts.opgg || {}; // champion id -> {augments: {hex id: [tier, performance, popular]}}
       this.lang = I18N.T[opts.lang] ? opts.lang : "en";
       this.g = wr(this.s.global) || 0.5;
       this.features = (this.s.meta && this.s.meta.features) || {};
@@ -166,6 +167,26 @@
       return out;
     }
 
+    /* OP.GG's performance score for this champion, as win-rate points vs the champion's median hex. */
+    opggPart(cid, h) {
+      const o = this.opgg[String(cid)];
+      if (!o || !o.augments) return null;
+      if (!o._stats) {
+        // Only hexes OP.GG has a fair sample for set the scale (popular >= 1%).
+        const perf = Object.values(o.augments).filter((x) => x[2] >= 0.01).map((x) => x[1]).sort((a, b) => a - b);
+        const med = perf[Math.floor(perf.length / 2)] || 0;
+        const sd = Math.sqrt(perf.reduce((t, x) => t + (x - med) ** 2, 0) / Math.max(1, perf.length)) || 1;
+        o._stats = { med, sd };
+      }
+      const e = o.augments[String(h)];
+      const cname = this.name("champions", cid);
+      if (!e) return { v: 0, text: this.t("opggMissing", { c: cname }) };
+      const [tier, perf, pop] = e;
+      const trust = Math.min(1, pop / 0.03); // popularity stands in for OP.GG's sample size
+      const v = trust * Math.max(-2.5, Math.min(2.5, (perf - o._stats.med) / o._stats.sd));
+      return { v, text: this.t("opggR", { c: cname, t: tier, p: perf.toFixed(1), m: o._stats.med.toFixed(1) }) };
+    }
+
     gradeHex(ctx, h) {
       const cid = String(ctx.champ), aug = this.game.augments[String(h)];
       if (!aug) return null;
@@ -183,7 +204,9 @@
       }
       if (n(allCell) > 0) parts.push({ v: (1 - a) * hd, text: this.t("overallR", { d: signed(hd), n: games(n(allCell)) }) });
       else parts.push({ v: 0, text: this.t("noData") });
-      for (const f of this.fitRules(cid, aug)) parts.push({ v: (1 - a) * f.v, text: f.text });
+      const op = this.opggPart(cid, h);
+      if (op) parts.push({ v: (1 - a) * op.v, text: op.text, src: "opgg" });
+      for (const f of this.fitRules(cid, aug)) parts.push({ v: (1 - a) * (op && op.v ? 0.5 : 1) * f.v, text: f.text });
       parts.push(...this.contextParts(cid, h, aug, allies, enemies));
       parts.push(...this.synergyParts(h, aug, owned));
       const round = ctx.round || owned.length + 1;

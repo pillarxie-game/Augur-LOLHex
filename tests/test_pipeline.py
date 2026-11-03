@@ -10,7 +10,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
-from augur import collect, config, db, gamedata, lcu, stats  # noqa: E402
+from augur import collect, config, db, gamedata, lcu, opgg, stats  # noqa: E402
 
 GAME = json.load(open(ROOT / "data" / "gamedata.json", encoding="utf-8"))
 COMPLETED = gamedata.completed_ids(GAME)
@@ -93,6 +93,10 @@ class Pipeline(unittest.TestCase):
         self.assertEqual(db.import_file(con2, out), 3)
         self.assertEqual(db.import_file(con2, out), 0)  # duplicates skipped
         self.assertIsNone(con2.execute("SELECT puuid FROM players LIMIT 1").fetchone()[0])  # ids stripped
+
+    def test_opgg_parse(self):
+        text = 'class Augment: id,tier,performance,popular\nX(Data([Augment(1349,3,80.89,0.2),Augment(1028,5,85,0.19)]))'
+        self.assertEqual(opgg.parse_augments(text), {"1349": [3, 80.89, 0.2], "1028": [5, 85.0, 0.19]})
 
     def test_patch_weights(self):
         con = db.connect(self.cfg)

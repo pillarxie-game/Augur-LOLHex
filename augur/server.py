@@ -10,7 +10,7 @@ from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 
 import io
 
-from . import lcu, net, screen, stats
+from . import lcu, net, opgg, screen, stats
 
 LIVE = "https://127.0.0.1:2999/liveclientdata/allgamedata"
 
@@ -85,6 +85,15 @@ def make_handler(cfg, gamedata):
                 return self.send_json(cs or {"error": "Not in champion select"})
             if path == "/api/screen":
                 return self.read_screen(None)
+            if path == "/api/opgg":
+                from urllib.parse import parse_qs, urlparse
+                champ = (parse_qs(urlparse(self.path).query).get("champ") or [""])[0]
+                if not champ.isdigit():
+                    return self.send_json({"error": "champ id needed"}, 400)
+                try:
+                    return self.send_json(opgg.aram_augments(int(champ)))
+                except Exception as e:
+                    return self.send_json({"error": f"OP.GG unavailable: {e}"})
             if path == "/api/history":
                 rows = []
                 if history_file.exists():

@@ -90,6 +90,9 @@ def main(argv=None):
     i.add_argument("files", nargs="+")
     r = sub.add_parser("read", help="read the 3 offered hexes from screenshots (or the screen now)")
     r.add_argument("files", nargs="*", help="image files; none = take a screenshot now")
+    o = sub.add_parser("opgg", help="show OP.GG's ARAM hex stats for a champion")
+    o.add_argument("champ")
+    o.add_argument("--top", type=int, default=15)
     t = sub.add_parser("tierlist", help="print the best hexes, overall or for one champion")
     t.add_argument("--champ")
     t.add_argument("--top", type=int, default=20)
@@ -145,6 +148,19 @@ def main(argv=None):
                     print(f"   {c['name']:<28} confidence {c['confidence']:.2f} (by {c['how']})")
                 else:
                     print(f"   ?  {c['text'] or ''!r} {c['how'] or 'not recognised'}")
+    elif args.cmd == "opgg":
+        from . import opgg
+        g = need_gamedata(cfg)
+        c = next((c for c in g["champions"].values() if args.champ.lower() in
+                  (c["key"].lower(), c["name"].lower(), *[n.lower() for n in c.get("names", {}).values()])), None)
+        if not c:
+            raise SystemExit(f"Unknown champion {args.champ}")
+        d = opgg.aram_augments(c["id"])
+        rows = sorted(((v[1], v[0], v[2], g["augments"].get(h, {}).get("name", f"(not in Mayhem pool: {h})"))
+                       for h, v in d["augments"].items() if v[2] >= 0.01), reverse=True)
+        print(f"OP.GG ARAM hex stats for {c['name']}: {len(d['augments'])} hexes listed, {len(rows)} with 1%+ popularity (OP.GG leaves out its top 2 tiers)")
+        for perf, tier, pop, name in rows[:args.top]:
+            print(f"  performance {perf:6.1f}  tier {tier}  popular {pop:.2f}  {name}")
     elif args.cmd == "tierlist":
         tierlist(cfg, need_gamedata(cfg), args.champ, args.top)
 
