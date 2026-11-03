@@ -15,7 +15,7 @@ Free, open-source stats and advice for **ARAM: Mayhem** (海克斯大乱斗).
   ```
 
   It also tells you whether a reroll is worth it, grades your next item, grades the ARAM bench in champion select, and keeps a record of your picks ("My games": best / good / OK / missed).
-- English and 中文.
+- **16 languages**: English, 简体中文, 繁體中文, 한국어, 日本語, Español, Português, Français, Deutsch, Italiano, Polski, Русский, Türkçe, Tiếng Việt, ไทย, Bahasa Indonesia. Hex, champion and item names come from the game's own translations; the website and every grade reason are translated.
 
 Everything is free. No Hexdata, OP.GG or WeGame data is used: all statistics are computed from Riot's own match data.
 
@@ -30,7 +30,7 @@ The website starts **without statistics**. Collect games first (next section), a
 
 ## Reading the cards from your screen
 
-The match helper reads the 3 hex cards from your screen: OCR reads each card's name, and its icon is compared with the official hex icons as a second check. It works at any resolution (tested 720p, 1080p, 1440p, ultrawide) and in English and Chinese clients. A hex that is no longer in the current pool is reported instead of being guessed.
+The match helper reads the 3 hex cards from your screen: OCR reads each card's name, and its icon is compared with the official hex icons as a second check. It works at any resolution (tested 720p, 1080p, 1440p, ultrawide) and with clients in any of the 16 languages: names are matched against every translation, Korean and Japanese use extra OCR models (downloaded on first use, about 7 MB), and when a name can't be read (for example Russian, or a very long name) the card's rarity color and icon are used. If Augur isn't sure, it never fills the card in: it shows its 3 best guesses for you to tap. A hex that is no longer in the current pool is reported instead of being guessed.
 
 `start.bat` installs what this needs the first time (`requirements-screen.txt`: Pillow, numpy, RapidOCR, all free and offline). To try it on a saved screenshot: `python -m augur read screenshot.png`. Play in **borderless** or **windowed** mode so screenshots can see the game.
 

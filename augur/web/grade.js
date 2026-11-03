@@ -16,63 +16,7 @@
   const ON_HIT_CASTERS = new Set(["Kayle", "Teemo", "KogMaw", "Varus", "Kennen", "Kaisa", "Gwen", "Nilah"]);
   const STACK_TAGS = ["ap", "ad", "attackspeed", "onhit", "crit", "tank", "heal", "shield", "haste", "ms"];
 
-  const TEXT = {
-    en: {
-      champData: "{c} wins {wr} with it ({n} games, {d} vs {c}'s average)",
-      overall: "All champions: {d} with it ({n} games)",
-      noData: "No games with this hex yet",
-      apOnAd: "AP hex on an AD champion", adOnAp: "AD hex on an AP champion",
-      fitsAp: "Fits an AP champion", fitsAd: "Fits an AD champion",
-      fitsAuto: "Good for a basic-attack champion", noAuto: "Needs basic attacks; {c} doesn't rely on them",
-      noMana: "Mana hex on a champion without mana", fitsTank: "Fits a tank", fitsSupport: "Fits a support",
-      notSupport: "Mostly helps allies; {c} isn't a support",
-      etank: "Enemy has {k} tanks ({names})", eap: "Enemy is mostly magic damage ({k} AP: {names})",
-      ead: "Enemy is mostly physical damage", eheal: "Enemy has healers ({names})",
-      anofront: "Your team has no frontline", fewTanks: "Enemy has few tanks to punish",
-      dataNote: "measured {d} in {n} games",
-      synergy: "With your {h}: {d}", stacks: "Stacks with your {h} ({t})",
-      round: "Picked in round {r}: {d} ({n} games)",
-      personal: "Your record: {w}-{l} with it ({wr}) vs your {avg} overall",
-      disabled: "Currently disabled in the game",
-      reroll: "Reroll {h}: an average new card adds {d} ({p} chance to beat your best card)",
-      noReroll: "No reroll needed: your best card beats {p} of the cards you could get",
-      itemData: "{c} wins {wr} with it ({n} games, {d})", itemAll: "All champions: {d} ({n} games)",
-      slot: "As item #{s}: {d} ({n} games)",
-      apItemAd: "AP item on an AD champion", adItemAp: "AD item on an AP champion",
-      antiheal: "Enemy has healers ({names}) - Grievous Wounds", mrItem: "Enemy is mostly magic damage",
-      armorItem: "Enemy is mostly physical damage", shredItem: "Enemy has {k} tanks ({names})",
-      champWr: "Wins {wr} in Mayhem ({n} games)", champNoData: "No Mayhem games yet",
-      needFront: "Your team has no frontline", needAd: "Your team needs physical damage",
-      needAp: "Your team needs magic damage",
-    },
-    zh: {
-      champData: "{c} 带它胜率 {wr}（{n} 场，比 {c} 平均 {d}）",
-      overall: "全英雄：{d}（{n} 场）",
-      noData: "这个海克斯还没有对局数据",
-      apOnAd: "AP 海克斯，但你是 AD 英雄", adOnAp: "AD 海克斯，但你是 AP 英雄",
-      fitsAp: "适合 AP 英雄", fitsAd: "适合 AD 英雄",
-      fitsAuto: "适合靠普攻输出的英雄", noAuto: "需要普攻，{c} 不靠普攻输出",
-      noMana: "法力值海克斯，但你的英雄没有蓝条", fitsTank: "适合坦克", fitsSupport: "适合辅助",
-      notSupport: "主要增益队友，{c} 不是辅助",
-      etank: "敌方有 {k} 个坦克（{names}）", eap: "敌方主要是魔法伤害（{k} 个 AP：{names}）",
-      ead: "敌方主要是物理伤害", eheal: "敌方有回复英雄（{names}）",
-      anofront: "我方没有前排", fewTanks: "敌方坦克少，效果有限",
-      dataNote: "实测 {d}（{n} 场）",
-      synergy: "搭配你的 {h}：{d}", stacks: "和你的 {h} 叠加（{t}）",
-      round: "第 {r} 轮选：{d}（{n} 场）",
-      personal: "你的战绩：带它 {w} 胜 {l} 负（{wr}），你的总胜率 {avg}",
-      disabled: "游戏中暂时禁用",
-      reroll: "刷新 {h}：新卡平均 {d}（{p} 概率比你最好的卡强）",
-      noReroll: "不用刷新：你最好的卡强于 {p} 的可能新卡",
-      itemData: "{c} 出它胜率 {wr}（{n} 场，{d}）", itemAll: "全英雄：{d}（{n} 场）",
-      slot: "作为第 {s} 件：{d}（{n} 场）",
-      apItemAd: "AP 装备，但你是 AD 英雄", adItemAp: "AD 装备，但你是 AP 英雄",
-      antiheal: "敌方有回复英雄（{names}）——重伤", mrItem: "敌方主要是魔法伤害",
-      armorItem: "敌方主要是物理伤害", shredItem: "敌方有 {k} 个坦克（{names}）",
-      champWr: "大乱斗胜率 {wr}（{n} 场）", champNoData: "还没有对局数据",
-      needFront: "我方没有前排", needAd: "我方缺物理伤害", needAp: "我方缺魔法伤害",
-    },
-  };
+  const I18N = typeof module !== "undefined" && module.exports ? require("./i18n.js") : root.AugurI18n;
 
   const n = (c) => (c ? c[0] : 0);
   const wr = (c) => (c && c[0] > 0 ? c[1] / c[0] : null);
@@ -93,13 +37,13 @@
       this.game = game;
       this.s = stats || {};
       this.me = opts.personal || null;
-      this.lang = opts.lang === "zh" ? "zh" : "en";
+      this.lang = I18N.T[opts.lang] ? opts.lang : "en";
       this.g = wr(this.s.global) || 0.5;
       this.features = (this.s.meta && this.s.meta.features) || {};
     }
 
     t(key, vars) {
-      let s = TEXT[this.lang][key] || TEXT.en[key] || key;
+      let s = I18N.pick(this.lang, key) || key;
       for (const [k, v] of Object.entries(vars || {})) s = s.split("{" + k + "}").join(v);
       return s;
     }
@@ -107,7 +51,7 @@
     name(kind, id) {
       const o = (this.game[kind] || {})[String(id)];
       if (!o) return String(id);
-      return this.lang === "zh" ? o.name_zh || o.name : o.name;
+      return (o.names && o.names[this.lang]) || (this.lang === "zh" && o.name_zh) || o.name;
     }
 
     champ(id) { return this.game.champions[String(id)] || null; }
@@ -237,7 +181,7 @@
         const d = (wr(cell) - cW) * 100;
         parts.push({ v: a * d, text: this.t("champData", { c: cname, wr: pct(wr(cell)), n: games(ng), d: signed(d) }) });
       }
-      if (n(allCell) > 0) parts.push({ v: (1 - a) * hd, text: this.t("overall", { d: signed(hd), n: games(n(allCell)) }) });
+      if (n(allCell) > 0) parts.push({ v: (1 - a) * hd, text: this.t("overallR", { d: signed(hd), n: games(n(allCell)) }) });
       else parts.push({ v: 0, text: this.t("noData") });
       for (const f of this.fitRules(cid, aug)) parts.push({ v: (1 - a) * f.v, text: f.text });
       parts.push(...this.contextParts(cid, h, aug, allies, enemies));
@@ -246,7 +190,7 @@
       const rc = ((this.s.round_all || {})[String(h)] || {})[String(round)];
       if (n(rc) > 0 && n(allCell) > 0) {
         const d = (wr(rc) - wr(allCell)) * 100, v = shrink(n(rc), d, 0, K.round);
-        if (Math.abs(v) >= 0.3) parts.push({ v, text: this.t("round", { r: round, d: signed(d), n: games(n(rc)) }) });
+        if (Math.abs(v) >= 0.3) parts.push({ v, text: this.t("roundR", { r: round, d: signed(d), n: games(n(rc)) }) });
       }
       if (this.me && this.me.hex) {
         const mc = this.me.hex[String(h)];
@@ -323,7 +267,7 @@
           const sc = cell[2] && cell[2][slot];
           if (n(sc) > 0) {
             const sd = (wr(sc) - wr(cell)) * 100, v = shrink(n(sc), sd, 0, K.slot);
-            if (Math.abs(v) >= 0.3) parts.push({ v, text: this.t("slot", { s: slot + 1, d: signed(sd), n: games(n(sc)) }) });
+            if (Math.abs(v) >= 0.3) parts.push({ v, text: this.t("slotR", { s: slot + 1, d: signed(sd), n: games(n(sc)) }) });
           }
         }
         if (n(all) > 0) parts.push({ v: (1 - a) * dAll, text: this.t("itemAll", { d: signed(dAll), n: games(n(all)) }) });

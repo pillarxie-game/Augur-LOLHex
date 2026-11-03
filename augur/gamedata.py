@@ -16,6 +16,16 @@ DDRAGON = "https://ddragon.leagueoflegends.com"
 WIKI = "https://wiki.leagueoflegends.com/en-us/Module:MayhemAugmentData/data?action=raw"
 MODE = "KIWI"  # Riot's internal name for ARAM Mayhem
 
+# UI language -> (CommunityDragon locale, Data Dragon locale)
+LANGS = {
+    "en": ("default", "en_US"), "zh": ("zh_cn", "zh_CN"), "zh-TW": ("zh_tw", "zh_TW"),
+    "ko": ("ko_kr", "ko_KR"), "ja": ("ja_jp", "ja_JP"), "es": ("es_es", "es_ES"),
+    "pt": ("pt_br", "pt_BR"), "fr": ("fr_fr", "fr_FR"), "de": ("de_de", "de_DE"),
+    "it": ("it_it", "it_IT"), "pl": ("pl_pl", "pl_PL"), "ru": ("ru_ru", "ru_RU"),
+    "tr": ("tr_tr", "tr_TR"), "vi": ("vi_vn", "vi_VN"), "th": ("th_th", "th_TH"),
+    "id": ("id_id", "id_ID"),
+}
+
 RARITY = {"kSilver": "silver", "kGold": "gold", "kPrismatic": "prismatic"}
 
 # Champions whose kit heals a lot (for "enemy has healers" advice).
@@ -103,7 +113,14 @@ def fetch_augments(log=print):
         raise RuntimeError(f"No {MODE} hex list found in augment-lists.json")
     pool_names = {p.rsplit("/", 1)[-1].lower() for p in pool}
     en = net.get_json(f"{CDRAGON}/default/v1/cherry-augments.json")
-    zh = {a["id"]: a for a in net.get_json(f"{CDRAGON}/zh_cn/v1/cherry-augments.json")}
+    local = {}
+    for lang, (cd, _) in LANGS.items():
+        if lang == "en":
+            continue
+        try:
+            local[lang] = {a["id"]: a["nameTRA"] for a in net.get_json(f"{CDRAGON}/{cd}/v1/cherry-augments.json")}
+        except Exception as e:
+            log(f"  hex names in {lang} unavailable ({e})")
     try:
         wiki = parse_wiki_module(net.get_text(WIKI))
     except Exception as e:  # descriptions are nice to have, not required
@@ -119,7 +136,8 @@ def fetch_augments(log=print):
             "id": a["id"],
             "api": a["augmentNameId"],
             "name": a["nameTRA"],
-            "name_zh": zh.get(a["id"], {}).get("nameTRA", a["nameTRA"]),
+            "name_zh": local.get("zh", {}).get(a["id"], a["nameTRA"]),
+            "names": {lang: t[a["id"]] for lang, t in local.items() if t.get(a["id"])},
             "rarity": RARITY.get(a["rarity"], a["rarity"]),
             "icon": icon_url(a.get("augmentSmallIconPath")),
             "desc": desc,
@@ -145,7 +163,9 @@ def champion_flags(c):
 
 def fetch_champions(version, log=print):
     en = net.get_json(f"{DDRAGON}/cdn/{version}/data/en_US/champion.json")["data"]
-    zh = net.get_json(f"{DDRAGON}/cdn/{version}/data/zh_CN/champion.json")["data"]
+    local = {lang: net.get_json(f"{DDRAGON}/cdn/{version}/data/{dd}/champion.json")["data"]
+             for lang, (_, dd) in LANGS.items() if lang != "en"}
+    zh = local["zh"]
     out = {}
     for key, c in en.items():
         info = c["info"]
@@ -155,6 +175,8 @@ def fetch_champions(version, log=print):
             "name": c["name"],
             "name_zh": zh.get(key, {}).get("name", c["name"]),
             "title_zh": zh.get(key, {}).get("title", ""),
+            "names": {lang: t[key]["name"] for lang, t in local.items() if key in t},
+            "titles": {"en": c["title"], **{lang: t[key]["title"] for lang, t in local.items() if key in t}},
             "tags": c["tags"],
             "partype": c["partype"],
             "ap": round(info["magic"] / max(1, info["attack"] + info["magic"]), 2),
@@ -178,7 +200,9 @@ def item_tags(item):
 
 def fetch_items(version, log=print):
     en = net.get_json(f"{DDRAGON}/cdn/{version}/data/en_US/item.json")["data"]
-    zh = net.get_json(f"{DDRAGON}/cdn/{version}/data/zh_CN/item.json")["data"]
+    local = {lang: net.get_json(f"{DDRAGON}/cdn/{version}/data/{dd}/item.json")["data"]
+             for lang, (_, dd) in LANGS.items() if lang != "en"}
+    zh = local["zh"]
     out = {}
     for iid, it in en.items():
         if not it.get("maps", {}).get("12") or not it["gold"].get("purchasable"):
@@ -193,6 +217,7 @@ def fetch_items(version, log=print):
             "id": int(iid),
             "name": it["name"],
             "name_zh": zh.get(iid, {}).get("name", it["name"]),
+            "names": {lang: t[iid]["name"] for lang, t in local.items() if iid in t},
             "gold": it["gold"]["total"],
             "tags": tags,
             "completed": completed,
@@ -219,6 +244,7 @@ def update(cfg, log=print):
     log(f"  game version {version}")
     data = {
         "version": version,
+        "langs": list(LANGS),
         "updated": time.strftime("%Y-%m-%d"),
         "augments": fetch_augments(log),
         "champions": fetch_champions(version, log),

@@ -3,75 +3,16 @@
   "use strict";
   const { Grader, wr, smooth, K } = window.AugurGrade;
 
-  const UI = {
-    en: {
-      hexes: "Hexes", champions: "Champions", grade: "Match helper", history: "My games", about: "About",
-      loading: "Loading…", search: "Search…", all: "All", silver: "Silver", gold: "Gold", prismatic: "Prismatic",
-      tier: "Tier", hex: "Hex", rarity: "Rarity", winrate: "Win rate", delta: "vs avg", pickrate: "Pick rate", games: "Games",
-      champion: "Champion", noStats: "No game data yet.",
-      noStatsHelp: "Run a collector (see README), then <code>python -m augur build</code>. Hex names and descriptions below still work.",
-      demo: "DEMO DATA - these numbers come from fake test games, not real matches.",
-      hexListTitle: "ARAM Mayhem hex tier list", hexListSub: "Win rate of every hex across all champions. Tier = how much it adds to win rate.",
-      champsTitle: "Champions", bestHexes: "Best hexes", worstHexes: "Worst hexes", bestCombos: "Best hex combos",
-      items: "Items", itemOrder: "Most bought by slot", slot: "Item", grade_: "Grade", popularity: "Bought",
-      bestChamps: "Best champions with it", worstChamps: "Worst champions with it", partners: "Best partners",
-      byRound: "Win rate by pick round", round: "Round", desc: "What it does",
-      overall: "Overall", lift: "Lift",
-      yourChamp: "Your champion", allies: "Allies", enemies: "Enemies", owned: "Your hexes", offers: "Offered hexes",
-      ownedItems: "Your items", addHex: "Add a hex…", addItem: "Add an item…", pickChamp: "Champion…",
-      clear: "Clear", fromGame: "Load from game", follow: "Follow game", champSelect: "Champion select",
-      pickThis: "I picked this", gradesFor: "Grades for this match", nextItems: "Next item",
-      enterOffers: "Enter the 3 hexes you are offered to grade them.", enterChamp: "Pick your champion first.",
-      bench: "Bench grades", benchHelp: "Your champion and the bench, graded for your team.",
-      local: "Local helper connected", noGame: "No game running", noClient: "League client not found",
-      historyTitle: "My hex decisions", historyEmpty: "No saved decisions yet. Use \"I picked this\" in the match helper.",
-      verdict: { best: "Best", good: "Good", ok: "OK", missed: "Missed" },
-      picked: "Picked", bestWas: "Best was", confidence: { high: "lots of data", medium: "some data", low: "little data" },
-      openOpgg: "OP.GG", aboutTitle: "About Augur",
-      games_n: "{n} games", patch: "Patch",
-      readScreen: "Read cards from screen", autoRead: "Auto-read", dropShot: "or paste / drop a screenshot here",
-      reading: "Reading…", readNone: "No hex cards found on screen.", readSome: "Read {n} of 3 cards.",
-      notInPool: "\"{t}\" isn't in the current hex list (removed or renamed?) - add it by hand.",
-    },
-    zh: {
-      hexes: "海克斯", champions: "英雄", grade: "对局助手", history: "我的对局", about: "关于",
-      loading: "加载中…", search: "搜索…", all: "全部", silver: "白银", gold: "黄金", prismatic: "棱彩",
-      tier: "评级", hex: "海克斯", rarity: "品质", winrate: "胜率", delta: "比平均", pickrate: "选取率", games: "场次",
-      champion: "英雄", noStats: "还没有对局数据。",
-      noStatsHelp: "先运行数据收集（见 README），再运行 <code>python -m augur build</code>。下方海克斯名称和说明仍可查看。",
-      demo: "演示数据——这些数字来自测试用的假对局，不是真实比赛。",
-      hexListTitle: "海克斯大乱斗 海克斯排行", hexListSub: "每个海克斯在全英雄中的胜率。评级 = 它让胜率提高多少。",
-      champsTitle: "英雄", bestHexes: "最佳海克斯", worstHexes: "最差海克斯", bestCombos: "最佳海克斯组合",
-      items: "装备", itemOrder: "各格位最常出", slot: "第几件", grade_: "评分", popularity: "出装率",
-      bestChamps: "最适合的英雄", worstChamps: "最不适合的英雄", partners: "最佳搭配",
-      byRound: "各轮选取胜率", round: "轮次", desc: "效果",
-      overall: "总体", lift: "提升",
-      yourChamp: "你的英雄", allies: "队友", enemies: "敌方", owned: "已有海克斯", offers: "可选海克斯",
-      ownedItems: "已有装备", addHex: "添加海克斯…", addItem: "添加装备…", pickChamp: "英雄…",
-      clear: "清空", fromGame: "从游戏读取", follow: "自动跟随", champSelect: "选人阶段",
-      pickThis: "我选了这个", gradesFor: "本局评分", nextItems: "下一件装备",
-      enterOffers: "输入你看到的 3 个海克斯来评分。", enterChamp: "先选择你的英雄。",
-      bench: "备选席评分", benchHelp: "你的英雄和备选席英雄，按你的队伍评分。",
-      local: "本地助手已连接", noGame: "没有进行中的游戏", noClient: "没找到英雄联盟客户端",
-      historyTitle: "我的海克斯选择", historyEmpty: "还没有记录。在对局助手中点「我选了这个」。",
-      verdict: { best: "最佳", good: "不错", ok: "一般", missed: "失误" },
-      picked: "选了", bestWas: "最佳是", confidence: { high: "数据充足", medium: "数据一般", low: "数据较少" },
-      openOpgg: "OP.GG", aboutTitle: "关于 Augur",
-      games_n: "{n} 场", patch: "版本",
-      readScreen: "从屏幕读取海克斯", autoRead: "自动读取", dropShot: "或在这里粘贴 / 拖入截图",
-      reading: "读取中…", readNone: "屏幕上没有找到海克斯卡。", readSome: "读到 {n}/3 张卡。",
-      notInPool: "「{t}」不在当前海克斯列表中（可能已移除或改名），请手动添加。",
-    },
-  };
-
+  const I18N = window.AugurI18n;
   const store = {
     get(k, d) { try { const v = localStorage.getItem("augur." + k); return v == null ? d : JSON.parse(v); } catch (e) { return d; } },
     set(k, v) { try { localStorage.setItem("augur." + k, JSON.stringify(v)); } catch (e) { /* private mode */ } },
   };
 
-  const S = { lang: store.get("lang", (navigator.language || "").startsWith("zh") ? "zh" : "en"), game: null, stats: null,
+  const S = { lang: store.get("lang", I18N.best(navigator.language)), game: null, stats: null,
               personal: null, local: false, grader: null, match: store.get("match", { champ: null, allies: [], enemies: [], owned: [], offers: [], items: [] }) };
-  const T = (k) => UI[S.lang][k] ?? UI.en[k] ?? k;
+  if (!I18N.T[S.lang]) S.lang = "en";
+  const T = (k) => I18N.pick(S.lang, k) ?? k;
 
   /* ---------- tiny DOM helpers ---------- */
   function el(tag, attrs, ...kids) {
@@ -91,7 +32,10 @@
   const signed = (x) => el("span", { class: x >= 0 ? "pos" : "neg" }, (x >= 0 ? "+" : "") + x.toFixed(1));
   const num = (x) => Math.round(x).toLocaleString();
   const gradeBadge = (g, big) => el("span", { class: "grade g-" + g.replace("+", "plus") + (big ? " big" : "") }, g);
-  const nameOf = (kind, id) => { const o = S.game[kind][String(id)]; return o ? (S.lang === "zh" ? o.name_zh || o.name : o.name) : String(id); };
+  const nameOf = (kind, id) => {
+    const o = S.game[kind][String(id)];
+    return o ? (o.names && o.names[S.lang]) || (S.lang === "zh" && o.name_zh) || o.name : String(id);
+  };
   const n = (c) => (c ? c[0] : 0);
 
   /* ---------- table with sortable columns ---------- */
@@ -121,9 +65,10 @@
     const entries = Object.values(S.game[kind]).filter(filter || (() => true));
     const byLabel = new Map();
     const list = el("datalist", { id }, entries.map((o) => {
-      const label = S.lang === "zh" ? `${o.name_zh} · ${o.name}` : o.name;
-      byLabel.set(label.toLowerCase(), o.id); byLabel.set(o.name.toLowerCase(), o.id);
-      if (o.name_zh) byLabel.set(o.name_zh.toLowerCase(), o.id);
+      const local = nameOf(kind, o.id);
+      const label = local !== o.name ? `${local} · ${o.name}` : o.name;
+      byLabel.set(label.toLowerCase(), o.id);
+      for (const n of [o.name, o.name_zh, ...Object.values(o.names || {})]) if (n) byLabel.set(n.toLowerCase(), o.id);
       return el("option", { value: label });
     }));
     const input = el("input", { list: id, placeholder, autocomplete: "off" });
@@ -161,7 +106,7 @@
     const box = el("div");
     function draw() {
       const rows = Object.values(S.game.augments).filter((a) => (rarity === "all" || a.rarity === rarity)
-        && (!term || a.name.toLowerCase().includes(term) || (a.name_zh || "").includes(term))).map((a) => {
+        && (!term || [a.name, ...Object.values(a.names || {})].some((n) => n.toLowerCase().includes(term)))).map((a) => {
         const c = S.stats.hex_all ? S.stats.hex_all[a.id] : null;
         const d = g.hexAllDelta(a.id);
         return { a, name: nameOf("augments", a.id), tierv: hasStats() ? d : 0, tier: hasStats() && n(c) ? g.hexTier(a.id) : "-",
@@ -196,7 +141,7 @@
       el("div", { class: "stat" }, el("b", {}, num(m.total_games)), el("span", {}, T("games"))),
       el("div", { class: "stat" }, el("b", {}, patches[0] || "-"), el("span", {}, T("patch"))),
       el("div", { class: "stat" }, el("b", {}, Object.keys(S.game.augments).length), el("span", {}, T("hexes"))),
-      el("div", { class: "stat" }, el("b", {}, (m.generated || "").slice(0, 10)), el("span", {}, "updated")));
+      el("div", { class: "stat" }, el("b", {}, (m.generated || "").slice(0, 10)), el("span", {}, T("updated"))));
   }
 
   function pageChampions() {
@@ -204,7 +149,7 @@
     const box = el("div", { class: "grid" });
     const g = S.grader;
     function draw() {
-      const list = Object.values(S.game.champions).filter((c) => !term || c.name.toLowerCase().includes(term) || c.name_zh.includes(term))
+      const list = Object.values(S.game.champions).filter((c) => !term || [c.name, ...Object.values(c.names || {})].some((n) => n.toLowerCase().includes(term)))
         .map((c) => ({ c, cell: (S.stats.champ || {})[c.id] }))
         .sort((a, b) => (hasStats() ? (g.champWR(b.c.id) - g.champWR(a.c.id)) : nameOf("champions", a.c.id).localeCompare(nameOf("champions", b.c.id))));
       box.replaceChildren(...list.map(({ c, cell }) => el("a", { class: "card-champ", href: `#/champion/${c.id}` },
@@ -281,14 +226,14 @@
     return [
       el("div", { class: "row", style: "margin-top:20px" },
         el("div", { class: "ent big" }, el("img", { src: c.icon, alt: "", width: 64, height: 64 }),
-          el("div", {}, el("h1", { style: "margin:0" }, nameOf("champions", cid)), el("div", { class: "muted" }, S.lang === "zh" ? c.title_zh : c.tags.join(" · ")))),
+          el("div", {}, el("h1", { style: "margin:0" }, nameOf("champions", cid)), el("div", { class: "muted" }, (c.titles && c.titles[S.lang]) || c.tags.join(" · ")))),
         el("div", { class: "grow" }), el("a", { class: "btn", href: opgg, target: "_blank", rel: "noopener" }, T("openOpgg") + " ↗"),
         el("a", { class: "btn", href: `#/grade?champ=${cid}` }, T("grade") + " →")),
       el("div", { class: "stats" },
         el("div", { class: "stat" }, el("b", {}, n(cell) ? pct(wr(cell)) : "-"), el("span", {}, T("winrate"))),
         el("div", { class: "stat" }, el("b", {}, num(n(cell))), el("span", {}, T("games"))),
-        el("div", { class: "stat" }, el("b", {}, prof && prof.ap != null ? Math.round(prof.ap * 100) + "%" : Math.round(c.ap * 100) + "%"), el("span", {}, "AP damage")),
-        el("div", { class: "stat" }, el("b", {}, prof ? prof.taken.toFixed(2) + "×" : "-"), el("span", {}, "damage taken vs avg"))),
+        el("div", { class: "stat" }, el("b", {}, prof && prof.ap != null ? Math.round(prof.ap * 100) + "%" : Math.round(c.ap * 100) + "%"), el("span", {}, T("apDamage"))),
+        el("div", { class: "stat" }, el("b", {}, prof ? prof.taken.toFixed(2) + "×" : "-"), el("span", {}, T("takenVsAvg")))),
       el("h2", {}, T("bestHexes")), tabs, best,
       pairs.length ? [el("h2", {}, T("bestCombos")), table(comboCols, pairs, "lift")] : null,
       el("div", { class: "cols" }, el("div", {}, el("h2", {}, T("items")), table(itemCols, items, "total")),
@@ -340,7 +285,7 @@
       el("div", { class: "row", style: "margin-top:20px" },
         el("div", { class: "ent big" }, el("img", { src: a.icon, alt: "", width: 64, height: 64 }),
           el("div", {}, el("h1", { style: "margin:0" }, nameOf("augments", hid)),
-            el("span", { class: "rar rar-" + a.rarity }, T(a.rarity)), S.lang === "zh" ? el("span", { class: "muted" }, " · " + a.name) : null)),
+            el("span", { class: "rar rar-" + a.rarity }, T(a.rarity)), S.lang !== "en" && nameOf("augments", hid) !== a.name ? el("span", { class: "muted" }, " · " + a.name) : null)),
         el("div", { class: "grow" }), n(all) ? gradeBadge(g.hexTier(hid), true) : null),
       el("div", { class: "stats" },
         el("div", { class: "stat" }, el("b", {}, n(all) ? pct(wr(all)) : "-"), el("span", {}, T("winrate"))),
@@ -372,7 +317,7 @@
     return el("div", { class: "result" + (isBest ? " best" : "") },
       el("div", { class: "result-head" }, img(r.icon), el("div", { class: "grow" },
         el("div", {}, el("b", {}, r.name)), el("span", { class: "rar rar-" + (r.rarity || "") }, r.rarity ? T(r.rarity) : ""),
-        r.confidence ? el("span", { class: "muted small" }, " · " + UI[S.lang].confidence[r.confidence]) : null),
+        r.confidence ? el("span", { class: "muted small" }, " · " + T("confidence")[r.confidence]) : null),
         el("div", { style: "text-align:center" }, gradeBadge(r.grade, true), r.score != null ? el("div", { class: "muted small" }, Math.round(r.score)) : null)),
       el("ul", { class: "reasons" }, r.parts.slice(0, 7).map((p) =>
         el("li", {}, el("span", { class: "v " + (p.v >= 0 ? "pos" : "neg") }, (p.v >= 0 ? "+" : "") + p.v.toFixed(1)), el("span", {}, p.text)))),
@@ -402,15 +347,17 @@
       M.champ = r.champ; M.allies = r.allies; M.enemies = r.enemies; M.items = r.items;
       saveMatch(); draw();
     }
-    let readTimer = null, readNote = "", lastSig = "";
+    let readTimer = null, readNote = "", lastSig = "", readChoices = [];
     async function applyRead(r, silent) {
       if (!r || r.error) { readNote = r ? r.error : T("noClient"); draw(); return; }
       const ids = r.cards.filter((c) => c.id).map((c) => c.id);
-      const unknown = r.cards.filter((c) => !c.id && c.how === "not in hex list").map((c) => T("notInPool").replace("{t}", c.text));
-      if (silent && (!ids.length || ids.join() === lastSig)) return; // nothing new on screen
-      lastSig = ids.join();
-      if (ids.length) M.offers = ids.filter((h) => !M.owned.map(String).includes(String(h))).slice(0, 3);
-      readNote = [ids.length ? T("readSome").replace("{n}", ids.length) : T("readNone"), ...unknown].join(" ");
+      const choices = r.cards.map((c, i) => ({ n: i + 1, text: c.text, alts: c.alternatives || [] })).filter((c, i) => !r.cards[i].id && c.alts.length);
+      const sig = ids.join() + "|" + choices.map((c) => c.alts.join()).join("|");
+      if (silent && (!r.on_screen || sig === lastSig)) return; // nothing new on screen
+      lastSig = sig;
+      if (ids.length || choices.length) M.offers = ids.filter((h) => !M.owned.map(String).includes(String(h))).slice(0, 3);
+      readChoices = choices;
+      readNote = r.on_screen ? T("readSome").replace("{n}", ids.length) : T("readNone");
       saveMatch(); draw();
     }
     async function readScreen(silent) {
@@ -456,7 +403,7 @@
           S.local ? el("button", { type: "button", onclick: benchNow }, T("champSelect")) : null,
           S.local ? el("button", { type: "button", class: "primary", onclick: () => readScreen(false) }, T("readScreen")) : null,
           S.local ? el("label", { class: "row small" }, el("input", { type: "checkbox", checked: !!readTimer, onchange: (e) => {
-            clearInterval(readTimer); readTimer = e.target.checked ? setInterval(() => readScreen(true), 2500) : null;
+            clearInterval(readTimer); readTimer = e.target.checked ? setInterval(() => readScreen(true), 4000) : null;
           } }), T("autoRead")) : null,
           el("div", { class: "grow" }),
           el("button", { type: "button", class: "ghost", onclick: () => { S.match = { champ: null, allies: [], enemies: [], owned: [], offers: [], items: [] }; Object.assign(M, S.match); saveMatch(); draw(); } }, T("clear"))));
@@ -467,7 +414,13 @@
           ondragover: (e) => { e.preventDefault(); drop.classList.add("over"); },
           ondragleave: () => drop.classList.remove("over"),
           ondrop: (e) => { e.preventDefault(); drop.classList.remove("over"); const f = e.dataTransfer.files[0]; if (f) readImage(f); } },
-          readNote ? el("b", { class: "", style: "color:var(--text)" }, readNote) : null, readNote ? " · " : null, T("dropShot"));
+          readNote ? el("b", { class: "", style: "color:var(--text)" }, readNote) : null, readNote ? " · " : null, T("dropShot"),
+          readChoices.map((c) => el("div", { class: "choice" },
+            T("unsureCard").replace("{n}", c.n).replace("{t}", c.text ? ` ("${c.text}")` : ""), " ",
+            c.alts.map((h) => el("button", { type: "button", onclick: () => {
+              if (M.offers.length < 3 && !M.offers.map(String).includes(String(h))) M.offers.push(h);
+              readChoices = readChoices.filter((x) => x !== c); saveMatch(); draw();
+            } }, chip("augments", h))))));
         out.push(drop);
       }
       if (bench) {
@@ -520,13 +473,13 @@
         return { e, best, mine, v, gap, t: e.time };
       });
       box.replaceChildren(
-        el("div", { class: "stats" }, Object.entries(counts).map(([k, c]) => el("div", { class: "stat" }, el("b", {}, c), el("span", {}, UI[S.lang].verdict[k])))),
+        el("div", { class: "stats" }, Object.entries(counts).map(([k, c]) => el("div", { class: "stat" }, el("b", {}, c), el("span", {}, T("verdict")[k])))),
         table([
           { label: "", key: "t", render: (r) => new Date(r.t).toLocaleString() },
           { label: T("champion"), cls: "name", render: (r) => el("span", { class: "ent" }, img((S.game.champions[r.e.champ] || {}).icon), nameOf("champions", r.e.champ)) },
           { label: T("picked"), cls: "name", render: (r) => el("span", {}, gradeBadge(r.mine.grade), " ", nameOf("augments", r.mine.id)) },
           { label: T("bestWas"), cls: "name", render: (r) => (r.v === "best" ? "-" : el("span", {}, gradeBadge(r.best.grade), " ", nameOf("augments", r.best.id))) },
-          { label: "", key: "gap", render: (r) => el("b", { class: r.v === "missed" ? "neg" : r.v === "best" ? "pos" : "" }, UI[S.lang].verdict[r.v]) },
+          { label: "", key: "gap", render: (r) => el("b", { class: r.v === "missed" ? "neg" : r.v === "best" ? "pos" : "" }, T("verdict")[r.v]) },
         ], rows, "t"));
     })();
     return [el("h1", {}, T("historyTitle")), box];
@@ -534,7 +487,7 @@
 
   function pageAbout() {
     const m = S.stats.meta;
-    const zh = S.lang === "zh";
+    const zh = S.lang === "zh" || S.lang === "zh-TW";
     return [el("h1", {}, T("aboutTitle")), el("div", { class: "panel" }, el("div", { html: zh ? `
       <p><b>Augur</b> 是免费开源的海克斯大乱斗工具：海克斯排行、英雄海克斯和出装，以及对局中每张海克斯卡的评分和理由。</p>
       <h3>数据从哪里来</h3>
@@ -578,10 +531,12 @@
     window.scrollTo(0, 0);
   }
   function chrome() {
-    document.documentElement.lang = S.lang === "zh" ? "zh-CN" : "en";
+    document.documentElement.lang = S.lang === "zh" ? "zh-CN" : S.lang;
     document.getElementById("nav").replaceChildren(...ROUTES.filter((r) => r[1] !== "history" || S.local || store.get("history", []).length)
       .map((r) => el("a", { href: "#/" + r[0], "data-r": r[0] }, T(r[1]))));
-    document.getElementById("lang").textContent = S.lang === "zh" ? "English" : "中文";
+    const sel = document.getElementById("lang");
+    sel.replaceChildren(...Object.entries(I18N.LANGS).map(([code, label]) => el("option", { value: code, selected: code === S.lang }, label)));
+    sel.title = T("language");
     const m = S.stats.meta;
     document.getElementById("banner").replaceChildren(m.demo ? el("div", { class: "banner warn" }, "⚠ " + T("demo")) : "");
     document.getElementById("foot").replaceChildren(
@@ -589,8 +544,8 @@
       el("p", {}, "Augur isn't endorsed by Riot Games and doesn't reflect the views or opinions of Riot Games or anyone officially involved in producing or managing Riot Games properties. Riot Games, and all associated properties are trademarks or registered trademarks of Riot Games, Inc."),
       el("p", {}, "Hex descriptions: League of Legends Wiki, CC BY-SA 3.0."));
   }
-  document.getElementById("lang").addEventListener("click", () => {
-    S.lang = S.lang === "zh" ? "en" : "zh"; store.set("lang", S.lang); makeGrader(); chrome(); route();
+  document.getElementById("lang").addEventListener("change", (e) => {
+    S.lang = e.target.value; store.set("lang", S.lang); makeGrader(); chrome(); route();
   });
   window.addEventListener("hashchange", route);
   load().then((ok) => { if (ok) { chrome(); route(); } });

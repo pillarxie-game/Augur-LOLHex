@@ -144,3 +144,6 @@ img[src*="/augments/"] { background: #1d2430; border-radius: 8px; }
 
 .dropzone { margin-top: 12px; padding: 14px; border: 1.5px dashed var(--line); border-radius: var(--radius); text-align: center; }
 .dropzone.over { border-color: var(--accent); background: var(--panel-2); }
+.choice { margin-top: 10px; color: var(--text); display: flex; flex-wrap: wrap; gap: 6px; align-items: center; justify-content: center; }
+.choice button { padding: 2px; border-radius: 999px; }
+#lang { max-width: 150px; }
