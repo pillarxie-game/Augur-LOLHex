@@ -214,24 +214,34 @@ def read_cards(image, cfg, gamedata, use_ocr=None):
     if use_ocr is None:
         use_ocr = ocr_engine() is not None
     rarity = detect_rarity(rgb, W, H)
+    scores = [icon_scores(gray, W / 2 + k * CARD_DX * H, H, icons) for k in (-1, 0, 1)]
+    # Cheap check first: no card-like icons means no selection screen, so skip the slow OCR.
+    if sum(1 for isc in scores if max(isc.values()) >= 0.6) < 2:
+        empty = {"text": None, "id": None, "name": None, "confidence": 0.0, "how": None, "alternatives": [], "is_card": False}
+        return {"cards": [dict(empty) for _ in range(3)], "found": 0, "on_screen": False,
+                "ocr": use_ocr, "rarity": None, "size": [W, H]}
+    sig = _signature(gray, W, H)
+    if _last.get("sig") is not None and _last["sig"].shape == sig.shape and _last.get("use_ocr") == use_ocr \
+            and np.abs(_last["sig"] - sig).max() < 40:  # no area changed visibly (a new name or icon would)
+        return _last["result"]  # same cards as last time
     cards = []
-    for k in (-1, 0, 1):
+    for k, isc in zip((-1, 0, 1), scores):
         cx = W / 2 + k * CARD_DX * H
-        isc = icon_scores(gray, cx, H, icons)
         pool = [h for h in isc if not rarity or by_id[h]["rarity"] == rarity]
         lo, hi = np.percentile([isc[h] for h in pool], 50), max(isc[h] for h in pool)
         icon_rel = {h: max(0.0, (isc[h] - lo) / (hi - lo + 1e-9)) for h in pool}
         rows, sims = [], {}
         if use_ocr:
-            for lang in ["default", *EXTRA_OCR]:
+            for lang in ["default", *[l for l in cfg.get("ocr_extra", EXTRA_OCR) if l in EXTRA_OCR]]:
                 got = read_rows(rgb, cx, H, lang) or []
                 rows += got
                 sims = text_similarity(rows, gamedata)
-                if max((sims[h] for h in pool), default=0) >= 0.8:
+                if max(sims.values(), default=0) >= 0.8:
                     break  # name read clearly; no need for other scripts
         text = rows[0] if rows else ("" if use_ocr else None)
         card = {"text": text, "id": None, "name": None, "confidence": 0.0, "how": None, "alternatives": []}
-        ranked_text = sorted(pool, key=lambda h: -sims.get(h, 0))
+        # A clearly read name wins whatever the frame color says; rarity only narrows icon matching.
+        ranked_text = sorted(sims or pool, key=lambda h: -sims.get(h, 0))
         best_t = sims.get(ranked_text[0], 0) if ranked_text else 0
         # 1) the name alone is clear
         if best_t >= 0.75:
@@ -263,8 +273,19 @@ def read_cards(image, cfg, gamedata, use_ocr=None):
             card["name"] = by_id[card["id"]]["name"]
         cards.append(card)
     on_screen = sum(1 for c in cards if c["id"] or c["is_card"]) >= 2
-    return {"cards": cards, "found": sum(1 for c in cards if c["id"]), "on_screen": on_screen,
-            "ocr": use_ocr, "rarity": rarity if on_screen else None, "size": [W, H]}
+    result = {"cards": cards, "found": sum(1 for c in cards if c["id"]), "on_screen": on_screen,
+              "ocr": use_ocr, "rarity": rarity if on_screen else None, "size": [W, H]}
+    _last.update(sig=sig, result=result, use_ocr=use_ocr)
+    return result
+
+
+_last = {}
+
+
+def _signature(gray, W, H):
+    """Thumbnail of the three cards' icon and name area, to spot an unchanged screen (e.g. between checks)."""
+    box = (int(W / 2 - 1.2 * H * CARD_DX), int(0.15 * H), int(W / 2 + 1.2 * H * CARD_DX), int(0.55 * H))
+    return np.asarray(gray.crop(box).resize((360, 120), Image.BILINEAR), dtype=float)
 
 
 def grab():

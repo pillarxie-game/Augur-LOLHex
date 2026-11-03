@@ -1,0 +1,3 @@
+# Everything the desktop app (Augur.exe) needs.
+-r requirements-screen.txt
+pywebview

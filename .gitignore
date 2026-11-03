@@ -14,3 +14,6 @@ data/icons/
 tests/screens/
 data/ocr/
 data/opgg/
+build/
+dist/
+*.spec.bak

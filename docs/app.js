@@ -92,6 +92,9 @@
     S.stats = S.stats || { meta: { total_games: 0, patches: {} } };
     const ping = await get("api/ping");
     S.local = !!(ping && ping.ok);
+    S.settings = (ping && ping.settings) || {};
+    S.desktop = !!(ping && ping.desktop);
+    if (S.settings.ui_lang && I18N.T[S.settings.ui_lang] && !store.get("lang", null)) S.lang = S.settings.ui_lang;
     if (S.local) S.personal = await get("api/me");
     makeGrader();
     return true;
@@ -521,16 +524,156 @@
     ];
   }
 
+  /* ---------- settings (local helper / desktop app) ---------- */
+  function pageSettings() {
+    if (!S.local) return [el("p", { class: "muted" }, T("noClient"))];
+    const st = Object.assign({}, S.settings);
+    const msg = el("span", { class: "muted small" });
+    const row = (label, input) => [el("label", {}, label), el("div", {}, input)];
+    const check = (key) => el("input", { type: "checkbox", checked: !!st[key], onchange: (e) => { st[key] = e.target.checked; } });
+    const lines = (key) => el("textarea", { rows: 3, style: "width:100%", oninput: (e) => {
+      st[key] = e.target.value.split("\n").map((x) => x.trim()).filter(Boolean); } }, (st[key] || []).join("\n"));
+    const langSel = el("select", { onchange: (e) => { st.ui_lang = e.target.value; } },
+      Object.entries(I18N.LANGS).map(([c, l]) => el("option", { value: c, selected: c === (st.ui_lang || S.lang) }, l)));
+    const posSel = el("select", { onchange: (e) => { st.overlay_position = e.target.value; } },
+      [["top-right", "posTR"], ["top-left", "posTL"], ["bottom-right", "posBR"], ["bottom-left", "posBL"]].map(([v, k]) =>
+        el("option", { value: v, selected: v === st.overlay_position }, T(k))));
+    const interval = el("input", { type: "number", min: 1, max: 30, step: 1, value: st.read_interval || 3, style: "width:80px",
+      oninput: (e) => { st.read_interval = Number(e.target.value) || 3; } });
+    const opacity = el("input", { type: "range", min: 0.3, max: 1, step: 0.05, value: st.overlay_opacity || 0.92,
+      oninput: (e) => { st.overlay_opacity = Number(e.target.value); } });
+    const ocr = el("div", { class: "row" }, [["ko", "한국어"], ["ja", "日本語"]].map(([c, l]) => el("label", { class: "row small" },
+      el("input", { type: "checkbox", checked: (st.ocr_extra || []).includes(c), onchange: (e) => {
+        const set = new Set(st.ocr_extra || []); e.target.checked ? set.add(c) : set.delete(c); st.ocr_extra = [...set]; } }), l)));
+    async function save() {
+      const body = {};
+      for (const k of ["ui_lang", "auto_read", "read_interval", "overlay", "overlay_position", "overlay_opacity", "use_opgg", "my_riot_ids", "lockfile_paths", "ocr_extra"])
+        if (st[k] !== undefined && st[k] !== null) body[k] = st[k];
+      const r = await fetch("api/settings", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) })
+        .then((x) => x.json()).catch(() => ({ error: "offline" }));
+      if (r.error) { msg.textContent = r.error; return; }
+      S.settings = r;
+      if (r.ui_lang && r.ui_lang !== S.lang) { S.lang = r.ui_lang; store.set("lang", S.lang); makeGrader(); chrome(); route(); return; }
+      msg.textContent = T("sSaved");
+    }
+    const jobBox = el("pre", { class: "small muted", style: "white-space:pre-wrap;max-height:200px;overflow:auto" });
+    async function job(name) {
+      await fetch("api/" + name, { method: "POST" }).catch(() => null);
+      const poll = async () => {
+        const j = await fetch("api/job").then((x) => x.json()).catch(() => null);
+        if (!j) return;
+        const cur = j[name];
+        jobBox.textContent = (cur.running ? T("sRunning") + "\n" : "") + cur.log.join("\n") + (cur.error ? "\n" + cur.error : "")
+          + (!cur.running && !cur.error ? "\n" + T("sDone") : "");
+        if (cur.running) setTimeout(poll, 1500);
+        else if (name !== "settings") { S.stats = await fetch("data/stats.json", { cache: "no-cache" }).then((x) => x.json()).catch(() => S.stats); makeGrader(); }
+      };
+      poll();
+    }
+    return [el("h1", {}, T("settings")),
+      el("div", { class: "panel" }, el("div", { class: "form-grid" },
+        row(T("language"), langSel),
+        row(T("sReading"), el("div", {}, el("label", { class: "row" }, check("auto_read"), T("sAutoRead")),
+          el("div", { class: "row small", style: "margin-top:6px" }, T("sInterval"), interval),
+          S.settings.ocr_available === false ? el("p", { class: "neg small" }, T("sNoOcr")) : null)),
+        row(T("sOcr"), ocr),
+        row("Overlay", el("div", {}, el("label", { class: "row" }, check("overlay"), T("sOverlay")),
+          el("div", { class: "row small", style: "margin-top:6px" }, T("sPosition"), posSel),
+          el("div", { class: "row small", style: "margin-top:6px" }, T("sOpacity"), opacity))),
+        row("OP.GG", el("label", { class: "row" }, check("use_opgg"), T("sOpgg"))),
+        row("Riot ID", lines("my_riot_ids")), el("div"), el("p", { class: "muted small", style: "margin:0" }, T("sRiotIds")),
+        row("Lockfile", lines("lockfile_paths")), el("div"), el("p", { class: "muted small", style: "margin:0" }, T("sLockfile"))),
+        el("div", { class: "row", style: "margin-top:12px" }, el("button", { type: "button", class: "primary", onclick: save }, T("sSave")), msg)),
+      el("h2", {}, T("sData")),
+      el("div", { class: "panel" },
+        el("p", { class: "small" }, T("sDataFolder"), " ", el("code", {}, S.settings.data_folder || "")),
+        el("p", { class: "muted small" }, T("sCollectHelp")),
+        el("div", { class: "row" }, el("button", { type: "button", class: "primary", onclick: () => job("collect") }, T("sCollect")),
+          el("button", { type: "button", onclick: () => job("build") }, T("sRebuild"))),
+        jobBox)];
+  }
+
+  /* ---------- overlay: small always-on-top window with the grades ---------- */
+  function pageOverlay(q) {
+    const box = el("div", { class: "ov" }, el("p", { class: "muted small" }, T("ovWaiting")));
+    const call = (fn, ...a) => { try { const api = window.pywebview && window.pywebview.api; if (api && api[fn]) api[fn](...a); } catch (e) { /* not in the app */ } };
+    let misses = 0, lastLive = 0, lastIds = "";
+    const opacity = () => (S.settings && S.settings.overlay_opacity) || 0.92;
+
+    function render(sc) {
+      const M = store.get("match", { champ: null, allies: [], enemies: [], owned: [], offers: [], items: [] });
+      const ids = sc.cards.filter((c) => c.id).map((c) => c.id);
+      if (!M.champ) { box.replaceChildren(el("p", { class: "small" }, T("ovSetChamp"))); return; }
+      if (S.local && !S.opgg[M.champ]) loadOpgg(M.champ, () => render(sc));
+      const res = S.grader.gradeOffers({ champ: M.champ, allies: M.allies, enemies: M.enemies, owned: M.owned, items: M.items, offers: ids });
+      const totals = res.offers.map((o) => o.total);
+      const best = totals.length && Math.max(...totals) - Math.min(...totals) > 0.05 ? Math.max(...totals) : null;
+      const rows = res.offers.map((o) => el("button", { type: "button", class: "ov-row" + (o.total === best ? " best" : ""), title: T("pickThis"),
+        onclick: () => {
+          const m = store.get("match", M); m.owned = [...(m.owned || []), o.id].slice(0, 6); store.set("match", m);
+          const entry = { time: Date.now(), champ: m.champ, allies: m.allies, enemies: m.enemies, owned: M.owned,
+                          offers: res.offers.map((x) => ({ id: x.id, total: x.total, grade: x.grade })), picked: o.id };
+          fetch("api/history", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(entry) }).catch(() => {});
+          call("hide");
+        } },
+        gradeBadge(o.grade), el("span", { class: "ov-text" }, el("b", {}, o.name),
+          o.parts.filter((p, i) => i === 0 || Math.abs(p.v) >= 0.3).slice(0, 2).map((p) => el("span", { class: "ov-why " + (p.v > 0.05 ? "pos" : p.v < -0.05 ? "neg" : "muted") },
+            (p.v >= 0 ? "+" : "") + p.v.toFixed(1) + " " + p.text)))));
+      const unsure = sc.cards.filter((c) => !c.id && (c.alternatives || []).length).map((c) =>
+        el("div", { class: "ov-why muted" }, "? " + c.alternatives.map((h) => nameOf("augments", h)).join(" / ")));
+      box.replaceChildren(el("div", { class: "ov-head small muted" }, nameOf("champions", M.champ)), ...rows, ...unsure,
+        res.reroll ? el("div", { class: "ov-why ov-reroll" }, res.reroll.text) : null);
+      box.style.opacity = opacity();
+    }
+
+    async function tick() {
+      if (!location.hash.startsWith("#/overlay")) return;
+      const st = S.settings || {};
+      if (st.overlay === false) { call("hide"); setTimeout(tick, 5000); return; }
+      try {
+        if (Date.now() - lastLive > 10000) {
+          lastLive = Date.now();
+          const r = await fetch("api/live").then((x) => x.json()).catch(() => null);
+          if (r && !r.error && r.champ) {
+            const m = store.get("match", { owned: [], offers: [], items: [] });
+            if (m.champ !== r.champ) m.owned = []; // a new game
+            Object.assign(m, { champ: r.champ, allies: r.allies, enemies: r.enemies, items: r.items });
+            store.set("match", m);
+            if (S.local && !S.opgg[r.champ]) loadOpgg(r.champ);
+          }
+        }
+        // ?test=<image> reads that picture instead of the screen (for trying the overlay without a game)
+        const shot = q && q.test ? await fetch(q.test).then((x) => x.blob()).catch(() => null) : null;
+        const sc = st.auto_read === false ? null
+          : await fetch("api/screen", shot ? { method: "POST", body: shot } : {}).then((x) => x.json()).catch(() => null);
+        if (sc && sc.on_screen) {
+          misses = 0;
+          const sig = sc.cards.map((c) => c.id).join();
+          if (sig !== lastIds) { lastIds = sig; render(sc); }
+          call("show");
+        } else if (++misses >= 2) {
+          lastIds = ""; call("hide");
+          box.replaceChildren(el("p", { class: "muted small" }, T("ovWaiting")));
+        }
+      } catch (e) { /* keep watching */ }
+      setTimeout(tick, Math.max(1, st.read_interval || 3) * 1000);
+    }
+    setTimeout(tick, 500);
+    return [box];
+  }
+
   /* ---------- router ---------- */
   const ROUTES = [
     ["", "hexes", pageHexes], ["champions", "champions", pageChampions], ["grade", "grade", pageGrade],
-    ["history", "history", pageHistory], ["about", "about", pageAbout],
+    ["history", "history", pageHistory], ["settings", "settings", pageSettings], ["about", "about", pageAbout],
+    ["overlay", "overlay", pageOverlay],
   ];
   async function route() {
     const [path, qs] = location.hash.replace(/^#\/?/, "").split("?");
     const q = Object.fromEntries(new URLSearchParams(qs || ""));
     const [head, arg] = path.split("/");
     const app = document.getElementById("app");
+    document.body.classList.toggle("is-overlay", head === "overlay");
     let view;
     if (head === "champion") view = pageChampion(arg);
     else if (head === "hex") view = pageHex(arg);
@@ -542,7 +685,8 @@
   }
   function chrome() {
     document.documentElement.lang = S.lang === "zh" ? "zh-CN" : S.lang;
-    document.getElementById("nav").replaceChildren(...ROUTES.filter((r) => r[1] !== "history" || S.local || store.get("history", []).length)
+    document.getElementById("nav").replaceChildren(...ROUTES.filter((r) => r[1] !== "overlay" && (r[1] !== "settings" || S.local)
+      && (r[1] !== "history" || S.local || store.get("history", []).length))
       .map((r) => el("a", { href: "#/" + r[0], "data-r": r[0] }, T(r[1]))));
     const sel = document.getElementById("lang");
     sel.replaceChildren(...Object.entries(I18N.LANGS).map(([code, label]) => el("option", { value: code, selected: code === S.lang }, label)));

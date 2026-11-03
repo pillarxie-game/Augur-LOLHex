@@ -1,4 +1,5 @@
 # Optional: read the offered hex cards from your screen.
+# On macOS older than 13.4 also run: pip install "onnxruntime==1.16.3" "numpy<2"
 pillow
-numpy<2
+numpy
 rapidocr_onnxruntime

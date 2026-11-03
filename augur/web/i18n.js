@@ -10,6 +10,7 @@
 
   const T = {};
   T.en = {
+    settings: "Settings", sAutoRead: "Read the hex cards from the screen automatically", sInterval: "Check every (seconds)", sOverlay: "Show the overlay window during games", sPosition: "Overlay position", posTR: "Top right", posTL: "Top left", posBR: "Bottom right", posBL: "Bottom left", sOpacity: "Overlay opacity", sOpgg: "Use OP.GG's ARAM hex stats in grades", sOcr: "Extra card-reading languages", sRiotIds: "Your Riot IDs (Name#TAG), one per line - for your own record", sLockfile: "League client lockfile location, one per line", sSave: "Save", sSaved: "Saved.", sData: "Data", sDataFolder: "Your data is stored in", sCollect: "Collect games from the League client", sCollectHelp: "Open and log in to the League client first. This takes a while; you can keep using Augur.", sRebuild: "Rebuild stats", sRunning: "Working…", sDone: "Done.", ovWaiting: "Waiting for hex cards…", ovSetChamp: "Pick your champion in the main window, or start a game.", sNoOcr: "Screen reading isn't available on this computer.", sReading: "Card reading",
     opggR: "OP.GG: tier {t} for {c}, performance {p} (median {m})", opggMissing: "Not in OP.GG's list for {c} (OP.GG leaves out its top 2 tiers)",
     // navigation and pages
     hexes: "Hexes", champions: "Champions", grade: "Match helper", history: "My games", about: "About",
@@ -67,6 +68,7 @@
   };
 
   T.zh = {
+    settings: "设置", sAutoRead: "自动从屏幕读取海克斯卡", sInterval: "检查间隔（秒）", sOverlay: "游戏中显示悬浮窗", sPosition: "悬浮窗位置", posTR: "右上", posTL: "左上", posBR: "右下", posBL: "左下", sOpacity: "悬浮窗透明度", sOpgg: "评分中使用 OP.GG 的大乱斗海克斯数据", sOcr: "额外识别语言", sRiotIds: "你的 Riot ID（名字#标签），每行一个——用于你自己的战绩", sLockfile: "英雄联盟客户端 lockfile 位置，每行一个", sSave: "保存", sSaved: "已保存。", sData: "数据", sDataFolder: "你的数据保存在", sCollect: "从英雄联盟客户端收集对局", sCollectHelp: "请先打开并登录客户端。需要一段时间，期间可以继续使用 Augur。", sRebuild: "重新计算统计", sRunning: "处理中…", sDone: "完成。", ovWaiting: "等待海克斯卡出现…", ovSetChamp: "在主窗口选择你的英雄，或开始一局游戏。", sNoOcr: "这台电脑无法使用屏幕识别。", sReading: "卡片识别",
     opggR: "OP.GG：{c} 的 {t} 级，表现分 {p}（中位数 {m}）", opggMissing: "不在 OP.GG 的 {c} 列表中（OP.GG 不公开前两个等级）",
     hexes: "海克斯", champions: "英雄", grade: "对局助手", history: "我的对局", about: "关于",
     loading: "加载中…", search: "搜索…", all: "全部", silver: "白银", gold: "黄金", prismatic: "棱彩",
@@ -110,6 +112,7 @@
   };
 
   T["zh-TW"] = {
+    settings: "設定", sAutoRead: "自動從螢幕讀取海克斯卡", sInterval: "檢查間隔（秒）", sOverlay: "遊戲中顯示浮動視窗", sPosition: "浮動視窗位置", posTR: "右上", posTL: "左上", posBR: "右下", posBL: "左下", sOpacity: "浮動視窗透明度", sOpgg: "評分中使用 OP.GG 的 ARAM 海克斯資料", sOcr: "額外辨識語言", sRiotIds: "你的 Riot ID（名稱#標籤），每行一個——用於你自己的戰績", sLockfile: "英雄聯盟客戶端 lockfile 位置，每行一個", sSave: "儲存", sSaved: "已儲存。", sData: "資料", sDataFolder: "你的資料儲存在", sCollect: "從英雄聯盟客戶端收集對戰", sCollectHelp: "請先開啟並登入客戶端。需要一段時間，期間可以繼續使用 Augur。", sRebuild: "重新計算統計", sRunning: "處理中…", sDone: "完成。", ovWaiting: "等待海克斯卡出現…", ovSetChamp: "在主視窗選擇你的英雄，或開始一場遊戲。", sNoOcr: "這台電腦無法使用螢幕辨識。", sReading: "卡片辨識",
     opggR: "OP.GG：{c} 的 {t} 級，表現分 {p}（中位數 {m}）", opggMissing: "不在 OP.GG 的 {c} 列表中（OP.GG 不公開前兩個等級）",
     hexes: "海克斯", champions: "英雄", grade: "對戰助手", history: "我的對戰", about: "關於",
     loading: "載入中…", search: "搜尋…", all: "全部", silver: "白銀", gold: "黃金", prismatic: "稜彩",
@@ -153,6 +156,7 @@
   };
 
   T.ko = {
+    settings: "설정", sAutoRead: "화면에서 증강 카드를 자동으로 읽기", sInterval: "확인 간격(초)", sOverlay: "게임 중 오버레이 창 표시", sPosition: "오버레이 위치", posTR: "오른쪽 위", posTL: "왼쪽 위", posBR: "오른쪽 아래", posBL: "왼쪽 아래", sOpacity: "오버레이 불투명도", sOpgg: "등급에 OP.GG의 칼바람 증강 데이터 사용", sOcr: "추가 카드 인식 언어", sRiotIds: "내 Riot ID (이름#태그), 한 줄에 하나 - 내 기록용", sLockfile: "리그 오브 레전드 클라이언트 lockfile 위치, 한 줄에 하나", sSave: "저장", sSaved: "저장했습니다.", sData: "데이터", sDataFolder: "내 데이터 저장 위치", sCollect: "리그 오브 레전드 클라이언트에서 게임 수집", sCollectHelp: "먼저 클라이언트를 열고 로그인하세요. 시간이 걸리며, 그동안 Augur를 계속 쓸 수 있습니다.", sRebuild: "통계 다시 계산", sRunning: "처리 중…", sDone: "완료.", ovWaiting: "증강 카드를 기다리는 중…", ovSetChamp: "메인 창에서 챔피언을 고르거나 게임을 시작하세요.", sNoOcr: "이 컴퓨터에서는 화면 인식을 사용할 수 없습니다.", sReading: "카드 인식",
     opggR: "OP.GG: {c} {t}티어, 성능 {p} (중앙값 {m})", opggMissing: "OP.GG의 {c} 목록에 없음 (OP.GG는 상위 2개 티어를 공개하지 않음)",
     hexes: "증강", champions: "챔피언", grade: "매치 도우미", history: "내 게임", about: "소개",
     loading: "불러오는 중…", search: "검색…", all: "전체", silver: "실버", gold: "골드", prismatic: "프리즘",
@@ -200,6 +204,7 @@
   };
 
   T.ja = {
+    settings: "設定", sAutoRead: "画面からオーグメントカードを自動で読む", sInterval: "確認間隔（秒）", sOverlay: "ゲーム中にオーバーレイを表示", sPosition: "オーバーレイの位置", posTR: "右上", posTL: "左上", posBR: "右下", posBL: "左下", sOpacity: "オーバーレイの不透明度", sOpgg: "評価に OP.GG の ARAM オーグメントデータを使う", sOcr: "追加のカード読み取り言語", sRiotIds: "自分の Riot ID（名前#タグ）、1 行に 1 つ - 自分の戦績用", sLockfile: "LoL クライアントの lockfile の場所、1 行に 1 つ", sSave: "保存", sSaved: "保存しました。", sData: "データ", sDataFolder: "データの保存先", sCollect: "LoL クライアントから試合を集める", sCollectHelp: "先にクライアントを開いてログインしてください。時間がかかりますが、その間も Augur を使えます。", sRebuild: "統計を再計算", sRunning: "処理中…", sDone: "完了。", ovWaiting: "オーグメントカードを待っています…", ovSetChamp: "メインウィンドウでチャンピオンを選ぶか、ゲームを始めてください。", sNoOcr: "このコンピューターでは画面読み取りを使えません。", sReading: "カード読み取り",
     opggR: "OP.GG：{c} でティア {t}、パフォーマンス {p}（中央値 {m}）", opggMissing: "OP.GG の {c} リストにない（OP.GG は上位 2 ティアを公開していません）",
     hexes: "オーグメント", champions: "チャンピオン", grade: "試合アシスト", history: "自分の試合", about: "概要",
     loading: "読み込み中…", search: "検索…", all: "すべて", silver: "シルバー", gold: "ゴールド", prismatic: "プリズム",
@@ -247,6 +252,7 @@
   };
 
   T.es = {
+    settings: "Ajustes", sAutoRead: "Leer las cartas de aumento de la pantalla automáticamente", sInterval: "Comprobar cada (segundos)", sOverlay: "Mostrar la ventana superpuesta durante las partidas", sPosition: "Posición de la ventana", posTR: "Arriba a la derecha", posTL: "Arriba a la izquierda", posBR: "Abajo a la derecha", posBL: "Abajo a la izquierda", sOpacity: "Opacidad de la ventana", sOpgg: "Usar los datos de aumentos de ARAM de OP.GG en las notas", sOcr: "Idiomas extra para leer cartas", sRiotIds: "Tus Riot ID (Nombre#TAG), uno por línea - para tu historial", sLockfile: "Ubicación del lockfile del cliente de League, una por línea", sSave: "Guardar", sSaved: "Guardado.", sData: "Datos", sDataFolder: "Tus datos se guardan en", sCollect: "Recoger partidas del cliente de League", sCollectHelp: "Abre e inicia sesión en el cliente primero. Tarda un rato; puedes seguir usando Augur.", sRebuild: "Recalcular estadísticas", sRunning: "Trabajando…", sDone: "Hecho.", ovWaiting: "Esperando cartas de aumento…", ovSetChamp: "Elige tu campeón en la ventana principal o empieza una partida.", sNoOcr: "La lectura de pantalla no está disponible en este ordenador.", sReading: "Lectura de cartas",
     opggR: "OP.GG: nivel {t} para {c}, rendimiento {p} (mediana {m})", opggMissing: "No está en la lista de OP.GG para {c} (OP.GG omite sus 2 niveles más altos)",
     hexes: "Aumentos", champions: "Campeones", grade: "Asistente de partida", history: "Mis partidas", about: "Acerca de",
     loading: "Cargando…", search: "Buscar…", all: "Todos", silver: "Plata", gold: "Oro", prismatic: "Prismático",
@@ -295,6 +301,7 @@
   };
 
   T.pt = {
+    settings: "Configurações", sAutoRead: "Ler as cartas de aprimoramento da tela automaticamente", sInterval: "Verificar a cada (segundos)", sOverlay: "Mostrar a janela sobreposta durante as partidas", sPosition: "Posição da janela", posTR: "Canto superior direito", posTL: "Canto superior esquerdo", posBR: "Canto inferior direito", posBL: "Canto inferior esquerdo", sOpacity: "Opacidade da janela", sOpgg: "Usar os dados de aprimoramentos de ARAM do OP.GG nas notas", sOcr: "Idiomas extras para ler cartas", sRiotIds: "Seus Riot IDs (Nome#TAG), um por linha - para seu histórico", sLockfile: "Local do lockfile do cliente do League, um por linha", sSave: "Salvar", sSaved: "Salvo.", sData: "Dados", sDataFolder: "Seus dados ficam em", sCollect: "Coletar partidas do cliente do League", sCollectHelp: "Abra e entre no cliente primeiro. Demora um pouco; você pode continuar usando o Augur.", sRebuild: "Recalcular estatísticas", sRunning: "Trabalhando…", sDone: "Pronto.", ovWaiting: "Aguardando cartas de aprimoramento…", ovSetChamp: "Escolha seu campeão na janela principal ou comece uma partida.", sNoOcr: "A leitura de tela não está disponível neste computador.", sReading: "Leitura de cartas",
     opggR: "OP.GG: tier {t} para {c}, desempenho {p} (mediana {m})", opggMissing: "Não está na lista do OP.GG para {c} (o OP.GG omite seus 2 tiers mais altos)",
     hexes: "Aprimoramentos", champions: "Campeões", grade: "Assistente de partida", history: "Minhas partidas", about: "Sobre",
     loading: "Carregando…", search: "Buscar…", all: "Todos", silver: "Prata", gold: "Ouro", prismatic: "Prismático",
@@ -343,6 +350,7 @@
   };
 
   T.fr = {
+    settings: "Paramètres", sAutoRead: "Lire automatiquement les cartes d'augment à l'écran", sInterval: "Vérifier toutes les (secondes)", sOverlay: "Afficher la fenêtre superposée pendant les parties", sPosition: "Position de la fenêtre", posTR: "En haut à droite", posTL: "En haut à gauche", posBR: "En bas à droite", posBL: "En bas à gauche", sOpacity: "Opacité de la fenêtre", sOpgg: "Utiliser les données d'augments ARAM d'OP.GG dans les notes", sOcr: "Langues de lecture supplémentaires", sRiotIds: "Vos Riot ID (Nom#TAG), un par ligne - pour votre bilan", sLockfile: "Emplacement du lockfile du client League, un par ligne", sSave: "Enregistrer", sSaved: "Enregistré.", sData: "Données", sDataFolder: "Vos données sont dans", sCollect: "Collecter des parties depuis le client League", sCollectHelp: "Ouvrez le client et connectez-vous d'abord. Cela prend un moment ; vous pouvez continuer à utiliser Augur.", sRebuild: "Recalculer les stats", sRunning: "En cours…", sDone: "Terminé.", ovWaiting: "En attente des cartes d'augment…", ovSetChamp: "Choisissez votre champion dans la fenêtre principale ou lancez une partie.", sNoOcr: "La lecture d'écran n'est pas disponible sur cet ordinateur.", sReading: "Lecture des cartes",
     opggR: "OP.GG : rang {t} pour {c}, performance {p} (médiane {m})", opggMissing: "Absent de la liste OP.GG pour {c} (OP.GG masque ses 2 meilleurs rangs)",
     hexes: "Augments", champions: "Champions", grade: "Assistant de partie", history: "Mes parties", about: "À propos",
     loading: "Chargement…", search: "Rechercher…", all: "Tous", silver: "Argent", gold: "Or", prismatic: "Prismatique",
@@ -391,6 +399,7 @@
   };
 
   T.de = {
+    settings: "Einstellungen", sAutoRead: "Augment-Karten automatisch vom Bildschirm lesen", sInterval: "Prüfen alle (Sekunden)", sOverlay: "Overlay-Fenster im Spiel anzeigen", sPosition: "Overlay-Position", posTR: "Oben rechts", posTL: "Oben links", posBR: "Unten rechts", posBL: "Unten links", sOpacity: "Overlay-Deckkraft", sOpgg: "OP.GGs ARAM-Augment-Daten in Noten nutzen", sOcr: "Zusätzliche Lesesprachen", sRiotIds: "Deine Riot-IDs (Name#TAG), eine pro Zeile - für deine Bilanz", sLockfile: "Ort der League-Client-Lockfile, einer pro Zeile", sSave: "Speichern", sSaved: "Gespeichert.", sData: "Daten", sDataFolder: "Deine Daten liegen in", sCollect: "Spiele aus dem League-Client sammeln", sCollectHelp: "Öffne zuerst den Client und melde dich an. Das dauert etwas; du kannst Augur weiter nutzen.", sRebuild: "Statistik neu berechnen", sRunning: "Arbeite…", sDone: "Fertig.", ovWaiting: "Warte auf Augment-Karten…", ovSetChamp: "Wähle deinen Champion im Hauptfenster oder starte ein Spiel.", sNoOcr: "Bildschirmlesen ist auf diesem Computer nicht verfügbar.", sReading: "Kartenlesen",
     opggR: "OP.GG: Stufe {t} für {c}, Leistung {p} (Median {m})", opggMissing: "Nicht in OP.GGs Liste für {c} (OP.GG lässt seine 2 besten Stufen weg)",
     hexes: "Augments", champions: "Champions", grade: "Match-Helfer", history: "Meine Spiele", about: "Info",
     loading: "Lädt…", search: "Suchen…", all: "Alle", silver: "Silber", gold: "Gold", prismatic: "Prismatisch",
@@ -439,6 +448,7 @@
   };
 
   T.it = {
+    settings: "Impostazioni", sAutoRead: "Leggi automaticamente le carte potenziamento dallo schermo", sInterval: "Controlla ogni (secondi)", sOverlay: "Mostra la finestra sovrapposta durante le partite", sPosition: "Posizione della finestra", posTR: "In alto a destra", posTL: "In alto a sinistra", posBR: "In basso a destra", posBL: "In basso a sinistra", sOpacity: "Opacità della finestra", sOpgg: "Usa i dati dei potenziamenti ARAM di OP.GG nei voti", sOcr: "Lingue di lettura aggiuntive", sRiotIds: "I tuoi Riot ID (Nome#TAG), uno per riga - per il tuo storico", sLockfile: "Posizione del lockfile del client di League, una per riga", sSave: "Salva", sSaved: "Salvato.", sData: "Dati", sDataFolder: "I tuoi dati sono in", sCollect: "Raccogli partite dal client di League", sCollectHelp: "Apri il client e accedi prima. Richiede un po'; puoi continuare a usare Augur.", sRebuild: "Ricalcola statistiche", sRunning: "In corso…", sDone: "Fatto.", ovWaiting: "In attesa delle carte potenziamento…", ovSetChamp: "Scegli il campione nella finestra principale o avvia una partita.", sNoOcr: "La lettura dello schermo non è disponibile su questo computer.", sReading: "Lettura carte",
     opggR: "OP.GG: livello {t} per {c}, prestazione {p} (mediana {m})", opggMissing: "Non è nella lista di OP.GG per {c} (OP.GG omette i suoi 2 livelli migliori)",
     hexes: "Potenziamenti", champions: "Campioni", grade: "Assistente partita", history: "Le mie partite", about: "Info",
     loading: "Caricamento…", search: "Cerca…", all: "Tutti", silver: "Argento", gold: "Oro", prismatic: "Prismatico",
@@ -487,6 +497,7 @@
   };
 
   T.pl = {
+    settings: "Ustawienia", sAutoRead: "Automatycznie odczytuj karty wzmocnień z ekranu", sInterval: "Sprawdzaj co (sekundy)", sOverlay: "Pokazuj nakładkę w trakcie gry", sPosition: "Położenie nakładki", posTR: "Prawy górny róg", posTL: "Lewy górny róg", posBR: "Prawy dolny róg", posBL: "Lewy dolny róg", sOpacity: "Przezroczystość nakładki", sOpgg: "Używaj danych wzmocnień ARAM z OP.GG w ocenach", sOcr: "Dodatkowe języki odczytu", sRiotIds: "Twoje Riot ID (Nazwa#TAG), jedno w wierszu - do twojego bilansu", sLockfile: "Położenie pliku lockfile klienta League, jedno w wierszu", sSave: "Zapisz", sSaved: "Zapisano.", sData: "Dane", sDataFolder: "Twoje dane są w", sCollect: "Zbierz gry z klienta League", sCollectHelp: "Najpierw otwórz klienta i się zaloguj. To trochę potrwa; możesz dalej używać Augur.", sRebuild: "Przelicz statystyki", sRunning: "Pracuję…", sDone: "Gotowe.", ovWaiting: "Czekam na karty wzmocnień…", ovSetChamp: "Wybierz bohatera w głównym oknie albo rozpocznij grę.", sNoOcr: "Odczyt ekranu nie jest dostępny na tym komputerze.", sReading: "Odczyt kart",
     opggR: "OP.GG: poziom {t} dla {c}, wynik {p} (mediana {m})", opggMissing: "Brak na liście OP.GG dla {c} (OP.GG pomija swoje 2 najwyższe poziomy)",
     hexes: "Wzmocnienia", champions: "Bohaterowie", grade: "Asystent meczu", history: "Moje gry", about: "Informacje",
     loading: "Ładowanie…", search: "Szukaj…", all: "Wszystkie", silver: "Srebrne", gold: "Złote", prismatic: "Pryzmatyczne",
@@ -535,6 +546,7 @@
   };
 
   T.ru = {
+    settings: "Настройки", sAutoRead: "Автоматически читать карты усилений с экрана", sInterval: "Проверять каждые (секунды)", sOverlay: "Показывать окно поверх игры", sPosition: "Положение окна", posTR: "Справа сверху", posTL: "Слева сверху", posBR: "Справа снизу", posBL: "Слева снизу", sOpacity: "Непрозрачность окна", sOpgg: "Использовать данные OP.GG по усилениям ARAM в оценках", sOcr: "Дополнительные языки распознавания", sRiotIds: "Ваши Riot ID (Имя#TAG), по одному в строке - для вашей статистики", sLockfile: "Путь к lockfile клиента League, по одному в строке", sSave: "Сохранить", sSaved: "Сохранено.", sData: "Данные", sDataFolder: "Ваши данные хранятся в", sCollect: "Собрать игры из клиента League", sCollectHelp: "Сначала откройте клиент и войдите. Это займёт время; Augur можно использовать дальше.", sRebuild: "Пересчитать статистику", sRunning: "Работаю…", sDone: "Готово.", ovWaiting: "Ожидание карт усилений…", ovSetChamp: "Выберите чемпиона в главном окне или начните игру.", sNoOcr: "Распознавание экрана недоступно на этом компьютере.", sReading: "Чтение карт",
     opggR: "OP.GG: тир {t} для {c}, результативность {p} (медиана {m})", opggMissing: "Нет в списке OP.GG для {c} (OP.GG не показывает свои 2 верхних тира)",
     hexes: "Усиления", champions: "Чемпионы", grade: "Помощник матча", history: "Мои игры", about: "О проекте",
     loading: "Загрузка…", search: "Поиск…", all: "Все", silver: "Серебро", gold: "Золото", prismatic: "Призма",
@@ -583,6 +595,7 @@
   };
 
   T.tr = {
+    settings: "Ayarlar", sAutoRead: "Güçlendirme kartlarını ekrandan otomatik oku", sInterval: "Kontrol aralığı (saniye)", sOverlay: "Oyun sırasında üst pencereyi göster", sPosition: "Pencere konumu", posTR: "Sağ üst", posTL: "Sol üst", posBR: "Sağ alt", posBL: "Sol alt", sOpacity: "Pencere opaklığı", sOpgg: "Notlarda OP.GG'nin ARAM güçlendirme verilerini kullan", sOcr: "Ek kart okuma dilleri", sRiotIds: "Riot ID'lerin (Ad#ETİKET), satır başına bir tane - kendi kaydın için", sLockfile: "League istemcisi lockfile konumu, satır başına bir tane", sSave: "Kaydet", sSaved: "Kaydedildi.", sData: "Veri", sDataFolder: "Verilerin şurada", sCollect: "League istemcisinden maç topla", sCollectHelp: "Önce istemciyi açıp giriş yapın. Biraz sürer; Augur'u kullanmaya devam edebilirsiniz.", sRebuild: "İstatistikleri yeniden hesapla", sRunning: "Çalışıyor…", sDone: "Tamam.", ovWaiting: "Güçlendirme kartları bekleniyor…", ovSetChamp: "Ana pencerede şampiyonunu seç veya bir oyun başlat.", sNoOcr: "Bu bilgisayarda ekran okuma kullanılamıyor.", sReading: "Kart okuma",
     opggR: "OP.GG: {c} için seviye {t}, performans {p} (medyan {m})", opggMissing: "OP.GG'nin {c} listesinde yok (OP.GG en üst 2 seviyesini göstermiyor)",
     hexes: "Güçlendirmeler", champions: "Şampiyonlar", grade: "Maç yardımcısı", history: "Maçlarım", about: "Hakkında",
     loading: "Yükleniyor…", search: "Ara…", all: "Tümü", silver: "Gümüş", gold: "Altın", prismatic: "Prizmatik",
@@ -631,6 +644,7 @@
   };
 
   T.vi = {
+    settings: "Cài đặt", sAutoRead: "Tự động đọc thẻ lõi trên màn hình", sInterval: "Kiểm tra mỗi (giây)", sOverlay: "Hiện cửa sổ nổi khi chơi", sPosition: "Vị trí cửa sổ nổi", posTR: "Trên phải", posTL: "Trên trái", posBR: "Dưới phải", posBL: "Dưới trái", sOpacity: "Độ đậm cửa sổ nổi", sOpgg: "Dùng dữ liệu lõi ARAM của OP.GG khi chấm điểm", sOcr: "Ngôn ngữ đọc thẻ thêm", sRiotIds: "Riot ID của bạn (Tên#TAG), mỗi dòng một cái - cho thành tích của bạn", sLockfile: "Vị trí lockfile của client Liên Minh, mỗi dòng một cái", sSave: "Lưu", sSaved: "Đã lưu.", sData: "Dữ liệu", sDataFolder: "Dữ liệu của bạn lưu tại", sCollect: "Thu thập trận từ client Liên Minh", sCollectHelp: "Hãy mở và đăng nhập client trước. Mất một lúc; bạn vẫn dùng Augur được.", sRebuild: "Tính lại thống kê", sRunning: "Đang xử lý…", sDone: "Xong.", ovWaiting: "Đang chờ thẻ lõi…", ovSetChamp: "Chọn tướng ở cửa sổ chính, hoặc bắt đầu một trận.", sNoOcr: "Máy này không dùng được đọc màn hình.", sReading: "Đọc thẻ",
     opggR: "OP.GG: hạng {t} cho {c}, hiệu suất {p} (trung vị {m})", opggMissing: "Không có trong danh sách OP.GG cho {c} (OP.GG ẩn 2 hạng cao nhất)",
     hexes: "Lõi nâng cấp", champions: "Tướng", grade: "Trợ lý trận đấu", history: "Trận của tôi", about: "Giới thiệu",
     loading: "Đang tải…", search: "Tìm…", all: "Tất cả", silver: "Bạc", gold: "Vàng", prismatic: "Lăng kính",
@@ -679,6 +693,7 @@
   };
 
   T.th = {
+    settings: "ตั้งค่า", sAutoRead: "อ่านการ์ดออกเมนต์จากหน้าจออัตโนมัติ", sInterval: "ตรวจทุก (วินาที)", sOverlay: "แสดงหน้าต่างลอยระหว่างเกม", sPosition: "ตำแหน่งหน้าต่างลอย", posTR: "ขวาบน", posTL: "ซ้ายบน", posBR: "ขวาล่าง", posBL: "ซ้ายล่าง", sOpacity: "ความทึบหน้าต่างลอย", sOpgg: "ใช้ข้อมูลออกเมนต์ ARAM ของ OP.GG ในการให้เกรด", sOcr: "ภาษาสำหรับอ่านการ์ดเพิ่มเติม", sRiotIds: "Riot ID ของคุณ (ชื่อ#แท็ก) บรรทัดละหนึ่ง - สำหรับสถิติของคุณ", sLockfile: "ตำแหน่ง lockfile ของไคลเอนต์ League บรรทัดละหนึ่ง", sSave: "บันทึก", sSaved: "บันทึกแล้ว", sData: "ข้อมูล", sDataFolder: "ข้อมูลของคุณเก็บไว้ที่", sCollect: "เก็บเกมจากไคลเอนต์ League", sCollectHelp: "เปิดและล็อกอินไคลเอนต์ก่อน ใช้เวลาสักพัก ระหว่างนั้นใช้ Augur ต่อได้", sRebuild: "คำนวณสถิติใหม่", sRunning: "กำลังทำงาน…", sDone: "เสร็จแล้ว", ovWaiting: "กำลังรอการ์ดออกเมนต์…", ovSetChamp: "เลือกแชมเปียนในหน้าต่างหลัก หรือเริ่มเกม", sNoOcr: "เครื่องนี้ใช้การอ่านหน้าจอไม่ได้", sReading: "การอ่านการ์ด",
     opggR: "OP.GG: ระดับ {t} สำหรับ {c}, ประสิทธิภาพ {p} (ค่ากลาง {m})", opggMissing: "ไม่อยู่ในรายการ OP.GG ของ {c} (OP.GG ไม่แสดง 2 ระดับสูงสุด)",
     hexes: "ออกเมนต์", champions: "แชมเปียน", grade: "ผู้ช่วยในเกม", history: "เกมของฉัน", about: "เกี่ยวกับ",
     loading: "กำลังโหลด…", search: "ค้นหา…", all: "ทั้งหมด", silver: "เงิน", gold: "ทอง", prismatic: "ปริซึม",
@@ -727,6 +742,7 @@
   };
 
   T.id = {
+    settings: "Pengaturan", sAutoRead: "Baca kartu augment dari layar secara otomatis", sInterval: "Periksa setiap (detik)", sOverlay: "Tampilkan jendela overlay saat bermain", sPosition: "Posisi overlay", posTR: "Kanan atas", posTL: "Kiri atas", posBR: "Kanan bawah", posBL: "Kiri bawah", sOpacity: "Opasitas overlay", sOpgg: "Pakai data augment ARAM dari OP.GG dalam nilai", sOcr: "Bahasa baca kartu tambahan", sRiotIds: "Riot ID kamu (Nama#TAG), satu per baris - untuk rekormu", sLockfile: "Lokasi lockfile client League, satu per baris", sSave: "Simpan", sSaved: "Tersimpan.", sData: "Data", sDataFolder: "Datamu disimpan di", sCollect: "Kumpulkan game dari client League", sCollectHelp: "Buka dan login ke client dulu. Butuh waktu; kamu tetap bisa pakai Augur.", sRebuild: "Hitung ulang statistik", sRunning: "Memproses…", sDone: "Selesai.", ovWaiting: "Menunggu kartu augment…", ovSetChamp: "Pilih champion di jendela utama, atau mulai game.", sNoOcr: "Pembacaan layar tidak tersedia di komputer ini.", sReading: "Pembacaan kartu",
     opggR: "OP.GG: tier {t} untuk {c}, performa {p} (median {m})", opggMissing: "Tidak ada di daftar OP.GG untuk {c} (OP.GG tidak menampilkan 2 tier teratasnya)",
     hexes: "Augment", champions: "Champion", grade: "Asisten match", history: "Game saya", about: "Tentang",
     loading: "Memuat…", search: "Cari…", all: "Semua", silver: "Perak", gold: "Emas", prismatic: "Prismatik",

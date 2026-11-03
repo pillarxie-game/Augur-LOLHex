@@ -10,7 +10,7 @@ from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 
 import io
 
-from . import lcu, net, opgg, screen, stats
+from . import config, lcu, net, opgg, screen, stats
 
 LIVE = "https://127.0.0.1:2999/liveclientdata/allgamedata"
 
@@ -52,6 +52,36 @@ def make_handler(cfg, gamedata):
     history_file = cfg["data_path"] / "history.jsonl"
     lock = threading.Lock()
     screen_lock = threading.Lock()  # one OCR at a time
+    jobs = {"collect": {"running": False, "log": []}, "build": {"running": False, "log": []}}
+
+    def run_job(name, fn):
+        job = jobs[name]
+        if job["running"]:
+            return False
+        job.update(running=True, log=[], error=None)
+
+        def log(*a):
+            job["log"] = (job["log"] + [" ".join(str(x) for x in a)])[-50:]
+
+        def work():
+            try:
+                fn(log)
+            except BaseException as e:  # SystemExit from the collectors carries a readable message
+                job["error"] = str(e)
+            finally:
+                job["running"] = False
+        threading.Thread(target=work, daemon=True).start()
+        return True
+
+    def rebuild(log):
+        from . import __main__ as cli
+        g = gamedata.load(cfg) or gamedata
+        cli.build(cfg, g)
+        log("Stats rebuilt.")
+
+    def collect(log):
+        lcu.collect_games(cfg, gamedata, games=500, log=log)
+        rebuild(log)
 
     class Handler(SimpleHTTPRequestHandler):
         def __init__(self, *a, **kw):
@@ -72,7 +102,11 @@ def make_handler(cfg, gamedata):
         def do_GET(self):
             path = self.path.split("?")[0]
             if path == "/api/ping":
-                return self.send_json({"ok": True})
+                return self.send_json({"ok": True, "desktop": bool(cfg.get("_desktop")), "settings": settings_view()})
+            if path == "/api/settings":
+                return self.send_json(settings_view())
+            if path == "/api/job":
+                return self.send_json(jobs)
             if path == "/api/me":
                 return self.send_json(stats.personal(cfg, cfg["my_riot_ids"]))
             if path == "/api/live":
@@ -85,6 +119,8 @@ def make_handler(cfg, gamedata):
                 return self.send_json(cs or {"error": "Not in champion select"})
             if path == "/api/screen":
                 return self.read_screen(None)
+            if path == "/api/opgg" and not cfg.get("use_opgg", True):
+                return self.send_json({"error": "OP.GG is turned off in settings"})
             if path == "/api/opgg":
                 from urllib.parse import parse_qs, urlparse
                 champ = (parse_qs(urlparse(self.path).query).get("champ") or [""])[0]
@@ -113,7 +149,26 @@ def make_handler(cfg, gamedata):
             except Exception as e:
                 return self.send_json({"error": f"Could not read the screen: {e}"})
 
+        def read_body(self, limit=100_000):
+            size = int(self.headers.get("Content-Length", 0))
+            if size > limit:
+                raise ValueError("too large")
+            return json.loads(self.rfile.read(size) or b"{}")
+
         def do_POST(self):
+            if self.path == "/api/settings":
+                try:
+                    saved = config.save(self.read_body())
+                except ValueError as e:
+                    return self.send_json({"error": str(e)}, 400)
+                cfg.update(saved)
+                if cfg.get("_on_settings"):
+                    cfg["_on_settings"](saved)
+                return self.send_json(settings_view())
+            if self.path in ("/api/collect", "/api/build"):
+                name = self.path.rsplit("/", 1)[-1]
+                started = run_job(name, collect if name == "collect" else rebuild)
+                return self.send_json({"started": started, "jobs": jobs})
             if self.path == "/api/screen":
                 size = int(self.headers.get("Content-Length", 0))
                 if not 0 < size <= 20_000_000:
@@ -132,6 +187,12 @@ def make_handler(cfg, gamedata):
             with lock, open(history_file, "a", encoding="utf-8") as f:
                 f.write(json.dumps(entry, ensure_ascii=False) + "\n")
             return self.send_json({"ok": True})
+
+    def settings_view():
+        out = {k: cfg.get(k) for k in config.EDITABLE}
+        out["data_folder"] = str(config.ROOT)
+        out["ocr_available"] = screen.available() and screen.ocr_engine() is not None
+        return out
 
     return Handler
 

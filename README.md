@@ -19,7 +19,25 @@ Free, open-source stats and advice for **ARAM: Mayhem** (海克斯大乱斗).
 
 Everything is free. Statistics come from Riot's own match data, plus **OP.GG's ARAM hex stats** fetched live from [OP.GG's official public data server](https://github.com/opgginc/opgg-mcp) by the local helper. No Hexdata or WeGame data is used.
 
-## Quick start (Windows)
+## Download the app
+
+**Windows:** download `Augur-windows.zip` from the [Releases](../../releases) page, unzip it anywhere, and double-click **`Augur.exe`**. No Python or anything else to install.
+
+- The main window has the hex tier list, champion pages, the match helper and **Settings** (language, card reading, overlay position and opacity, OP.GG on/off, your Riot IDs, client location, and collecting games).
+- During a game, a small **overlay** pops up in a corner when hex cards appear, showing each card's grade and why, and hides itself after you pick. Click a card in the overlay to record your pick.
+- Play in **borderless** or **windowed** mode so Augur can see the screen.
+- Windows may show "Windows protected your PC" because the app isn't signed: click **More info → Run anyway**.
+- Your data and settings live in `%APPDATA%\Augur`.
+
+**macOS:** `Augur-macos.zip` works the same way (Apple silicon). Right-click `Augur.app` → **Open** the first time, and allow **Screen Recording** when asked.
+
+### Building the app yourself
+
+The workflow `.github/workflows/build-app.yml` builds both apps on GitHub for free: open **Actions → Build app → Run workflow**, then download the files from the finished run. Pushing a tag such as `v1.0.0` also attaches them to a release. Each build runs `Augur.exe --selftest`, which draws 3 hex cards, reads them back and fails the build if anything is wrong.
+
+Locally: `pip install -r requirements-app.txt pyinstaller`, `python -m augur update`, then `pyinstaller packaging/augur.spec`. Run from source without packaging: `python -m augur.desktop`.
+
+## Quick start from source (Windows)
 
 1. Install [Python 3.9+](https://www.python.org/downloads/) (tick "Add Python to PATH"). Nothing else is needed.
 2. Double-click `start.bat`. It downloads the hex list, builds the site and opens the match helper at `http://127.0.0.1:8765`.
@@ -142,7 +160,7 @@ Augur isn't endorsed by Riot Games and doesn't reflect the views or opinions of 
 
 Augur 是免费开源的**海克斯大乱斗**工具：海克斯排行、英雄最佳海克斯和组合、出装，以及对局中每张海克斯卡的 S+ 到 D 评分和理由（比如「敌方有 3 个坦克 → 巨人杀手更强」）。还会告诉你该不该刷新、下一件装备、选人阶段备选席评分，并记录你的选择。
 
-**使用：** 安装 Python 3.9+，双击 `start.bat`。在对局助手中点「从屏幕读取海克斯」（或打开「自动读取」），会自动识别屏幕上的 3 张海克斯卡并评分。游戏请用无边框或窗口模式。
+**使用：** 从 Releases 下载 `Augur-windows.zip`，解压后双击 **`Augur.exe`**（不用装 Python）。主窗口里有「设置」（语言、自动读卡、悬浮窗位置、OP.GG 开关等）；游戏中出现海克斯卡时，角落会弹出悬浮窗显示每张卡的评分和理由。也可以从源码运行：安装 Python 3.9+，双击 `start.bat`。在对局助手中点「从屏幕读取海克斯」（或打开「自动读取」），会自动识别屏幕上的 3 张海克斯卡并评分。游戏请用无边框或窗口模式。
 
 **收集数据（不需要 API key，任何服务器包括国服）：** 打开并登录英雄联盟客户端，运行 `python -m augur collect-client --games 500`，然后 `python -m augur build`。外服可以用 Riot API（见上方英文说明）。
 

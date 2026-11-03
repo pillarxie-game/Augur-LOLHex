@@ -1,0 +1,55 @@
+# Builds the desktop app: Augur.exe (Windows) and Augur.app (macOS).
+# Run it from the Actions tab ("Run workflow"), or push a tag like v1.0.0 to attach the files to a release.
+name: Build app
+on:
+  workflow_dispatch:
+  push:
+    tags: ["v*"]
+permissions:
+  contents: write
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest, macos-14]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements-app.txt pyinstaller
+      - name: Download game data, hex icons and OCR models (bundled so the app works offline)
+        run: |
+          python -m augur update
+          python -c "from augur import screen; assert screen.ocr_engine('ko') and screen.ocr_engine('ja')"
+      - name: Build
+        run: pyinstaller --noconfirm packaging/augur.spec
+      - name: Self-test (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          $env:AUGUR_HOME = "$env:RUNNER_TEMP\augur-test"
+          $p = Start-Process -FilePath "dist\Augur\Augur.exe" -ArgumentList "--selftest" -Wait -PassThru
+          Get-Content "$env:AUGUR_HOME\selftest.txt"
+          if ($p.ExitCode -ne 0) { exit 1 }
+      - name: Self-test (macOS)
+        if: runner.os == 'macOS'
+        run: AUGUR_HOME="$RUNNER_TEMP/augur-test" dist/Augur.app/Contents/MacOS/Augur --selftest
+      - name: Zip
+        shell: bash
+        run: |
+          if [ "$RUNNER_OS" = "Windows" ]; then (cd dist && 7z a -tzip ../Augur-windows.zip Augur); else ditto -c -k --keepParent dist/Augur.app Augur-macos.zip; fi
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Augur-${{ runner.os }}
+          path: Augur-*.zip
+      - name: Attach to the release
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: Augur-*.zip
