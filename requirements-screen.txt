@@ -1,0 +1,4 @@
+# Optional: read the offered hex cards from your screen.
+pillow
+numpy<2
+rapidocr_onnxruntime

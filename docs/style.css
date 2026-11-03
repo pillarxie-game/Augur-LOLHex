@@ -141,3 +141,6 @@ img[src*="/augments/"] { background: #1d2430; border-radius: 8px; }
   h1 { font-size: 22px; }
 }
 @media (max-width: 600px) { #lang { margin-left: auto; } }
+
+.dropzone { margin-top: 12px; padding: 14px; border: 1.5px dashed var(--line); border-radius: var(--radius); text-align: center; }
+.dropzone.over { border-color: var(--accent); background: var(--panel-2); }

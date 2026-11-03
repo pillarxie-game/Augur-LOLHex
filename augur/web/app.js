@@ -29,6 +29,9 @@
       picked: "Picked", bestWas: "Best was", confidence: { high: "lots of data", medium: "some data", low: "little data" },
       openOpgg: "OP.GG", aboutTitle: "About Augur",
       games_n: "{n} games", patch: "Patch",
+      readScreen: "Read cards from screen", autoRead: "Auto-read", dropShot: "or paste / drop a screenshot here",
+      reading: "Reading…", readNone: "No hex cards found on screen.", readSome: "Read {n} of 3 cards.",
+      notInPool: "\"{t}\" isn't in the current hex list (removed or renamed?) - add it by hand.",
     },
     zh: {
       hexes: "海克斯", champions: "英雄", grade: "对局助手", history: "我的对局", about: "关于",
@@ -55,6 +58,9 @@
       picked: "选了", bestWas: "最佳是", confidence: { high: "数据充足", medium: "数据一般", low: "数据较少" },
       openOpgg: "OP.GG", aboutTitle: "关于 Augur",
       games_n: "{n} 场", patch: "版本",
+      readScreen: "从屏幕读取海克斯", autoRead: "自动读取", dropShot: "或在这里粘贴 / 拖入截图",
+      reading: "读取中…", readNone: "屏幕上没有找到海克斯卡。", readSome: "读到 {n}/3 张卡。",
+      notInPool: "「{t}」不在当前海克斯列表中（可能已移除或改名），请手动添加。",
     },
   };
 
@@ -396,6 +402,34 @@
       M.champ = r.champ; M.allies = r.allies; M.enemies = r.enemies; M.items = r.items;
       saveMatch(); draw();
     }
+    let readTimer = null, readNote = "", lastSig = "";
+    async function applyRead(r, silent) {
+      if (!r || r.error) { readNote = r ? r.error : T("noClient"); draw(); return; }
+      const ids = r.cards.filter((c) => c.id).map((c) => c.id);
+      const unknown = r.cards.filter((c) => !c.id && c.how === "not in hex list").map((c) => T("notInPool").replace("{t}", c.text));
+      if (silent && (!ids.length || ids.join() === lastSig)) return; // nothing new on screen
+      lastSig = ids.join();
+      if (ids.length) M.offers = ids.filter((h) => !M.owned.map(String).includes(String(h))).slice(0, 3);
+      readNote = [ids.length ? T("readSome").replace("{n}", ids.length) : T("readNone"), ...unknown].join(" ");
+      saveMatch(); draw();
+    }
+    async function readScreen(silent) {
+      if (!silent) { readNote = T("reading"); draw(); }
+      applyRead(await fetch("api/screen").then((x) => x.json()).catch(() => null), silent);
+    }
+    async function readImage(blob) {
+      readNote = T("reading"); draw();
+      applyRead(await fetch("api/screen", { method: "POST", body: blob }).then((x) => x.json()).catch(() => null), false);
+    }
+    const onPaste = (e) => {
+      const f = [...(e.clipboardData || {}).items || []].find((i) => i.type.startsWith("image/"));
+      if (f && S.local && location.hash.startsWith("#/grade")) { e.preventDefault(); readImage(f.getAsFile()); }
+    };
+    document.removeEventListener("paste", window.__augurPaste || (() => {}));
+    window.__augurPaste = onPaste;
+    document.addEventListener("paste", onPaste);
+    window.addEventListener("hashchange", () => { clearInterval(readTimer); clearInterval(followTimer); }, { once: true });
+
     async function benchNow() {
       const r = await fetch("api/champselect").then((x) => x.json()).catch(() => null);
       if (!r || r.error) { alert(r && r.error ? r.error : T("noClient")); return; }
@@ -420,10 +454,22 @@
             clearInterval(followTimer); followTimer = e.target.checked ? setInterval(() => fromGame(true), 5000) : null;
           } }), T("follow")) : null,
           S.local ? el("button", { type: "button", onclick: benchNow }, T("champSelect")) : null,
+          S.local ? el("button", { type: "button", class: "primary", onclick: () => readScreen(false) }, T("readScreen")) : null,
+          S.local ? el("label", { class: "row small" }, el("input", { type: "checkbox", checked: !!readTimer, onchange: (e) => {
+            clearInterval(readTimer); readTimer = e.target.checked ? setInterval(() => readScreen(true), 2500) : null;
+          } }), T("autoRead")) : null,
           el("div", { class: "grow" }),
           el("button", { type: "button", class: "ghost", onclick: () => { S.match = { champ: null, allies: [], enemies: [], owned: [], offers: [], items: [] }; Object.assign(M, S.match); saveMatch(); draw(); } }, T("clear"))));
 
       const out = [];
+      if (S.local) {
+        const drop = el("div", { class: "dropzone small muted", tabindex: 0,
+          ondragover: (e) => { e.preventDefault(); drop.classList.add("over"); },
+          ondragleave: () => drop.classList.remove("over"),
+          ondrop: (e) => { e.preventDefault(); drop.classList.remove("over"); const f = e.dataTransfer.files[0]; if (f) readImage(f); } },
+          readNote ? el("b", { class: "", style: "color:var(--text)" }, readNote) : null, readNote ? " · " : null, T("dropShot"));
+        out.push(drop);
+      }
       if (bench) {
         const b = g.gradeBench({ me: bench.me, bench: bench.bench, team: bench.team });
         out.push(el("h2", {}, T("bench")), el("p", { class: "muted" }, T("benchHelp")),

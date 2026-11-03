@@ -88,6 +88,8 @@ def main(argv=None):
     e.add_argument("file", nargs="?", default="dataset.jsonl.gz")
     i = sub.add_parser("import", help="add games from export files (duplicates are skipped)")
     i.add_argument("files", nargs="+")
+    r = sub.add_parser("read", help="read the 3 offered hexes from screenshots (or the screen now)")
+    r.add_argument("files", nargs="*", help="image files; none = take a screenshot now")
     t = sub.add_parser("tierlist", help="print the best hexes, overall or for one champion")
     t.add_argument("--champ")
     t.add_argument("--top", type=int, default=20)
@@ -97,7 +99,10 @@ def main(argv=None):
     if args.demo:
         use_demo(cfg)
     if args.cmd == "update":
-        gamedata.update(cfg)
+        g = gamedata.update(cfg)
+        from . import screen
+        if screen.available():
+            screen.load_icons(cfg, g)  # for reading cards from the screen
     elif args.cmd == "collect":
         from . import collect
         collect.run(cfg, need_gamedata(cfg), args.riot_id, args.games, args.days, not args.no_timeline)
@@ -129,6 +134,17 @@ def main(argv=None):
         con = db.connect(cfg)
         for f in args.files:
             print(f"{f}: added {db.import_file(con, f)} games")
+    elif args.cmd == "read":
+        from . import screen
+        g = need_gamedata(cfg)
+        for f in args.files or [None]:
+            res = screen.read_cards(f if f else screen.grab(), cfg, g)
+            print(f"{f or 'screen'}  ({res['found']}/3 recognised{'' if res['ocr'] else ', icons only: OCR not installed'})")
+            for c in res["cards"]:
+                if c["id"]:
+                    print(f"   {c['name']:<28} confidence {c['confidence']:.2f} (by {c['how']})")
+                else:
+                    print(f"   ?  {c['text'] or ''!r} {c['how'] or 'not recognised'}")
     elif args.cmd == "tierlist":
         tierlist(cfg, need_gamedata(cfg), args.champ, args.top)
 

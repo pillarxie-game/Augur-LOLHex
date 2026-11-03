@@ -8,7 +8,9 @@ import time
 import webbrowser
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 
-from . import lcu, net, stats
+import io
+
+from . import lcu, net, screen, stats
 
 LIVE = "https://127.0.0.1:2999/liveclientdata/allgamedata"
 
@@ -49,6 +51,7 @@ def make_handler(cfg, gamedata):
     site = str(cfg["site_path"])
     history_file = cfg["data_path"] / "history.jsonl"
     lock = threading.Lock()
+    screen_lock = threading.Lock()  # one OCR at a time
 
     class Handler(SimpleHTTPRequestHandler):
         def __init__(self, *a, **kw):
@@ -80,6 +83,8 @@ def make_handler(cfg, gamedata):
                 except Exception as e:
                     return self.send_json({"error": str(e)})
                 return self.send_json(cs or {"error": "Not in champion select"})
+            if path == "/api/screen":
+                return self.read_screen(None)
             if path == "/api/history":
                 rows = []
                 if history_file.exists():
@@ -88,7 +93,23 @@ def make_handler(cfg, gamedata):
                 return self.send_json(rows)
             return super().do_GET()
 
+        def read_screen(self, data):
+            if not screen.available():
+                return self.send_json({"error": "Screen reading needs: pip install -r requirements-screen.txt"})
+            try:
+                from PIL import Image
+                img = Image.open(io.BytesIO(data)) if data else screen.grab()
+                with screen_lock:
+                    return self.send_json(screen.read_cards(img, cfg, gamedata))
+            except Exception as e:
+                return self.send_json({"error": f"Could not read the screen: {e}"})
+
         def do_POST(self):
+            if self.path == "/api/screen":
+                size = int(self.headers.get("Content-Length", 0))
+                if not 0 < size <= 20_000_000:
+                    return self.send_json({"error": "image missing or too large"}, 413)
+                return self.read_screen(self.rfile.read(size))
             if self.path != "/api/history":
                 return self.send_json({"error": "not found"}, 404)
             size = int(self.headers.get("Content-Length", 0))

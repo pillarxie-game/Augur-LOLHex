@@ -5,7 +5,7 @@ Free, open-source stats and advice for **ARAM: Mayhem** (海克斯大乱斗).
 - **Hex tier list**: win rate, pick rate and tier for every hex (augment), by rarity.
 - **Champion pages**: best and worst hexes for each champion, best hex combos, items and build order.
 - **Hex pages**: what a hex does, win rate by pick round, best champions, best partner hexes.
-- **Match helper**: enter (or load from your game) your champion, both teams and the 3 offered hexes. Each card gets a grade from S+ to D, with the reasons behind it, for example:
+- **Match helper**: click **Read cards from screen** (or turn on **Auto-read**, or paste a screenshot) and it recognizes the 3 offered hexes, in English or 中文. Your champion and both teams load from the running game. Each card gets a grade from S+ to D, with the reasons behind it, for example:
 
   ```
   S  Giant Slayer
@@ -28,9 +28,21 @@ macOS / Linux: `./start.sh`.
 
 The website starts **without statistics**. Collect games first (next section), and grades become meaningful as data grows.
 
+## Reading the cards from your screen
+
+The match helper reads the 3 hex cards from your screen: OCR reads each card's name, and its icon is compared with the official hex icons as a second check. It works at any resolution (tested 720p, 1080p, 1440p, ultrawide) and in English and Chinese clients. A hex that is no longer in the current pool is reported instead of being guessed.
+
+`start.bat` installs what this needs the first time (`requirements-screen.txt`: Pillow, numpy, RapidOCR, all free and offline). To try it on a saved screenshot: `python -m augur read screenshot.png`. Play in **borderless** or **windowed** mode so screenshots can see the game.
+
 ## Collecting games
 
-**Riot API (KR, NA, EUW, …)**
+**No API key needed: your League client (any server, including 国服).** With the client open and logged in, this reads match history through the client itself:
+
+```
+python -m augur collect-client --games 500
+```
+
+**Riot API (KR, NA, EUW, …), optional, faster**
 
 1. Sign in at <https://developer.riotgames.com> and copy your development key (`RGAPI-…`, valid for 24 hours).
 2. Copy `config.example.json` to `config.local.json` and fill in your key and region (`americas`, `asia`, `europe` or `sea`). This file is never committed.
@@ -41,12 +53,6 @@ The website starts **without statistics**. Collect games first (next section), a
    ```
 
    It keeps adding the other players of each game, so it spreads across the server. A dev key does roughly 1,000–1,500 games an hour (`--no-timeline` doubles that, but skips item order).
-
-**Your League client (any server, including 国服)**: with the client open and logged in:
-
-```
-python -m augur collect-client --games 500
-```
 
 **Then rebuild:** `python -m augur build`, and check progress with `python -m augur info`.
 
@@ -101,6 +107,7 @@ python -m augur collect-client    collect games (League client, any server)
 python -m augur build             compute stats and build docs/
 python -m augur serve             local match helper (reads your live game and champ select)
 python -m augur info              games per patch
+python -m augur read [image]      recognize the offered hexes (screenshot file, or the screen now)
 python -m augur tierlist --champ Yasuo
 python -m augur export / import   share games
 ```
@@ -121,8 +128,8 @@ Augur isn't endorsed by Riot Games and doesn't reflect the views or opinions of 
 
 Augur 是免费开源的**海克斯大乱斗**工具：海克斯排行、英雄最佳海克斯和组合、出装，以及对局中每张海克斯卡的 S+ 到 D 评分和理由（比如「敌方有 3 个坦克 → 巨人杀手更强」）。还会告诉你该不该刷新、下一件装备、选人阶段备选席评分，并记录你的选择。
 
-**使用：** 安装 Python 3.9+，双击 `start.bat`。
+**使用：** 安装 Python 3.9+，双击 `start.bat`。在对局助手中点「从屏幕读取海克斯」（或打开「自动读取」），会自动识别屏幕上的 3 张海克斯卡并评分。游戏请用无边框或窗口模式。
 
-**收集数据（国服）：** 打开并登录英雄联盟客户端，运行 `python -m augur collect-client --games 500`，然后 `python -m augur build`。外服可以用 Riot API（见上方英文说明）。
+**收集数据（不需要 API key，任何服务器包括国服）：** 打开并登录英雄联盟客户端，运行 `python -m augur collect-client --games 500`，然后 `python -m augur build`。外服可以用 Riot API（见上方英文说明）。
 
 数据全部来自 Riot 官方比赛数据，不使用 Hexdata、OP.GG 或 WeGame 的数据。
