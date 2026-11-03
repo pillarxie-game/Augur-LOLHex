@@ -1,0 +1,39 @@
+# Collects new games every day and republishes the website (GitHub Pages from /docs).
+# Needs a repository secret RIOT_API_KEY. Dev keys expire every 24 hours, so for this to run
+# unattended, register Augur on https://developer.riotgames.com for a personal or production key.
+name: Update stats
+on:
+  schedule:
+    - cron: "17 3 * * *"
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Restore game database
+        uses: actions/cache@v4
+        with:
+          path: data/augur.db
+          key: augur-db-${{ github.run_id }}
+          restore-keys: augur-db-
+      - name: Collect and build
+        env:
+          RIOT_API_KEY: ${{ secrets.RIOT_API_KEY }}
+          SEED: ${{ vars.SEED_RIOT_ID }}
+        run: |
+          python -m augur update
+          if [ -n "$SEED" ]; then python -m augur collect --riot-id "$SEED" --games 3000; else python -m augur collect --games 3000; fi
+          python -m augur build
+      - name: Publish
+        run: |
+          git config user.name "augur-bot"
+          git config user.email "augur-bot@users.noreply.github.com"
+          git add docs
+          git diff --cached --quiet || git commit -m "Update stats"
+          git push

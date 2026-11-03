@@ -1,0 +1,11 @@
+# your games, history and key stay on your PC
+data/augur.db
+data/history.jsonl
+config.local.json
+*.jsonl.gz
+# fake test data
+data-demo/
+site-demo/
+__pycache__/
+*.pyc
+.DS_Store
