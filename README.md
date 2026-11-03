@@ -42,6 +42,8 @@ The match helper reads the 3 hex cards from your screen: OCR reads each card's n
 python -m augur collect-client --games 500
 ```
 
+On Windows, just double-click `collect.bat` (it collects, then rebuilds the stats). Run it again any time to add more games.
+
 **Riot API (KR, NA, EUW, …), optional, faster**
 
 1. Sign in at <https://developer.riotgames.com> and copy your development key (`RGAPI-…`, valid for 24 hours).
