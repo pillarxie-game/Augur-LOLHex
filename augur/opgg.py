@@ -232,6 +232,12 @@ def summarize(gamedata):
     folder = config.ROOT / "data" / "opgg"
     per_hex = {}
     champs = 0
+    plays = {}
+    for c in gamedata["champions"].values():
+        bp = folder / f"build_{c['id']}.json"
+        if bp.exists():
+            plays[c["id"]] = json.loads(bp.read_text(encoding="utf-8")).get("play") or 0
+    total_play = sum(plays.values()) or 1
     for c in gamedata["champions"].values():
         path = folder / f"{c['id']}.json"
         if not path.exists():
@@ -244,8 +250,9 @@ def summarize(gamedata):
         for hid, (tier, p, pop) in d["augments"].items():
             if hid not in gamedata["augments"]:
                 continue
-            e = per_hex.setdefault(hid, {"w": 0.0, "rel": 0.0, "listed": 0, "tiers": [0, 0, 0], "champs": []})
+            e = per_hex.setdefault(hid, {"w": 0.0, "rel": 0.0, "listed": 0, "tiers": [0, 0, 0], "champs": [], "picks": 0.0})
             e["listed"] += 1
+            e["picks"] += pop * plays.get(c["id"], 0)  # "popular" is the share of the champion's games with this hex
             if 3 <= tier <= 5:
                 e["tiers"][tier - 3] += 1
             if pop >= 0.01 and med:
@@ -258,6 +265,7 @@ def summarize(gamedata):
         hexes[hid] = {
             "score": round(e["rel"] / e["w"], 2) if e["w"] else None,  # vs each champion's median, weighted by popularity
             "listed": e["listed"], "tiers": e["tiers"],
+            "pick_rate": round(e["picks"] / total_play, 4) if plays else None,  # share of all players picking it
             "best": e["champs"][:8], "worst": e["champs"][-5:][::-1] if len(e["champs"]) > 8 else [],
         }
     champ_stats = {}

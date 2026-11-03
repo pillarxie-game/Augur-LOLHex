@@ -138,7 +138,8 @@
         return { a, name: nameOf("augments", a.id), tierv: hasStats() ? d : useOp ? op.score : -99,
                  tier: hasStats() && n(c) ? g.hexTier(a.id) : useOp ? g.opggTier(a.id) : "-",
                  ops: op && op.score != null ? op.score : -99, opn: op ? op.listed : 0,
-                 wr: wr(c) ?? 0, d, pick: n(c) / players, games: n(c), rar: a.rarity };
+                 wr: wr(c) ?? 0, d, pick: n(c) ? n(c) / players : op && op.pick_rate != null ? op.pick_rate : 0,
+                 pickOp: !n(c) && op && op.pick_rate != null, games: n(c), rar: a.rarity };
       });
       const cols = [
         { label: T("tier"), key: "tierv", render: (r) => (r.tier === "-" ? el("span", { class: "muted" }, "-") : gradeBadge(r.tier)) },
@@ -146,7 +147,8 @@
         { label: T("rarity"), key: "rar", render: (r) => el("span", { class: "rar rar-" + r.a.rarity }, T(r.a.rarity)) },
         { label: T("winrate"), key: "wr", num: true, render: (r) => (r.games ? pct(r.wr) : "-") },
         { label: T("delta"), key: "d", num: true, render: (r) => (r.games ? signed(r.d) : "-") },
-        { label: T("pickrate"), key: "pick", num: true, render: (r) => (r.games ? pct(r.pick) : "-") },
+        { label: T("pickrate") + (hasStats() ? "" : " (OP.GG)"), key: "pick", num: true,
+          render: (r) => (r.games || r.pickOp ? pct(r.pick) : "-") },
         { label: T("games"), key: "games", num: true, render: (r) => num(r.games) },
       ];
       if (S.opggAll) cols.splice(3, 0,
@@ -204,7 +206,9 @@
     return Object.values(S.game.augments).filter((a) => !a.disabled).map((a) => {
       const r = g.gradeHex({ champ: cid }, a.id);
       const cell = ((S.stats.hex || {})[cid] || {})[a.id];
-      return { a, r, name: r.name, total: r.total, wr: wr(cell) ?? 0, games: n(cell), pick: n(cell) / (n((S.stats.champ || {})[cid]) || 1), rar: a.rarity };
+      const ope = S.opgg[cid] && S.opgg[cid].augments && S.opgg[cid].augments[a.id];
+      return { a, r, name: r.name, total: r.total, wr: wr(cell) ?? 0, games: n(cell),
+               pick: n(cell) ? n(cell) / (n((S.stats.champ || {})[cid]) || 1) : ope ? ope[2] : 0, pickOp: !n(cell) && !!ope, rar: a.rarity };
     });
   }
 
@@ -220,7 +224,7 @@
       { label: T("hex"), key: "name", cls: "name", render: (r) => el("a", { class: "ent", href: `#/hex/${r.a.id}`, title: r.r.parts.map((p) => `${p.v >= 0 ? "+" : ""}${p.v.toFixed(1)} ${p.text}`).join("\n") }, img(r.a.icon), r.name) },
       { label: T("rarity"), key: "rar", render: (r) => el("span", { class: "rar rar-" + r.a.rarity }, T(r.a.rarity)) },
       { label: T("winrate"), key: "wr", num: true, render: (r) => (r.games ? pct(r.wr) : "-") },
-      { label: T("pickrate"), key: "pick", num: true, render: (r) => (r.games ? pct(r.pick) : "-") },
+      { label: T("pickrate"), key: "pick", num: true, render: (r) => (r.games ? pct(r.pick) : r.pickOp ? el("span", { title: "OP.GG" }, pct(r.pick)) : "-") },
       { label: T("games"), key: "games", num: true, render: (r) => num(r.games) },
     ];
     if (S.opgg[cid] && S.opgg[cid].augments) hexCols.splice(3, 0, { label: T("opggCol"), key: "op", num: true, render: (r) =>
@@ -349,7 +353,9 @@
       el("div", { class: "stats" },
         el("div", { class: "stat" }, el("b", {}, n(all) ? pct(wr(all)) : "-"), el("span", {}, T("winrate"))),
         el("div", { class: "stat" }, el("b", {}, n(all) ? signed(g.hexAllDelta(hid)) : "-"), el("span", {}, T("delta"))),
-        el("div", { class: "stat" }, el("b", {}, n(all) ? pct(n(all) / (n(S.stats.global) || 1)) : "-"), el("span", {}, T("pickrate"))),
+        n(all) || !(S.opggAll && S.opggAll.hexes[hid] && S.opggAll.hexes[hid].pick_rate != null)
+          ? el("div", { class: "stat" }, el("b", {}, n(all) ? pct(n(all) / (n(S.stats.global) || 1)) : "-"), el("span", {}, T("pickrate")))
+          : el("div", { class: "stat" }, el("b", {}, pct(S.opggAll.hexes[hid].pick_rate)), el("span", {}, T("pickrate") + " (OP.GG)")),
         el("div", { class: "stat" }, el("b", {}, num(n(all))), el("span", {}, T("games")))),
       a.desc ? el("div", { class: "panel desc" }, a.desc) : null,
       a.tags.length ? el("p", { class: "muted small" }, "tags: " + a.tags.join(", ")) : null,
