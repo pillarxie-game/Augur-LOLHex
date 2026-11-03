@@ -202,3 +202,63 @@ def champion_build(champ_key, champ_id, refresh=False):
     }
     path.write_text(json.dumps(out), encoding="utf-8")
     return out
+
+
+# ---------- all champions ----------
+
+def fetch_all(gamedata, log=print, pause=0.4):
+    """ARAM hex stats for every champion (cached ones are reused), then the all-champion summary."""
+    champs = sorted(gamedata["champions"].values(), key=lambda c: c["name"])
+    ok = failed = 0
+    for i, c in enumerate(champs, 1):
+        try:
+            d = aram_augments(c["id"])
+            ok += 1
+            if not d.get("stale") and time.time() - d["fetched"] < 5:
+                time.sleep(pause)  # fresh download: be gentle with OP.GG
+        except Exception as e:
+            failed += 1
+            log(f"  {c['name']}: {e}")
+        if i % 20 == 0 or i == len(champs):
+            log(f"  {i}/{len(champs)} champions")
+    summary = summarize(gamedata)
+    log(f"OP.GG data for {ok} champions ({failed} failed); {len(summary['hexes'])} hexes summarized.")
+    return summary
+
+
+def summarize(gamedata):
+    """Per hex across all champions: popularity-weighted performance, how many champions list it, best champions."""
+    folder = config.ROOT / "data" / "opgg"
+    per_hex = {}
+    champs = 0
+    for c in gamedata["champions"].values():
+        path = folder / f"{c['id']}.json"
+        if not path.exists():
+            continue
+        champs += 1
+        d = json.loads(path.read_text(encoding="utf-8"))
+        rows = [v for v in d["augments"].values() if v[2] >= 0.01]
+        perf = sorted(v[1] for v in rows)
+        med = perf[len(perf) // 2] if perf else 0
+        for hid, (tier, p, pop) in d["augments"].items():
+            if hid not in gamedata["augments"]:
+                continue
+            e = per_hex.setdefault(hid, {"w": 0.0, "rel": 0.0, "listed": 0, "tiers": [0, 0, 0], "champs": []})
+            e["listed"] += 1
+            if 3 <= tier <= 5:
+                e["tiers"][tier - 3] += 1
+            if pop >= 0.01 and med:
+                e["w"] += pop
+                e["rel"] += pop * (p - med)
+                e["champs"].append([c["id"], round(p - med, 1), pop])
+    hexes = {}
+    for hid, e in per_hex.items():
+        e["champs"].sort(key=lambda x: -x[1])
+        hexes[hid] = {
+            "score": round(e["rel"] / e["w"], 2) if e["w"] else None,  # vs each champion's median, weighted by popularity
+            "listed": e["listed"], "tiers": e["tiers"],
+            "best": e["champs"][:8], "worst": e["champs"][-5:][::-1] if len(e["champs"]) > 8 else [],
+        }
+    out = {"champions": champs, "hexes": hexes, "built": int(time.time()), "source": "OP.GG ARAM (mcp-api.op.gg)"}
+    (folder / "summary.json").write_text(json.dumps(out), encoding="utf-8")
+    return out

@@ -38,7 +38,8 @@
       this.s = stats || {};
       this.me = opts.personal || null;
       this.opgg = opts.opgg || {}; // champion id -> {augments: {hex id: [tier, performance, popular]}}
-      this.opggBuild = opts.opggBuild || {}; // champion id -> OP.GG ARAM build (core, boots, item slots)
+      this.opggBuild = opts.opggBuild || {};
+      this.opggAll = (opts.opggAll && opts.opggAll.hexes) || {}; // hex id -> {score, listed, best[]} across all champions // champion id -> OP.GG ARAM build (core, boots, item slots)
       this.lang = I18N.T[opts.lang] ? opts.lang : "en";
       this.g = wr(this.s.global) || 0.5;
       this.features = (this.s.meta && this.s.meta.features) || {};
@@ -168,10 +169,23 @@
       return out;
     }
 
+    /* OP.GG across all champions: used when there is nothing for this champion. */
+    opggAllPart(h) {
+      const a = this.opggAll[String(h)];
+      if (!a || a.score == null) return null;
+      return { v: Math.max(-1.5, Math.min(1.5, a.score / 8)), text: this.t("opggAllR", { s: (a.score >= 0 ? "+" : "") + a.score.toFixed(1), n: a.listed }) };
+    }
+
+    opggTier(h) {
+      const a = this.opggAll[String(h)];
+      if (!a || a.score == null) return null;
+      return letter(a.score, [[8, "S+"], [4, "S"], [1.5, "A"], [-1.5, "B"], [-4, "C"], [-Infinity, "D"]]);
+    }
+
     /* OP.GG's performance score for this champion, as win-rate points vs the champion's median hex. */
     opggPart(cid, h) {
       const o = this.opgg[String(cid)];
-      if (!o || !o.augments) return null;
+      if (!o || !o.augments) return this.opggAllPart(h);
       if (!o._stats) {
         // Only hexes OP.GG has a fair sample for set the scale (popular >= 1%).
         const perf = Object.values(o.augments).filter((x) => x[2] >= 0.01).map((x) => x[1]).sort((a, b) => a - b);
@@ -181,7 +195,7 @@
       }
       const e = o.augments[String(h)];
       const cname = this.name("champions", cid);
-      if (!e) return { v: 0, text: this.t("opggMissing", { c: cname }) };
+      if (!e) return this.opggAllPart(h) || { v: 0, text: this.t("opggMissing", { c: cname }) };
       const [tier, perf, pop] = e;
       const trust = Math.min(1, pop / 0.03); // popularity stands in for OP.GG's sample size
       const v = trust * Math.max(-2.5, Math.min(2.5, (perf - o._stats.med) / o._stats.sd));

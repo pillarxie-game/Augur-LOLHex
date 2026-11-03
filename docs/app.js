@@ -10,7 +10,7 @@
   };
 
   const S = { lang: store.get("lang", I18N.best(navigator.language)), game: null, stats: null,
-              personal: null, local: false, grader: null, opgg: {}, opggBuild: {}, match: store.get("match", { champ: null, allies: [], enemies: [], owned: [], offers: [], items: [] }) };
+              personal: null, local: false, grader: null, opgg: {}, opggBuild: {}, opggAll: null, match: store.get("match", { champ: null, allies: [], enemies: [], owned: [], offers: [], items: [] }) };
   if (!I18N.T[S.lang]) S.lang = "en";
   const T = (k) => I18N.pick(S.lang, k) ?? k;
 
@@ -96,11 +96,15 @@
     S.desktop = !!(ping && ping.desktop);
     if (S.settings.ui_lang && I18N.T[S.settings.ui_lang] && !store.get("lang", null)) S.lang = S.settings.ui_lang;
     if (S.local) S.personal = await get("api/me");
+    if (S.local && S.settings.use_opgg !== false) {
+      const sum = await get("api/opgg_summary");
+      if (sum && sum.hexes) S.opggAll = sum;
+    }
     makeGrader();
     return true;
   }
   function makeGrader() {
-    S.grader = new Grader(S.game, S.stats, { lang: S.lang, personal: S.personal, opgg: S.opgg, opggBuild: S.opggBuild });
+    S.grader = new Grader(S.game, S.stats, { lang: S.lang, personal: S.personal, opgg: S.opgg, opggBuild: S.opggBuild, opggAll: S.opggAll });
   }
   /* OP.GG hex stats for one champion (local helper only). Calls back once loaded. */
   async function loadOpgg(cid, then) {
@@ -129,7 +133,11 @@
         && (!term || [a.name, ...Object.values(a.names || {})].some((n) => n.toLowerCase().includes(term)))).map((a) => {
         const c = S.stats.hex_all ? S.stats.hex_all[a.id] : null;
         const d = g.hexAllDelta(a.id);
-        return { a, name: nameOf("augments", a.id), tierv: hasStats() ? d : 0, tier: hasStats() && n(c) ? g.hexTier(a.id) : "-",
+        const op = S.opggAll && S.opggAll.hexes[a.id];
+        const useOp = !hasStats() && op && op.score != null;
+        return { a, name: nameOf("augments", a.id), tierv: hasStats() ? d : useOp ? op.score : -99,
+                 tier: hasStats() && n(c) ? g.hexTier(a.id) : useOp ? g.opggTier(a.id) : "-",
+                 ops: op && op.score != null ? op.score : -99, opn: op ? op.listed : 0,
                  wr: wr(c) ?? 0, d, pick: n(c) / players, games: n(c), rar: a.rarity };
       });
       const cols = [
@@ -141,7 +149,10 @@
         { label: T("pickrate"), key: "pick", num: true, render: (r) => (r.games ? pct(r.pick) : "-") },
         { label: T("games"), key: "games", num: true, render: (r) => num(r.games) },
       ];
-      box.replaceChildren(table(cols, rows, hasStats() ? "tierv" : "name", hasStats()));
+      if (S.opggAll) cols.splice(3, 0,
+        { label: T("opggScore"), key: "ops", num: true, render: (r) => (r.ops === -99 ? el("span", { class: "muted" }, "-") : signed(r.ops)) },
+        { label: T("opggListed"), key: "opn", num: true, render: (r) => r.opn || "-" });
+      box.replaceChildren(table(cols, rows, hasStats() || S.opggAll ? "tierv" : "name", hasStats() || !!S.opggAll));
     }
     const tabs = el("div", { class: "tabs", role: "tablist" }, ["all", "silver", "gold", "prismatic"].map((r) =>
       el("button", { type: "button", class: r === rarity ? "on" : "", onclick: (e) => {
@@ -155,6 +166,7 @@
 
   function summary() {
     const m = S.stats.meta;
+    if (!hasStats() && S.opggAll) return el("div", { class: "banner" }, T("opggTierNote"));
     if (!hasStats()) return el("div", { class: "banner" }, el("b", {}, T("noStats")), " ", el("span", { html: T("noStatsHelp") }));
     const patches = Object.keys(m.patches || {});
     return el("div", { class: "stats" },
@@ -316,6 +328,7 @@
       const other = k.split("_").find((x) => x !== String(hid));
       return { other, games: n(c), wr: wr(c), lift: (smooth(c, wr(all) || g.g, 60) - (wr(all) || g.g)) * 100 };
     }).filter((p) => S.game.augments[p.other] && p.games >= 5).sort((x, y) => y.lift - x.lift).slice(0, 10);
+    const opAll = S.opggAll && S.opggAll.hexes[hid] && S.opggAll.hexes[hid].best.length ? S.opggAll.hexes[hid] : null;
     const rounds = (S.stats.round_all || {})[hid] || {};
     const roundKeys = Object.keys(rounds).sort();
     const maxWr = Math.max(0.01, ...roundKeys.map((r) => wr(rounds[r]) || 0));
@@ -345,6 +358,9 @@
           { label: T("games"), key: "games", num: true, render: (p) => num(p.games) },
         ], partners, "lift") : el("p", { class: "muted" }, T("noStats")))),
       bestC.length > 12 ? [el("h2", {}, T("worstChamps")), table(champCols, bestC.slice(-8), "lift", false)] : null,
+      opAll ? [el("h2", {}, T("opggBestChamps")), el("p", { class: "muted small" }, T("opggAllR").replace("{s}", (opAll.score >= 0 ? "+" : "") + (opAll.score ?? 0).toFixed(1)).replace("{n}", opAll.listed)),
+        el("div", { class: "grid" }, opAll.best.filter((b) => S.game.champions[b[0]]).map(([c, d]) => el("a", { class: "card-champ", href: `#/champion/${c}` },
+          el("img", { src: S.game.champions[c].icon, alt: "", loading: "lazy", width: 56, height: 56 }), el("span", {}, nameOf("champions", c)), el("small", {}, (d >= 0 ? "+" : "") + d))))] : null,
     ];
   }
 
@@ -615,7 +631,8 @@
         el("p", { class: "small" }, T("sDataFolder"), " ", el("code", {}, S.settings.data_folder || "")),
         el("p", { class: "muted small" }, T("sCollectHelp")),
         el("div", { class: "row" }, el("button", { type: "button", class: "primary", onclick: () => job("collect") }, T("sCollect")),
-          el("button", { type: "button", onclick: () => job("build") }, T("sRebuild"))),
+          el("button", { type: "button", onclick: () => job("build") }, T("sRebuild")),
+          el("button", { type: "button", onclick: () => job("opgg_all") }, T("opggAllBtn"))),
         jobBox)];
   }
 

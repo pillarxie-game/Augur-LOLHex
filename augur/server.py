@@ -52,7 +52,8 @@ def make_handler(cfg, gamedata):
     history_file = cfg["data_path"] / "history.jsonl"
     lock = threading.Lock()
     screen_lock = threading.Lock()  # one OCR at a time
-    jobs = {"collect": {"running": False, "log": []}, "build": {"running": False, "log": []}}
+    jobs = {"collect": {"running": False, "log": []}, "build": {"running": False, "log": []},
+            "opgg_all": {"running": False, "log": []}}
 
     def run_job(name, fn):
         job = jobs[name]
@@ -78,6 +79,11 @@ def make_handler(cfg, gamedata):
         g = gamedata.load(cfg) or gamedata
         cli.build(cfg, g)
         log("Stats rebuilt.")
+
+    def opgg_all(log):
+        opgg.fetch_all(gamedata, log=log)
+
+    cfg["_start_job"] = lambda name: run_job(name, {"opgg_all": opgg_all}[name])
 
     def collect(log):
         lcu.collect_games(cfg, gamedata, games=500, log=log)
@@ -121,6 +127,9 @@ def make_handler(cfg, gamedata):
                 return self.read_screen(None)
             if path.startswith("/api/opgg") and not cfg.get("use_opgg", True):
                 return self.send_json({"error": "OP.GG is turned off in settings"})
+            if path == "/api/opgg_summary":
+                f = config.ROOT / "data" / "opgg" / "summary.json"
+                return self.send_json(json.loads(f.read_text(encoding="utf-8")) if f.exists() else {"error": "not downloaded yet"})
             if path == "/api/opgg_build":
                 from urllib.parse import parse_qs, urlparse
                 champ = (parse_qs(urlparse(self.path).query).get("champ") or [""])[0]
@@ -175,9 +184,9 @@ def make_handler(cfg, gamedata):
                 if cfg.get("_on_settings"):
                     cfg["_on_settings"](saved)
                 return self.send_json(settings_view())
-            if self.path in ("/api/collect", "/api/build"):
+            if self.path in ("/api/collect", "/api/build", "/api/opgg_all"):
                 name = self.path.rsplit("/", 1)[-1]
-                started = run_job(name, collect if name == "collect" else rebuild)
+                started = run_job(name, {"collect": collect, "build": rebuild, "opgg_all": opgg_all}[name])
                 return self.send_json({"started": started, "jobs": jobs})
             if self.path == "/api/screen":
                 size = int(self.headers.get("Content-Length", 0))

@@ -86,6 +86,9 @@ def main():
     httpd = server.ThreadingHTTPServer(("127.0.0.1", port), server.make_handler(cfg, g))
     threading.Thread(target=httpd.serve_forever, daemon=True).start()
     refresh_in_background(cfg)
+    summary = config.ROOT / "data" / "opgg" / "summary.json"
+    if cfg.get("use_opgg", True) and (not summary.exists() or time.time() - summary.stat().st_mtime > 86400):
+        cfg["_start_job"]("opgg_all")  # OP.GG data for all champions, refreshed daily
     base = f"http://127.0.0.1:{port}/"
 
     try:
