@@ -119,8 +119,18 @@ def make_handler(cfg, gamedata):
                 return self.send_json(cs or {"error": "Not in champion select"})
             if path == "/api/screen":
                 return self.read_screen(None)
-            if path == "/api/opgg" and not cfg.get("use_opgg", True):
+            if path.startswith("/api/opgg") and not cfg.get("use_opgg", True):
                 return self.send_json({"error": "OP.GG is turned off in settings"})
+            if path == "/api/opgg_build":
+                from urllib.parse import parse_qs, urlparse
+                champ = (parse_qs(urlparse(self.path).query).get("champ") or [""])[0]
+                c = gamedata["champions"].get(champ)
+                if not c:
+                    return self.send_json({"error": "unknown champion"}, 400)
+                try:
+                    return self.send_json(opgg.champion_build(c["key"], c["id"]))
+                except Exception as e:
+                    return self.send_json({"error": f"OP.GG unavailable: {e}"})
             if path == "/api/opgg":
                 from urllib.parse import parse_qs, urlparse
                 champ = (parse_qs(urlparse(self.path).query).get("champ") or [""])[0]

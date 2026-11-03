@@ -38,6 +38,7 @@
       this.s = stats || {};
       this.me = opts.personal || null;
       this.opgg = opts.opgg || {}; // champion id -> {augments: {hex id: [tier, performance, popular]}}
+      this.opggBuild = opts.opggBuild || {}; // champion id -> OP.GG ARAM build (core, boots, item slots)
       this.lang = I18N.T[opts.lang] ? opts.lang : "en";
       this.g = wr(this.s.global) || 0.5;
       this.features = (this.s.meta && this.s.meta.features) || {};
@@ -260,6 +261,37 @@
       return result;
     }
 
+    /* OP.GG ARAM: how this item does for this champion (core build, boots, or as item #4-6). */
+    opggItemPart(cid, iid) {
+      const b = this.opggBuild[String(cid)];
+      if (!b || !b.play) return null;
+      const base = b.win_rate;
+      let best = null;
+      const consider = (rec, slot) => {
+        if (!rec || !rec.ids.map(String).includes(String(iid)) || !rec.play) return;
+        if (!best || rec.play > best.rec.play) best = { rec, slot };
+      };
+      consider(b.core, "core");
+      consider(b.boots, "boots");
+      for (const [slot, recs] of Object.entries(b.slots || {})) for (const r of recs) consider(r, slot);
+      if (!best) return null;
+      const wr_ = best.rec.win / best.rec.play;
+      let v;
+      if (best.slot === "core" || best.slot === "boots") {
+        // OP.GG's most-built items: a steady bonus, plus half the edge over the champion's average
+        v = 0.8 + 0.5 * shrink(best.rec.play, (wr_ - base) * 100, 0, 500);
+      } else {
+        // Later items win more just because winning players buy more items, so compare with the other options for that slot
+        const recs = b.slots[best.slot], tot = recs.reduce((t, r) => t + r.play, 0);
+        const slotWr = recs.reduce((t, r) => t + r.win, 0) / (tot || 1);
+        v = 0.3 + shrink(best.rec.play, (wr_ - slotWr) * 100, 0, 500);
+      }
+      const text = best.slot === "core" || best.slot === "boots"
+        ? this.t("opggCoreR", { wr: pct(wr_), n: games(best.rec.play) })
+        : this.t("opggItemR", { wr: pct(wr_), s: best.slot, n: games(best.rec.play) });
+      return { v: Math.max(-2.5, Math.min(2.5, v)), text, src: "opgg" };
+    }
+
     /* Grade possible next items. ctx.items = completed items you own. */
     gradeItems(ctx, limit) {
       const cid = String(ctx.champ), owned = new Set((ctx.items || []).map(String));
@@ -273,6 +305,12 @@
         candidates = candidates.concat(Object.keys(this.s.item_all || {})
           .filter((i) => items[i] && items[i].completed && !candidates.includes(i))
           .sort((x, y) => this.s.item_all[y][0] - this.s.item_all[x][0]).slice(0, 40));
+      const ob = this.opggBuild[cid];
+      if (ob) { // OP.GG's build items are always candidates
+        const extra = [...((ob.core || {}).ids || []), ...((ob.boots || {}).ids || []),
+                       ...Object.values(ob.slots || {}).flat().flatMap((r) => r.ids)].map(String);
+        for (const i of extra) if (items[i] && items[i].completed && !candidates.includes(i)) candidates.push(i);
+      }
       if (!candidates.length) candidates = Object.keys(items).filter((i) => items[i].completed && items[i].gold >= 2500);
       const feats = this.activeFeatures(ctx.allies || [], ctx.enemies || []);
       const names = (ids) => ids.map((c) => this.name("champions", c)).join(", ");
@@ -294,7 +332,9 @@
           }
         }
         if (n(all) > 0) parts.push({ v: (1 - a) * dAll, text: this.t("itemAll", { d: signed(dAll), n: games(n(all)) }) });
-        const fitW = 1 - a;
+        const op = this.opggItemPart(cid, i);
+        if (op) parts.push({ v: (1 - a) * op.v, text: op.text, src: "opgg" });
+        const fitW = (1 - a) * (op ? 0.5 : 1);
         if (tags.has("SpellDamage") && !tags.has("Damage") && p.ap < 0.35) parts.push({ v: -3 * fitW, text: this.t("apItemAd") });
         if ((tags.has("Damage") || tags.has("CriticalStrike")) && !tags.has("SpellDamage") && p.ap > 0.65)
           parts.push({ v: -3 * fitW, text: this.t("adItemAp") });

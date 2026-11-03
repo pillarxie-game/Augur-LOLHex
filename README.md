@@ -61,6 +61,8 @@ What OP.GG gives and doesn't give:
 - Rarely picked hexes have unreliable scores, so a hex's OP.GG score counts less the less popular it is.
 - Your own collected games count more as they grow, and OP.GG counts less.
 
+The app also shows **OP.GG's ARAM build** on each champion page (tier, win rate, core items, boots and 4th/5th item options), and item grades include OP.GG's numbers. Later items are compared with the other options for the same slot, because players who are already winning buy more items.
+
 Try it: `python -m augur opgg Yasuo`.
 
 ## Collecting games

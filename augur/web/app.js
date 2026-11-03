@@ -10,7 +10,7 @@
   };
 
   const S = { lang: store.get("lang", I18N.best(navigator.language)), game: null, stats: null,
-              personal: null, local: false, grader: null, opgg: {}, match: store.get("match", { champ: null, allies: [], enemies: [], owned: [], offers: [], items: [] }) };
+              personal: null, local: false, grader: null, opgg: {}, opggBuild: {}, match: store.get("match", { champ: null, allies: [], enemies: [], owned: [], offers: [], items: [] }) };
   if (!I18N.T[S.lang]) S.lang = "en";
   const T = (k) => I18N.pick(S.lang, k) ?? k;
 
@@ -99,10 +99,19 @@
     makeGrader();
     return true;
   }
-  function makeGrader() { S.grader = new Grader(S.game, S.stats, { lang: S.lang, personal: S.personal, opgg: S.opgg }); }
+  function makeGrader() {
+    S.grader = new Grader(S.game, S.stats, { lang: S.lang, personal: S.personal, opgg: S.opgg, opggBuild: S.opggBuild });
+  }
   /* OP.GG hex stats for one champion (local helper only). Calls back once loaded. */
   async function loadOpgg(cid, then) {
-    if (!S.local || !cid || S.opgg[cid]) return;
+    if (!S.local || !cid) return;
+    if (!S.opggBuild[cid] && S.settings.use_opgg !== false) {
+      S.opggBuild[cid] = { loading: true };
+      fetch("api/opgg_build?champ=" + cid).then((x) => x.json()).then((r) => {
+        if (r && r.play) { S.opggBuild[cid] = r; makeGrader(); if (then) then(); } else delete S.opggBuild[cid];
+      }).catch(() => { delete S.opggBuild[cid]; });
+    }
+    if (S.opgg[cid]) return;
     S.opgg[cid] = { loading: true };
     const r = await fetch("api/opgg?champ=" + cid).then((x) => x.json()).catch(() => null);
     if (r && r.augments) { S.opgg[cid] = r; makeGrader(); if (then) then(); }
@@ -197,6 +206,9 @@
       { label: T("pickrate"), key: "pick", num: true, render: (r) => (r.games ? pct(r.pick) : "-") },
       { label: T("games"), key: "games", num: true, render: (r) => num(r.games) },
     ];
+    if (S.opgg[cid] && S.opgg[cid].augments) hexCols.splice(3, 0, { label: T("opggCol"), key: "op", num: true, render: (r) =>
+      r.op < 0 ? el("span", { class: "muted" }, "-") : el("span", { title: "tier " + r.opTier }, r.op.toFixed(1)) });
+    for (const r of rows) { const e = S.opgg[cid] && S.opgg[cid].augments && S.opgg[cid].augments[r.a.id]; r.op = e ? e[1] : -1; r.opTier = e ? e[0] : null; }
     const best = el("div"), worst = el("div");
     function drawHexes() {
       const f = rows.filter((r) => rarity === "all" || r.rar === rarity).sort((a, b) => b.total - a.total);
@@ -233,6 +245,19 @@
       { label: T("games"), key: "games", num: true, render: (r) => num(r.games) },
     ];
     const slotTable = itemSlots(cid);
+    const ob = S.opggBuild[cid];
+    const itemChips = (rec) => el("div", { class: "chips" }, rec.ids.filter((i) => S.game.items[i] || S.game.item_alias && S.game.item_alias[i]).map((i) => {
+      const id = S.game.items[i] ? i : S.game.item_alias[i];
+      return el("span", { class: "chip" }, img(S.game.items[id].icon), nameOf("items", id));
+    }), el("small", { class: "muted" }, ` ${pct(rec.win / rec.play)} · ${num(rec.play)}`));
+    const opggPanel = ob && ob.play ? [el("h2", {}, T("opggBuildTitle")), el("div", { class: "panel" },
+      el("p", { style: "margin-top:0" }, el("b", {}, T("opggChampLine").replace("{t}", ob.tier).replace("{wr}", pct(ob.win_rate)).replace("{n}", num(ob.play)))),
+      el("div", { class: "form-grid" },
+        ob.core ? [el("label", {}, T("opggCore")), itemChips(ob.core)] : null,
+        ob.boots ? [el("label", {}, T("opggBoots")), itemChips(ob.boots)] : null,
+        Object.entries(ob.slots || {}).flatMap(([sl, recs]) => [el("label", {}, T("opggSlot").replace("{s}", sl)),
+          el("div", {}, recs.map(itemChips))])),
+      el("p", { class: "muted small", style: "margin-bottom:0" }, "Source: ", el("a", { href: `https://www.op.gg/modes/aram/${c.key.toLowerCase()}/build`, target: "_blank", rel: "noopener" }, "OP.GG")))] : null;
     const prof = (S.stats.profile || {})[cid];
     const opgg = `https://www.op.gg/modes/aram/${c.key.toLowerCase()}/build`;
     return [
@@ -246,6 +271,7 @@
         el("div", { class: "stat" }, el("b", {}, num(n(cell))), el("span", {}, T("games"))),
         el("div", { class: "stat" }, el("b", {}, prof && prof.ap != null ? Math.round(prof.ap * 100) + "%" : Math.round(c.ap * 100) + "%"), el("span", {}, T("apDamage"))),
         el("div", { class: "stat" }, el("b", {}, prof ? prof.taken.toFixed(2) + "×" : "-"), el("span", {}, T("takenVsAvg")))),
+      opggPanel,
       el("h2", {}, T("bestHexes")), tabs, best,
       pairs.length ? [el("h2", {}, T("bestCombos")), table(comboCols, pairs, "lift")] : null,
       el("div", { class: "cols" }, el("div", {}, el("h2", {}, T("items")), table(itemCols, items, "total")),
