@@ -39,7 +39,8 @@
       this.me = opts.personal || null;
       this.opgg = opts.opgg || {}; // champion id -> {augments: {hex id: [tier, performance, popular]}}
       this.opggBuild = opts.opggBuild || {};
-      this.opggAll = (opts.opggAll && opts.opggAll.hexes) || {}; // hex id -> {score, listed, best[]} across all champions // champion id -> OP.GG ARAM build (core, boots, item slots)
+      this.opggAll = (opts.opggAll && opts.opggAll.hexes) || {};
+      this.opggChamps = (opts.opggAll && opts.opggAll.champ_stats) || {}; // champion id -> OP.GG ARAM win rate, games, tier // hex id -> {score, listed, best[]} across all champions // champion id -> OP.GG ARAM build (core, boots, item slots)
       this.lang = I18N.T[opts.lang] ? opts.lang : "en";
       this.g = wr(this.s.global) || 0.5;
       this.features = (this.s.meta && this.s.meta.features) || {};
@@ -373,9 +374,14 @@
       const apCount = team.filter((c) => (this.champ(c) || { flags: {} }).flags.apdmg).length;
       return [ctx.me, ...(ctx.bench || [])].filter(Boolean).map((cid) => {
         const c = this.champ(cid) || { flags: {} }, cell = (this.s.champ || {})[String(cid)], parts = [];
+        const oc = this.opggChamps[String(cid)];
         if (n(cell) > 0) {
           const d = (smooth(cell, this.g, K.bench) - this.g) * 100;
           parts.push({ v: d, text: this.t("champWr", { wr: pct(wr(cell)), n: games(n(cell)) }) });
+        } else if (oc && oc.win_rate && oc.play) {
+          // No games of our own yet: OP.GG's ARAM win rate by default
+          parts.push({ v: shrink(oc.play, (oc.win_rate - 0.5) * 100, 0, 2000), src: "opgg",
+                       text: this.t("opggChampWr", { wr: pct(oc.win_rate), n: games(oc.play), t: oc.tier }) });
         } else parts.push({ v: 0, text: this.t("champNoData") });
         if (team.length >= 3 && front === 0 && c.flags.front) parts.push({ v: 1.0, text: this.t("needFront") });
         if (team.length >= 3 && apCount >= 3 && !c.flags.apdmg) parts.push({ v: 0.7, text: this.t("needAd") });

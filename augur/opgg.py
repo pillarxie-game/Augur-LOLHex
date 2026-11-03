@@ -213,8 +213,9 @@ def fetch_all(gamedata, log=print, pause=0.4):
     for i, c in enumerate(champs, 1):
         try:
             d = aram_augments(c["id"])
+            b = champion_build(c["key"], c["id"])  # ARAM win rate, tier and build
             ok += 1
-            if not d.get("stale") and time.time() - d["fetched"] < 5:
+            if time.time() - min(d["fetched"], b["fetched"]) < 5:
                 time.sleep(pause)  # fresh download: be gentle with OP.GG
         except Exception as e:
             failed += 1
@@ -259,6 +260,13 @@ def summarize(gamedata):
             "listed": e["listed"], "tiers": e["tiers"],
             "best": e["champs"][:8], "worst": e["champs"][-5:][::-1] if len(e["champs"]) > 8 else [],
         }
-    out = {"champions": champs, "hexes": hexes, "built": int(time.time()), "source": "OP.GG ARAM (mcp-api.op.gg)"}
+    champ_stats = {}
+    for c in gamedata["champions"].values():
+        path = folder / f"build_{c['id']}.json"
+        if path.exists():
+            b = json.loads(path.read_text(encoding="utf-8"))
+            champ_stats[str(c["id"])] = {k: b.get(k) for k in ("win_rate", "play", "pick_rate", "tier", "rank")}
+    out = {"champions": champs, "champ_stats": champ_stats, "hexes": hexes, "built": int(time.time()),
+           "source": "OP.GG ARAM (mcp-api.op.gg)"}
     (folder / "summary.json").write_text(json.dumps(out), encoding="utf-8")
     return out

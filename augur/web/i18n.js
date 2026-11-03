@@ -10,6 +10,7 @@
 
   const T = {};
   T.en = {
+    opggChampWr: "OP.GG ARAM: {wr} win rate ({n} games, tier {t})", opggWr: "Win rate (OP.GG)",
     opggTierNote: "Tiers come from OP.GG (all champions) until you collect your own games.",
     opggAllR: "OP.GG, all champions: {s} vs each champion's median ({n} champions)", opggScore: "OP.GG score", opggListed: "Champions", opggAllBtn: "Download OP.GG data for all champions", opggBestChamps: "Best champions (OP.GG)",
     opggCoreR: "OP.GG ARAM build item: {wr} win rate ({n} games)", opggItemR: "OP.GG ARAM: {wr} win rate as item #{s} ({n} games)", opggBuildTitle: "OP.GG ARAM build", opggCore: "Core items", opggBoots: "Boots", opggSlot: "Item #{s} options", opggChampLine: "OP.GG ARAM: tier {t}, {wr} win rate in {n} games", opggCol: "OP.GG",
@@ -71,6 +72,7 @@
   };
 
   T.zh = {
+    opggChampWr: "OP.GG 大乱斗：胜率 {wr}（{n} 场，T{t}）", opggWr: "胜率（OP.GG）",
     opggTierNote: "在你收集自己的对局之前，评级来自 OP.GG（全英雄）数据。",
     opggAllR: "OP.GG 全英雄：比各英雄中位数 {s}（{n} 个英雄）", opggScore: "OP.GG 分数", opggListed: "英雄数", opggAllBtn: "下载全英雄 OP.GG 数据", opggBestChamps: "最适合的英雄（OP.GG）",
     opggCoreR: "OP.GG 大乱斗出装核心：胜率 {wr}（{n} 场）", opggItemR: "OP.GG 大乱斗：作为第 {s} 件胜率 {wr}（{n} 场）", opggBuildTitle: "OP.GG 大乱斗出装", opggCore: "核心装备", opggBoots: "鞋子", opggSlot: "第 {s} 件可选", opggChampLine: "OP.GG 大乱斗：T{t}，胜率 {wr}（{n} 场）", opggCol: "OP.GG",
@@ -118,6 +120,7 @@
   };
 
   T["zh-TW"] = {
+    opggChampWr: "OP.GG ARAM：勝率 {wr}（{n} 場，T{t}）", opggWr: "勝率（OP.GG）",
     opggTierNote: "在你收集自己的對戰之前，評級來自 OP.GG（全英雄）資料。",
     opggAllR: "OP.GG 全英雄：比各英雄中位數 {s}（{n} 個英雄）", opggScore: "OP.GG 分數", opggListed: "英雄數", opggAllBtn: "下載全英雄 OP.GG 資料", opggBestChamps: "最適合的英雄（OP.GG）",
     opggCoreR: "OP.GG ARAM 出裝核心：勝率 {wr}（{n} 場）", opggItemR: "OP.GG ARAM：作為第 {s} 件勝率 {wr}（{n} 場）", opggBuildTitle: "OP.GG ARAM 出裝", opggCore: "核心裝備", opggBoots: "鞋子", opggSlot: "第 {s} 件可選", opggChampLine: "OP.GG ARAM：T{t}，勝率 {wr}（{n} 場）", opggCol: "OP.GG",
@@ -165,6 +168,7 @@
   };
 
   T.ko = {
+    opggChampWr: "OP.GG 칼바람: 승률 {wr} ({n}게임, {t}티어)", opggWr: "승률 (OP.GG)",
     opggTierNote: "직접 게임을 수집하기 전까지 티어는 OP.GG(전체 챔피언) 기준입니다.",
     opggAllR: "OP.GG 전체 챔피언: 각 챔피언 중앙값 대비 {s} ({n}명)", opggScore: "OP.GG 점수", opggListed: "챔피언 수", opggAllBtn: "모든 챔피언의 OP.GG 데이터 받기", opggBestChamps: "잘 맞는 챔피언 (OP.GG)",
     opggCoreR: "OP.GG 칼바람 핵심 아이템: 승률 {wr} ({n}게임)", opggItemR: "OP.GG 칼바람: {s}번째 아이템으로 승률 {wr} ({n}게임)", opggBuildTitle: "OP.GG 칼바람 빌드", opggCore: "핵심 아이템", opggBoots: "신발", opggSlot: "{s}번째 아이템 선택지", opggChampLine: "OP.GG 칼바람: {t}티어, 승률 {wr} ({n}게임)", opggCol: "OP.GG",
@@ -216,6 +220,7 @@
   };
 
   T.ja = {
+    opggChampWr: "OP.GG ARAM：勝率 {wr}（{n} 試合、ティア {t}）", opggWr: "勝率（OP.GG）",
     opggTierNote: "自分の試合を集めるまで、ティアは OP.GG（全チャンピオン）に基づきます。",
     opggAllR: "OP.GG 全チャンピオン：各チャンピオンの中央値比 {s}（{n} 体）", opggScore: "OP.GG スコア", opggListed: "チャンピオン数", opggAllBtn: "全チャンピオンの OP.GG データを取得", opggBestChamps: "相性の良いチャンピオン（OP.GG）",
     opggCoreR: "OP.GG ARAM コアアイテム：勝率 {wr}（{n} 試合）", opggItemR: "OP.GG ARAM：{s} 番目のアイテムとして勝率 {wr}（{n} 試合）", opggBuildTitle: "OP.GG ARAM ビルド", opggCore: "コアアイテム", opggBoots: "ブーツ", opggSlot: "{s} 番目の候補", opggChampLine: "OP.GG ARAM：ティア {t}、勝率 {wr}（{n} 試合）", opggCol: "OP.GG",
@@ -267,6 +272,7 @@
   };
 
   T.es = {
+    opggChampWr: "OP.GG ARAM: {wr} de victorias ({n} partidas, nivel {t})", opggWr: "Victorias (OP.GG)",
     opggTierNote: "Los niveles vienen de OP.GG (todos los campeones) hasta que recojas tus propias partidas.",
     opggAllR: "OP.GG, todos los campeones: {s} vs la mediana de cada campeón ({n} campeones)", opggScore: "Puntuación OP.GG", opggListed: "Campeones", opggAllBtn: "Descargar datos de OP.GG de todos los campeones", opggBestChamps: "Mejores campeones (OP.GG)",
     opggCoreR: "Objeto de la build de ARAM de OP.GG: {wr} de victorias ({n} partidas)", opggItemR: "OP.GG ARAM: {wr} de victorias como objeto n.º {s} ({n} partidas)", opggBuildTitle: "Build de ARAM de OP.GG", opggCore: "Objetos principales", opggBoots: "Botas", opggSlot: "Opciones para el objeto n.º {s}", opggChampLine: "OP.GG ARAM: nivel {t}, {wr} de victorias en {n} partidas", opggCol: "OP.GG",
@@ -319,6 +325,7 @@
   };
 
   T.pt = {
+    opggChampWr: "OP.GG ARAM: {wr} de vitórias ({n} partidas, tier {t})", opggWr: "Vitórias (OP.GG)",
     opggTierNote: "Os tiers vêm do OP.GG (todos os campeões) até você coletar suas próprias partidas.",
     opggAllR: "OP.GG, todos os campeões: {s} vs a mediana de cada campeão ({n} campeões)", opggScore: "Pontuação OP.GG", opggListed: "Campeões", opggAllBtn: "Baixar dados do OP.GG de todos os campeões", opggBestChamps: "Melhores campeões (OP.GG)",
     opggCoreR: "Item da build de ARAM do OP.GG: {wr} de vitórias ({n} partidas)", opggItemR: "OP.GG ARAM: {wr} de vitórias como item n.º {s} ({n} partidas)", opggBuildTitle: "Build de ARAM do OP.GG", opggCore: "Itens principais", opggBoots: "Botas", opggSlot: "Opções para o item n.º {s}", opggChampLine: "OP.GG ARAM: tier {t}, {wr} de vitórias em {n} partidas", opggCol: "OP.GG",
@@ -371,6 +378,7 @@
   };
 
   T.fr = {
+    opggChampWr: "OP.GG ARAM : {wr} de victoires ({n} parties, rang {t})", opggWr: "Victoires (OP.GG)",
     opggTierNote: "Les rangs viennent d'OP.GG (tous les champions) jusqu'à ce que vous collectiez vos propres parties.",
     opggAllR: "OP.GG, tous les champions : {s} vs la médiane de chaque champion ({n} champions)", opggScore: "Score OP.GG", opggListed: "Champions", opggAllBtn: "Télécharger les données OP.GG de tous les champions", opggBestChamps: "Meilleurs champions (OP.GG)",
     opggCoreR: "Objet du build ARAM d'OP.GG : {wr} de victoires ({n} parties)", opggItemR: "OP.GG ARAM : {wr} de victoires en objet n° {s} ({n} parties)", opggBuildTitle: "Build ARAM d'OP.GG", opggCore: "Objets principaux", opggBoots: "Bottes", opggSlot: "Choix pour l'objet n° {s}", opggChampLine: "OP.GG ARAM : rang {t}, {wr} de victoires sur {n} parties", opggCol: "OP.GG",
@@ -423,6 +431,7 @@
   };
 
   T.de = {
+    opggChampWr: "OP.GG ARAM: {wr} Siegrate ({n} Spiele, Stufe {t})", opggWr: "Siegrate (OP.GG)",
     opggTierNote: "Die Stufen stammen von OP.GG (alle Champions), bis du eigene Spiele sammelst.",
     opggAllR: "OP.GG, alle Champions: {s} vs. Median jedes Champions ({n} Champions)", opggScore: "OP.GG-Wert", opggListed: "Champions", opggAllBtn: "OP.GG-Daten für alle Champions laden", opggBestChamps: "Beste Champions (OP.GG)",
     opggCoreR: "Gegenstand aus OP.GGs ARAM-Build: {wr} Siegrate ({n} Spiele)", opggItemR: "OP.GG ARAM: {wr} Siegrate als {s}. Gegenstand ({n} Spiele)", opggBuildTitle: "OP.GG ARAM-Build", opggCore: "Kerngegenstände", opggBoots: "Stiefel", opggSlot: "Optionen für Gegenstand {s}", opggChampLine: "OP.GG ARAM: Stufe {t}, {wr} Siegrate in {n} Spielen", opggCol: "OP.GG",
@@ -475,6 +484,7 @@
   };
 
   T.it = {
+    opggChampWr: "OP.GG ARAM: {wr} di vittorie ({n} partite, livello {t})", opggWr: "Vittorie (OP.GG)",
     opggTierNote: "I livelli vengono da OP.GG (tutti i campioni) finché non raccogli le tue partite.",
     opggAllR: "OP.GG, tutti i campioni: {s} vs la mediana di ogni campione ({n} campioni)", opggScore: "Punteggio OP.GG", opggListed: "Campioni", opggAllBtn: "Scarica i dati OP.GG di tutti i campioni", opggBestChamps: "Campioni migliori (OP.GG)",
     opggCoreR: "Oggetto della build ARAM di OP.GG: {wr} di vittorie ({n} partite)", opggItemR: "OP.GG ARAM: {wr} di vittorie come oggetto n. {s} ({n} partite)", opggBuildTitle: "Build ARAM di OP.GG", opggCore: "Oggetti principali", opggBoots: "Stivali", opggSlot: "Opzioni per l'oggetto n. {s}", opggChampLine: "OP.GG ARAM: livello {t}, {wr} di vittorie in {n} partite", opggCol: "OP.GG",
@@ -527,6 +537,7 @@
   };
 
   T.pl = {
+    opggChampWr: "OP.GG ARAM: {wr} wygranych ({n} gier, poziom {t})", opggWr: "Wygrane (OP.GG)",
     opggTierNote: "Poziomy pochodzą z OP.GG (wszyscy bohaterowie), dopóki nie zbierzesz własnych gier.",
     opggAllR: "OP.GG, wszyscy bohaterowie: {s} vs mediana każdego bohatera ({n} bohaterów)", opggScore: "Wynik OP.GG", opggListed: "Bohaterowie", opggAllBtn: "Pobierz dane OP.GG dla wszystkich bohaterów", opggBestChamps: "Najlepsi bohaterowie (OP.GG)",
     opggCoreR: "Przedmiot z buildu ARAM OP.GG: {wr} wygranych ({n} gier)", opggItemR: "OP.GG ARAM: {wr} wygranych jako {s}. przedmiot ({n} gier)", opggBuildTitle: "Build ARAM z OP.GG", opggCore: "Główne przedmioty", opggBoots: "Buty", opggSlot: "Opcje na {s}. przedmiot", opggChampLine: "OP.GG ARAM: poziom {t}, {wr} wygranych w {n} grach", opggCol: "OP.GG",
@@ -579,6 +590,7 @@
   };
 
   T.ru = {
+    opggChampWr: "OP.GG ARAM: {wr} побед ({n} игр, тир {t})", opggWr: "Победы (OP.GG)",
     opggTierNote: "Тиры берутся из OP.GG (все чемпионы), пока вы не соберёте свои игры.",
     opggAllR: "OP.GG, все чемпионы: {s} к медиане каждого чемпиона ({n} чемпионов)", opggScore: "Оценка OP.GG", opggListed: "Чемпионы", opggAllBtn: "Загрузить данные OP.GG для всех чемпионов", opggBestChamps: "Лучшие чемпионы (OP.GG)",
     opggCoreR: "Предмет сборки ARAM от OP.GG: {wr} побед ({n} игр)", opggItemR: "OP.GG ARAM: {wr} побед как {s}-й предмет ({n} игр)", opggBuildTitle: "Сборка ARAM от OP.GG", opggCore: "Основные предметы", opggBoots: "Сапоги", opggSlot: "Варианты для {s}-го предмета", opggChampLine: "OP.GG ARAM: тир {t}, {wr} побед за {n} игр", opggCol: "OP.GG",
@@ -631,6 +643,7 @@
   };
 
   T.tr = {
+    opggChampWr: "OP.GG ARAM: {wr} kazanma ({n} maç, seviye {t})", opggWr: "Kazanma (OP.GG)",
     opggTierNote: "Kendi maçlarını toplayana kadar seviyeler OP.GG'den (tüm şampiyonlar) gelir.",
     opggAllR: "OP.GG, tüm şampiyonlar: her şampiyonun medyanına göre {s} ({n} şampiyon)", opggScore: "OP.GG puanı", opggListed: "Şampiyon", opggAllBtn: "Tüm şampiyonlar için OP.GG verisini indir", opggBestChamps: "En uygun şampiyonlar (OP.GG)",
     opggCoreR: "OP.GG ARAM dizilimi eşyası: {wr} kazanma ({n} maç)", opggItemR: "OP.GG ARAM: {s}. eşya olarak {wr} kazanma ({n} maç)", opggBuildTitle: "OP.GG ARAM dizilimi", opggCore: "Temel eşyalar", opggBoots: "Botlar", opggSlot: "{s}. eşya seçenekleri", opggChampLine: "OP.GG ARAM: seviye {t}, {n} maçta {wr} kazanma", opggCol: "OP.GG",
@@ -683,6 +696,7 @@
   };
 
   T.vi = {
+    opggChampWr: "OP.GG ARAM: thắng {wr} ({n} trận, hạng {t})", opggWr: "Tỉ lệ thắng (OP.GG)",
     opggTierNote: "Hạng lấy từ OP.GG (mọi tướng) cho đến khi bạn thu thập trận của mình.",
     opggAllR: "OP.GG, mọi tướng: {s} so với trung vị của từng tướng ({n} tướng)", opggScore: "Điểm OP.GG", opggListed: "Số tướng", opggAllBtn: "Tải dữ liệu OP.GG cho mọi tướng", opggBestChamps: "Tướng hợp nhất (OP.GG)",
     opggCoreR: "Trang bị trong lối lên đồ ARAM của OP.GG: thắng {wr} ({n} trận)", opggItemR: "OP.GG ARAM: thắng {wr} khi là món thứ {s} ({n} trận)", opggBuildTitle: "Lối lên đồ ARAM của OP.GG", opggCore: "Trang bị chính", opggBoots: "Giày", opggSlot: "Lựa chọn món thứ {s}", opggChampLine: "OP.GG ARAM: hạng {t}, thắng {wr} trong {n} trận", opggCol: "OP.GG",
@@ -735,6 +749,7 @@
   };
 
   T.th = {
+    opggChampWr: "OP.GG ARAM: ชนะ {wr} ({n} เกม, ระดับ {t})", opggWr: "อัตราชนะ (OP.GG)",
     opggTierNote: "ระดับมาจาก OP.GG (ทุกแชมเปียน) จนกว่าคุณจะเก็บเกมของตัวเอง",
     opggAllR: "OP.GG ทุกแชมเปียน: {s} เทียบค่ากลางของแต่ละแชมเปียน ({n} แชมเปียน)", opggScore: "คะแนน OP.GG", opggListed: "จำนวนแชมเปียน", opggAllBtn: "ดาวน์โหลดข้อมูล OP.GG ของทุกแชมเปียน", opggBestChamps: "แชมเปียนที่เข้ากันที่สุด (OP.GG)",
     opggCoreR: "ไอเทมในบิลด์ ARAM ของ OP.GG: ชนะ {wr} ({n} เกม)", opggItemR: "OP.GG ARAM: ชนะ {wr} เมื่อเป็นไอเทมชิ้นที่ {s} ({n} เกม)", opggBuildTitle: "บิลด์ ARAM ของ OP.GG", opggCore: "ไอเทมหลัก", opggBoots: "รองเท้า", opggSlot: "ตัวเลือกไอเทมชิ้นที่ {s}", opggChampLine: "OP.GG ARAM: ระดับ {t}, ชนะ {wr} จาก {n} เกม", opggCol: "OP.GG",
@@ -787,6 +802,7 @@
   };
 
   T.id = {
+    opggChampWr: "OP.GG ARAM: win rate {wr} ({n} game, tier {t})", opggWr: "Win rate (OP.GG)",
     opggTierNote: "Tier berasal dari OP.GG (semua champion) sampai kamu mengumpulkan game sendiri.",
     opggAllR: "OP.GG, semua champion: {s} vs median tiap champion ({n} champion)", opggScore: "Skor OP.GG", opggListed: "Champion", opggAllBtn: "Unduh data OP.GG untuk semua champion", opggBestChamps: "Champion terbaik (OP.GG)",
     opggCoreR: "Item build ARAM OP.GG: win rate {wr} ({n} game)", opggItemR: "OP.GG ARAM: win rate {wr} sebagai item ke-{s} ({n} game)", opggBuildTitle: "Build ARAM OP.GG", opggCore: "Item inti", opggBoots: "Sepatu", opggSlot: "Pilihan item ke-{s}", opggChampLine: "OP.GG ARAM: tier {t}, win rate {wr} dari {n} game", opggCol: "OP.GG",

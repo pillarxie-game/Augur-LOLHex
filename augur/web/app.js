@@ -181,15 +181,20 @@
     const box = el("div", { class: "grid" });
     const g = S.grader;
     function draw() {
+      const ops = (S.opggAll && S.opggAll.champ_stats) || {};
+      const opWr = (c) => (ops[c.id] && ops[c.id].win_rate) || 0;
       const list = Object.values(S.game.champions).filter((c) => !term || [c.name, ...Object.values(c.names || {}), ...(c.aka || [])].some((n) => n.toLowerCase().includes(term)))
-        .map((c) => ({ c, cell: (S.stats.champ || {})[c.id] }))
-        .sort((a, b) => (hasStats() ? (g.champWR(b.c.id) - g.champWR(a.c.id)) : nameOf("champions", a.c.id).localeCompare(nameOf("champions", b.c.id))));
-      box.replaceChildren(...list.map(({ c, cell }) => el("a", { class: "card-champ", href: `#/champion/${c.id}` },
+        .map((c) => ({ c, cell: (S.stats.champ || {})[c.id], op: ops[c.id] }))
+        .sort((a, b) => (hasStats() ? (g.champWR(b.c.id) - g.champWR(a.c.id))
+          : Object.keys(ops).length ? opWr(b.c) - opWr(a.c) : nameOf("champions", a.c.id).localeCompare(nameOf("champions", b.c.id))));
+      box.replaceChildren(...list.map(({ c, cell, op }) => el("a", { class: "card-champ", href: `#/champion/${c.id}` },
         el("img", { src: c.icon, alt: "", loading: "lazy", width: 56, height: 56 }), el("span", {}, nameOf("champions", c.id)),
-        el("small", {}, n(cell) ? `${pct(wr(cell))} · ${num(n(cell))}` : "-"))));
+        el("small", {}, n(cell) ? `${pct(wr(cell))} · ${num(n(cell))}`
+          : op && op.win_rate ? el("span", { title: T("opggWr") }, `${pct(op.win_rate)} · T${op.tier}`) : "-"))));
     }
     draw();
     return [el("h1", {}, T("champsTitle")), summary(),
+            !hasStats() && S.opggAll && S.opggAll.champ_stats ? el("p", { class: "muted small" }, T("opggWr")) : null,
             el("div", { class: "row" }, el("input", { type: "search", placeholder: T("search"), oninput: (e) => { term = e.target.value.trim().toLowerCase(); draw(); } })),
             el("div", { style: "height:12px" }), box];
   }
@@ -271,6 +276,7 @@
           el("div", {}, recs.map(itemChips))])),
       el("p", { class: "muted small", style: "margin-bottom:0" }, "Source: ", el("a", { href: `https://www.op.gg/modes/aram/${c.key.toLowerCase()}/build`, target: "_blank", rel: "noopener" }, "OP.GG")))] : null;
     const prof = (S.stats.profile || {})[cid];
+    const opStat = (S.opggAll && S.opggAll.champ_stats && S.opggAll.champ_stats[cid]) || (ob && ob.play ? ob : null);
     const opgg = `https://www.op.gg/modes/aram/${c.key.toLowerCase()}/build`;
     return [
       el("div", { class: "row", style: "margin-top:20px" },
@@ -279,8 +285,10 @@
         el("div", { class: "grow" }), el("a", { class: "btn", href: opgg, target: "_blank", rel: "noopener" }, T("openOpgg") + " ↗"),
         el("a", { class: "btn", href: `#/grade?champ=${cid}` }, T("grade") + " →")),
       el("div", { class: "stats" },
-        el("div", { class: "stat" }, el("b", {}, n(cell) ? pct(wr(cell)) : "-"), el("span", {}, T("winrate"))),
-        el("div", { class: "stat" }, el("b", {}, num(n(cell))), el("span", {}, T("games"))),
+        n(cell) || !opStat ? el("div", { class: "stat" }, el("b", {}, n(cell) ? pct(wr(cell)) : "-"), el("span", {}, T("winrate")))
+          : el("div", { class: "stat" }, el("b", {}, pct(opStat.win_rate)), el("span", {}, T("opggWr") + " · T" + opStat.tier)),
+        n(cell) || !opStat ? el("div", { class: "stat" }, el("b", {}, num(n(cell))), el("span", {}, T("games")))
+          : el("div", { class: "stat" }, el("b", {}, num(opStat.play)), el("span", {}, T("games") + " (OP.GG)")),
         el("div", { class: "stat" }, el("b", {}, prof && prof.ap != null ? Math.round(prof.ap * 100) + "%" : Math.round(c.ap * 100) + "%"), el("span", {}, T("apDamage"))),
         el("div", { class: "stat" }, el("b", {}, prof ? prof.taken.toFixed(2) + "×" : "-"), el("span", {}, T("takenVsAvg")))),
       opggPanel,
