@@ -99,6 +99,17 @@
     if (S.local && S.settings.use_opgg !== false) {
       const sum = await get("api/opgg_summary");
       if (sum && sum.hexes) S.opggAll = sum;
+    } else if (!S.local) {
+      // A test or offline copy can ship OP.GG data and icons as files next to the page.
+      const bundle = await get("data/opgg_all.json");
+      if (bundle && bundle.summary) {
+        S.opggAll = bundle.summary;
+        Object.assign(S.opgg, bundle.hexes || {});
+        Object.assign(S.opggBuild, bundle.builds || {});
+      }
+      const icons = await get("data/icons.json");
+      if (icons) for (const kind of ["augments", "champions", "items"])
+        for (const [id, uri] of Object.entries(icons[kind] || {})) if (S.game[kind][id]) S.game[kind][id].icon = uri;
     }
     makeGrader();
     return true;
