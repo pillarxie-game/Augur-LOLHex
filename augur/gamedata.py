@@ -173,10 +173,12 @@ def fetch_champions(version, log=print):
             "id": int(c["key"]),
             "key": key,
             "name": c["name"],
-            "name_zh": zh.get(key, {}).get("name", c["name"]),
-            "title_zh": zh.get(key, {}).get("title", ""),
+            "name_zh": zh.get(key, {}).get("title") or c["name"],
+            "title_zh": zh.get(key, {}).get("name", ""),
             "names": {lang: t[key]["name"] for lang, t in local.items() if key in t},
             "titles": {"en": c["title"], **{lang: t[key]["title"] for lang, t in local.items() if key in t}},
+            # Simplified Chinese data has name and title swapped (name 疾风剑豪, title 亚索); players use 亚索.
+            "aka": [zh.get(key, {}).get("name", "")],
             "tags": c["tags"],
             "partype": c["partype"],
             "ap": round(info["magic"] / max(1, info["attack"] + info["magic"]), 2),
@@ -184,6 +186,9 @@ def fetch_champions(version, log=print):
             "flags": champion_flags(c),
             "icon": f"{DDRAGON}/cdn/{version}/img/champion/{c['image']['full']}",
         }
+    for c in out.values():
+        if "zh" in c["names"] and c["titles"].get("zh"):
+            c["names"]["zh"], c["titles"]["zh"] = c["titles"]["zh"], c["names"]["zh"]
     log(f"  {len(out)} champions")
     return out
 

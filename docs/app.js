@@ -68,7 +68,7 @@
       const local = nameOf(kind, o.id);
       const label = local !== o.name ? `${local} · ${o.name}` : o.name;
       byLabel.set(label.toLowerCase(), o.id);
-      for (const n of [o.name, o.name_zh, ...Object.values(o.names || {})]) if (n) byLabel.set(n.toLowerCase(), o.id);
+      for (const n of [o.name, o.name_zh, ...Object.values(o.names || {}), ...(o.aka || [])]) if (n) byLabel.set(n.toLowerCase(), o.id);
       return el("option", { value: label });
     }));
     const input = el("input", { list: id, placeholder, autocomplete: "off" });
@@ -169,7 +169,7 @@
     const box = el("div", { class: "grid" });
     const g = S.grader;
     function draw() {
-      const list = Object.values(S.game.champions).filter((c) => !term || [c.name, ...Object.values(c.names || {})].some((n) => n.toLowerCase().includes(term)))
+      const list = Object.values(S.game.champions).filter((c) => !term || [c.name, ...Object.values(c.names || {}), ...(c.aka || [])].some((n) => n.toLowerCase().includes(term)))
         .map((c) => ({ c, cell: (S.stats.champ || {})[c.id] }))
         .sort((a, b) => (hasStats() ? (g.champWR(b.c.id) - g.champWR(a.c.id)) : nameOf("champions", a.c.id).localeCompare(nameOf("champions", b.c.id))));
       box.replaceChildren(...list.map(({ c, cell }) => el("a", { class: "card-champ", href: `#/champion/${c.id}` },
