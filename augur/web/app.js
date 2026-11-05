@@ -224,7 +224,7 @@
       const r = g.gradeHex({ champ: cid }, a.id);
       const cell = ((S.stats.hex || {})[cid] || {})[a.id];
       const ope = S.opgg[cid] && S.opgg[cid].augments && S.opgg[cid].augments[a.id];
-      return { a, r, name: r.name, total: r.total, wr: wr(cell) ?? 0, games: n(cell),
+      return { a, r, name: r.name, total: r.total, wr: wr(cell) ?? 0, games: n(cell), sc: r.score,
                pick: n(cell) ? n(cell) / (n((S.stats.champ || {})[cid]) || 1) : ope ? ope[2] : 0, pickOp: !n(cell) && !!ope, rar: a.rarity };
     });
   }
@@ -238,6 +238,7 @@
     const rows = hexRowsFor(cid);
     const hexCols = [
       { label: T("grade_"), key: "total", render: (r) => gradeBadge(r.r.grade) },
+      { label: T("scoreCol"), key: "sc", num: true, render: (r) => el("b", {}, Math.round(r.sc)) },
       { label: T("hex"), key: "name", cls: "name", render: (r) => el("a", { class: "ent", href: `#/hex/${r.a.id}`, title: r.r.parts.map((p) => `${p.v >= 0 ? "+" : ""}${p.v.toFixed(1)} ${p.text}`).join("\n") }, img(r.a.icon), r.name) },
       { label: T("rarity"), key: "rar", render: (r) => el("span", { class: "rar rar-" + r.a.rarity }, T(r.a.rarity)) },
       { label: T("winrate"), key: "wr", num: true, render: (r) => (r.games ? pct(r.wr) : "-") },

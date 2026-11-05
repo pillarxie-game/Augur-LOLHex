@@ -14,6 +14,7 @@ OP.GG's own data:
 Checked against independent rankings: all 14 recommended Yasuo hexes and 14 of 14 Lux hexes stay top.
 """
 import json
+import re
 
 try:
     import numpy as np
@@ -23,6 +24,8 @@ except ImportError:
 from . import config
 
 AD_TAGS = {"ad", "attackspeed"}  # crit / on-hit hexes can work through abilities (Jeweled Gauntlet, Twin Fire)
+LOW_SAMPLE = 20000  # champions with fewer OP.GG ARAM games: a missing hex alone doesn't mean top tier
+RANGE_RE = re.compile(r"at least \D{0,3}\d{3,4} units|\d{3,4} units away|farther than \d+% of your (total )?attack range")
 VAL = {3: 1, 4: 0, 5: -1}
 NEIGHBOURS = 12
 
@@ -88,11 +91,33 @@ def classify(gamedata, summary):
             ad += bool(tags & {"Damage", "CriticalStrike", "AttackSpeed"}) and "SpellDamage" not in tags
         return ap / (ap + ad) if ap + ad else 0.5
 
+    # Hexes with no description or tags (e.g. Lich Brain): OP.GG lists them (as weak) for the champions they
+    # don't suit, so mostly-AD champions listing it means it is an AP hex, and the reverse.
+    aps_all = {c: ap_share(c) for c in champs}
+    inferred_type = {}
+    for j, h in enumerate(hexes):
+        if A[h].get("desc") or A[h].get("tags"):
+            continue
+        who = [aps_all[champs[i]] for i in range(len(champs)) if listed[i, j]]
+        if len(who) >= 5:
+            m = sum(who) / len(who)
+            inferred_type[h] = "ap" if m < 0.4 else "ad" if m > 0.6 else None
+
+    plays = {}
+    for c in champs:
+        try:
+            plays[c] = json.loads((folder / f"build_{c}.json").read_text(encoding="utf-8")).get("play") or 0
+        except (OSError, ValueError):
+            plays[c] = 0
+
     out, neighbours = {}, {}
     for i, c in enumerate(champs):
-        nb = list(np.argsort(-sim[i])[:NEIGHBOURS])
+        nb = [k for k in np.argsort(-sim[i]) if plays.get(champs[k], 0) >= LOW_SAMPLE][:NEIGHBOURS] \
+            or list(np.argsort(-sim[i])[:NEIGHBOURS])  # learn from well-sampled lookalikes
         neighbours[c] = [champs[k] for k in nb[:5]]
-        aps = ap_share(c)
+        aps = aps_all[c]
+        low = plays.get(c, 0) < LOW_SAMPLE
+        ranged = gamedata["champions"][c]["flags"].get("ranged")
         mana = gamedata["champions"][c].get("partype") == "Mana"
         row = {}
         for j, h in enumerate(hexes):
@@ -106,9 +131,12 @@ def classify(gamedata, summary):
                 row[h] = "top" if built else "gap"
                 continue
             via_abilities = "abilit" in a.get("desc", "").lower()
-            ad_only = bool(tags & AD_TAGS) and "ap" not in tags and "adaptive" not in tags and not via_abilities
-            ap_only = "ap" in tags and "ad" not in tags and "adaptive" not in tags
-            if (ad_only and aps > 0.7) or (ap_only and aps < 0.3) or ("mana" in tags and not mana):
+            ad_only = (bool(tags & AD_TAGS) and "ap" not in tags and "adaptive" not in tags and not via_abilities) \
+                or inferred_type.get(h) == "ad"
+            ap_only = ("ap" in tags and "ad" not in tags and "adaptive" not in tags) or inferred_type.get(h) == "ap"
+            needs_range = bool(RANGE_RE.search(a.get("desc", "").lower()))
+            if (ad_only and aps > 0.7) or (ap_only and aps < 0.3) or ("mana" in tags and not mana) \
+                    or (needs_range and not ranged):
                 row[h] = "gap"
                 continue
             top = gap = 0.0
@@ -121,6 +149,7 @@ def classify(gamedata, summary):
                     gap += w
                 elif e[0] >= 4:
                     gap += 0.5 * w
-            row[h] = "top" if top >= gap else "gap"
+            # few games on this champion: a missing hex is weaker evidence, so similar champions must clearly agree
+            row[h] = "top" if top >= gap * (1.5 if low else 1.0) else "gap"
         out[c] = row
     return out, neighbours

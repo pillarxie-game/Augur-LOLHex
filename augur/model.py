@@ -90,6 +90,49 @@ def fit(Y, W, C, H, k=6, reg=0.05, steps=1500, lr=0.03, seed=0, biases_only=Fals
     return predict(P)
 
 
+def scores(Y, W, pred, champs, hexes, low_sample=20000):
+    """Augur score 0-100 for every (champion, hex): its position among that champion's own hexes.
+    96 = better than about 96% of the champion's hexes. Based on OP.GG's real tier, ordered inside the
+    tier by similar champions (the model); pairs without OP.GG data use the model's estimate.
+    Champions with few OP.GG games lean more on similar champions."""
+    folder = config.ROOT / "data" / "opgg"
+    summary = json.loads((folder / "summary.json").read_text(encoding="utf-8"))
+    rarely = {(c, h) for c, hs in summary.get("gaps", {}).items() for h in hs}
+    for c in champs:  # listed, but popularity rounds to 0: nobody picks it
+        aug = json.loads((folder / f"{c}.json").read_text(encoding="utf-8"))["augments"]
+        rarely |= {(c, h) for h, e in aug.items() if e[2] < 0.005}
+    out, low = {}, []
+    for i, c in enumerate(champs):
+        try:
+            play = json.loads((folder / f"build_{c}.json").read_text(encoding="utf-8")).get("play") or 0
+        except (OSError, ValueError):
+            play = 0
+        few = play < low_sample
+        if few:
+            low.append(c)
+        a, spread = (0.3, 1.0) if few else (0.5, 0.75)
+        vals = []
+        for j in range(len(hexes)):
+            if W[i, j] > 0:
+                t = Y[i, j]
+                v = a * t + (1 - a) * float(np.clip(pred[i, j], t - spread, t + spread))
+                if (c, hexes[j]) in rarely:  # (almost) nobody picks it on this champion: rank it at the bottom
+                    v = min(v, -1.0) - 0.5
+                vals.append(v)
+            else:
+                vals.append(float(pred[i, j]) - 0.25)  # estimate only: a little below an equal real tier
+        v = np.array(vals)
+        order = v.argsort()
+        ranks = np.empty(len(v))
+        ranks[order] = np.arange(len(v))
+        # ties share the average position
+        for val in np.unique(v):
+            idx = v == val
+            ranks[idx] = ranks[idx].mean()
+        out[c] = {hexes[j]: int(round(100 * (ranks[j] + 0.5) / len(v))) for j in range(len(hexes))}
+    return out, low
+
+
 def _score(pred, Y, mask):
     err = (pred - Y)[mask]
     rmse = float(np.sqrt((err ** 2).mean()))
@@ -125,7 +168,8 @@ def train(gamedata, log=print, folds=5):
     log(f"Model check on held-out OP.GG tiers: tier accuracy {m[1]:.1%} (baseline {b[1]:.1%}), "
         f"error {m[0]:.2f} (baseline {b[0]:.2f}) -> {'used' if useful else 'NOT used'}")
     pred = fit(Y, W, C, H)
-    out = {"metrics": metrics, "useful": bool(useful), "built": int(time.time()), "pred": {}, "full": {}}
+    out = {"metrics": metrics, "useful": bool(useful), "built": int(time.time()), "pred": {}, "full": {},
+           "scores": {}, "low_sample": [], "game_version": gamedata.get("version")}
     if useful:
         for i, c in enumerate(champs):
             row = {hexes[j]: round(float(pred[i, j]), 2) for j in range(len(hexes)) if W[i, j] == 0}
@@ -134,5 +178,6 @@ def train(gamedata, log=print, folds=5):
             # every pair: used to order hexes inside one OP.GG tier (which of a champion's ~116 T1-T2 hexes
             # are also top for similar champions); checked against independent rankings for Yasuo and Lux
             out["full"][c] = {hexes[j]: round(float(pred[i, j]), 2) for j in range(len(hexes))}
+        out["scores"], out["low_sample"] = scores(Y, W, pred, champs, hexes)
     (config.ROOT / "data" / "opgg" / "model.json").write_text(json.dumps(out, separators=(",", ":")), encoding="utf-8")
     return out

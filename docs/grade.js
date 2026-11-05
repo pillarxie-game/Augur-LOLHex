@@ -46,6 +46,8 @@
       this.opggChamps = (opts.opggAll && opts.opggAll.champ_stats) || {};
       this.model = (opts.model && opts.model.useful && opts.model.pred) || {}; // champion -> hex -> estimated tier value
       this.modelFull = (opts.model && opts.model.useful && opts.model.full) || {};
+      this.scores = (opts.model && opts.model.scores) || {}; // champion -> hex -> Augur score 0-100 (computed each version)
+      this.lowSample = new Set(((opts.model && opts.model.low_sample) || []).map(String));
       this.gaps = {}; // champion -> Set of hexes OP.GG leaves out because almost nobody takes them there
       for (const [c, list] of Object.entries((opts.opggAll && opts.opggAll.gaps) || {})) this.gaps[c] = new Set(list.map(String)); // every pair, for ordering within a tier // champion id -> OP.GG ARAM win rate, games, tier // hex id -> {score, listed, best[]} across all champions // champion id -> OP.GG ARAM build (core, boots, item slots)
       this.lang = I18N.T[opts.lang] ? opts.lang : "en";
@@ -215,8 +217,21 @@
     /* OP.GG for this champion. OP.GG lists only its tiers 3-5; a hex it tracks but leaves out for this
        champion is in that champion's top tiers (1-2). The tier counts most; performance is a small adjustment. */
     opggPart(cid, h) {
+      const sc = (this.scores[String(cid)] || {})[String(h)];
       const o = this.opgg[String(cid)];
+      if (sc != null && o && o.augments) {
+        const base = this.opggPartRaw(cid, h, o);
+        const pts = this.pointsForPct(cid, sc / 100);
+        let text = this.t("scoreR", { s: sc, c: this.name("champions", cid) });
+        if (base && base.text) text += " · " + base.text.split(" · ")[0];
+        if (this.lowSample.has(String(cid))) text += " · " + this.t("lowSample");
+        return { v: pts, src: base && base.src === "model" ? "model" : "opgg", text, score: sc };
+      }
       if (!o || !o.augments) return this.opggAllPart(h);
+      return this.opggPartRaw(cid, h, o);
+    }
+
+    opggPartRaw(cid, h, o) {
       if (!o._stats) {
         const perf = Object.values(o.augments).filter((x) => x[2] >= 0.01).map((x) => x[1]).sort((a, b) => a - b);
         const med = perf[Math.floor(perf.length / 2)] || 0;
@@ -263,6 +278,15 @@
 
     /* Grade points from a value's position among this champion's own hexes:
        top 5% S+, next 15% S, next 20% A, next 25% B, next 20% C, bottom 15% D. */
+    pointsForPct(cid, pctl) {
+      const knots = [[0, -3], [0.15, -1.5], [0.35, 0], [0.6, 1.5], [0.8, 3], [0.95, 4.5], [1, 5.5]];
+      for (let i = 1; i < knots.length; i++) {
+        const [x0, y0] = knots[i - 1], [x1, y1] = knots[i];
+        if (pctl <= x1) return y0 + (y1 - y0) * (pctl - x0) / (x1 - x0);
+      }
+      return 5.5;
+    }
+
     pointsFor(cid, v) {
       this._dist = this._dist || {};
       if (!this._dist[cid]) {
@@ -317,7 +341,7 @@
       if (n(allCell) > 0) parts.push({ v: (1 - a) * hd, text: this.t("overallR", { d: signed(hd), n: games(n(allCell)) }) });
       else parts.push({ v: 0, text: this.t("noData") });
       const op = this.opggPart(cid, h);
-      if (op) parts.push({ v: (1 - a) * op.v, text: op.text, src: "opgg" });
+      if (op) parts.push({ v: (1 - a) * op.v, text: op.text, src: op.src || "opgg", score: op.score });
       for (const f of this.fitRules(cid, aug)) parts.push({ v: (1 - a) * (op && op.v ? 0.5 : 1) * f.v, text: f.text });
       parts.push(...this.contextParts(cid, h, aug, allies, enemies));
       parts.push(...this.synergyParts(h, aug, owned));
@@ -341,7 +365,7 @@
       parts.sort((x, y) => Math.abs(y.v) - Math.abs(x.v));
       return {
         id: aug.id, name: this.name("augments", h), rarity: aug.rarity, icon: aug.icon,
-        total, score: Math.max(0, Math.min(100, 50 + 5 * total)), grade: letter(total),
+        total, score: (parts.find((p) => p.score != null) || {}).score ?? Math.max(0, Math.min(100, 50 + 5 * total)), grade: letter(total),
         games: ng, confidence: ng >= 300 ? "high" : ng >= 50 ? "medium" : "low",
         parts: parts.filter((p) => Math.abs(p.v) >= 0.05 || p.v === 0),
       };
@@ -444,7 +468,7 @@
         }
         if (n(all) > 0) parts.push({ v: (1 - a) * dAll, text: this.t("itemAll", { d: signed(dAll), n: games(n(all)) }) });
         const op = this.opggItemPart(cid, i);
-        if (op) parts.push({ v: (1 - a) * op.v, text: op.text, src: "opgg" });
+        if (op) parts.push({ v: (1 - a) * op.v, text: op.text, src: op.src || "opgg", score: op.score });
         const fitW = (1 - a) * (op ? 0.5 : 1);
         if (this.rules) {
         if (tags.has("SpellDamage") && !tags.has("Damage") && p.ap < 0.35) parts.push({ v: -3 * fitW, text: this.t("apItemAd") });
