@@ -55,6 +55,8 @@
       for (const [c, list] of Object.entries((opts.opggAll && opts.opggAll.gaps) || {})) this.gaps[c] = new Set(list.map(String));
       this.unavailable = {}; // champion -> Set of hexes this champion is never offered (e.g. Draw Your Sword for melee)
       for (const [c, list] of Object.entries((opts.opggAll && opts.opggAll.unavailable) || {})) this.unavailable[c] = new Set(list.map(String));
+      this.misfit = {}; // champion -> Set of unlisted hexes whose damage stat doesn't fit its build (Eureka on Darius)
+      for (const [c, list] of Object.entries((opts.opggAll && opts.opggAll.misfit) || {})) this.misfit[c] = new Set(list.map(String));
       this.unknown = {}; // champion -> Set of hexes with too little evidence (the model estimates them)
       for (const [c, list] of Object.entries((opts.opggAll && opts.opggAll.unknown) || {})) this.unknown[c] = new Set(list.map(String)); // every pair, for ordering within a tier // champion id -> OP.GG ARAM win rate, games, tier // hex id -> {score, listed, best[]} across all champions // champion id -> OP.GG ARAM build (core, boots, item slots)
       this.lang = I18N.T[opts.lang] ? opts.lang : "en";
@@ -275,19 +277,23 @@
       const m = full[String(h)];
       const v = m != null ? 0.5 * tierV + 0.5 * Math.max(tierV - 0.75, Math.min(tierV + 0.75, m)) : tierV;
       let text = e ? this.t("opggR", { c: cname, t: e[0], p: e[1].toFixed(1), m: (o._stats || { med: 0 }).med.toFixed(1) })
-                   : isGap ? this.t("opggGap", { c: cname }) : this.t("opggTop", { c: cname });
+                   : isGap ? this.t("opggGap", { c: cname })
+                   : tierV < 0 ? this.t("opggMisfit", { c: cname }) : this.t("opggTop", { c: cname });
       const rk = this.tierRank(cid, h, tierV);
       if (rk) text += " · " + this.t("rankNote", { r: rk[0], n: rk[1] });
       return { v: toPoints(v), src: "opgg", text };
     }
 
     /* The OP.GG-based value (tier, ordered within the tier by similar champions) for one pair, before grading. */
-    /* OP.GG tier value for one pair: 1 = T3, 0 = T4, -1 = T5 or useless for the champion, null = not listed */
+    /* OP.GG tier value for one pair: 2 = T1-T2 (tracked but not listed), 1 = T3, 0 = T4, -1 = T5 or doesn't fit, null = no data */
     tierValue(cid, h) {
       const o = this.opgg[String(cid)], e = o && o.augments && o.augments[String(h)];
       if (e) return { 3: 1, 4: 0, 5: -1 }[e[0]] ?? null;
       if (this.gaps[String(cid)] && this.gaps[String(cid)].has(String(h))) return -1;
-      return null; // not listed: one of the most picked or almost never picked -> the model's estimate
+      if (this.misfit[String(cid)] && this.misfit[String(cid)].has(String(h))) return -1; // damage stat doesn't fit the build
+      // not listed: OP.GG returns only tiers 3-5, so a hex it tracks (listed for 5+ champions) is T1-T2 here
+      const known = this.opggAll[String(h)];
+      return known && known.infer_top ? 2 : null;
     }
 
     opggValue(cid, h) {

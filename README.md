@@ -57,9 +57,9 @@ The match helper reads the 3 hex cards from your screen: OCR reads each card's n
 When you run the local helper (`start.bat`), Augur asks OP.GG's official data server for your champion's ARAM hex stats (tier, performance and popularity) and adds a line to every grade, for example `+0.9 OP.GG: tier 4 for Yasuo, performance 96.5 (median 88.0)`. Answers are cached for 12 hours in `data/opgg/` on your PC. OP.GG data is never saved into this repository or the published website, and the source is credited on the page.
 
 What OP.GG gives and doesn't give:
-- It lists about 130 of the current Mayhem hexes per champion, in its **tiers 3–5**, which follow popularity. A hex it leaves out for a champion is **either one of that champion's most picked hexes or one almost nobody picks on it**. (BEES!!!, the most picked hex overall, is unlisted for 172 of 173 champions; so is Group Hug, one of the least picked.) So "not listed" is never shown as a tier: the page says "not listed" and the score is Augur's estimate.
-- For an unlisted hex, Augur uses (1) how popular the hex is overall this patch, (2) whether its damage stat fits the champion's real OP.GG build (Eureka, "ability haste equal to 30% AP", on Darius, who builds about 10% AP items: no), and (3) similar champions. Hexes the game itself makes useless (range hexes on melee champions, mana hexes without mana, upgrades of items the champion doesn't build) score near 0.
-- OP.GG's performance score (compared with the champion's other hexes, trusted by how many games it comes from) counts more than its tier. It is shown in its own column. It is not a win rate: nobody publishes per-champion Mayhem hex win rates. Win rates shown come from games you collect.
+- OP.GG returns only its **tiers 3–5** (about 130 hexes per champion); tiers follow how often a hex is picked when offered (T3 ≈ 20%, T5 ≈ 0%). A hex OP.GG tracks but leaves out for a champion is its **T1–T2** (picked more often), so Augur shows it as T1–T2 and, following the rule that pick rate matters more than win rate, ranks it above T3–T5.
+- T1–T2 only means "picked more than ~20% when offered" (about 40% of hexes), and a hex nobody picked on a champion is also left out. So for unlisted hexes Augur checks fit with the champion's real OP.GG build: a hex whose damage stat the build doesn't use (Eureka, "ability haste equal to 30% AP", on Darius) shows "not listed" and ranks low; an armor hex (Armored Impact) on a champion without tank items, or a hex that only works by healing or shielding allies (All For You) on a non-support, counts as average there. Hexes OP.GG barely tracks (fewer than 5 champions) are "no data" and sit in the middle. Hexes the game makes useless (range hexes on melee champions, mana hexes without mana, upgrades of items the champion doesn't build) score near 0.
+- OP.GG's performance score (compared with the champion's other hexes, trusted by how many games it comes from) only adjusts a hex inside its tier. It is shown in its own column and is not a win rate: nobody publishes per-champion Mayhem hex win rates. Win rates shown come from games you collect.
 - Your own collected games count more as they grow, and OP.GG counts less.
 
 The app also shows **OP.GG's ARAM build** on each champion page (tier, win rate, core items, boots and 4th/5th item options), and item grades include OP.GG's numbers. Later items are compared with the other options for the same slot, because players who are already winning buy more items.
@@ -68,7 +68,7 @@ The app also shows **OP.GG's ARAM build** on each champion page (tier, win rate,
 
 **Augur score (0–100).** Every champion + hex pair gets a score: its position among that champion's own hexes (96 = better than about 96% of them). It is computed by the model each time a new game version's OP.GG data is downloaded.
 
-**Checked against arammayhem.com.** [arammayhem.com](https://arammayhem.com)'s open data (CC BY 4.0, "Data: arammayhem.com") tags champion + hex combos as god / strong / trap. These tags are used as extra training labels. On combos the model was **not** trained on, a good combo scores above a trap 63% of the time. Earlier versions counted every unlisted hex as top tier, which showed hexes like Eureka as T1 for nearly every champion; that is fixed. arammayhem.com's pick rates are used only when its data is for the current patch. arammayhem.com also notes that Riot asks developers not to publish Mayhem hex win rates per champion.
+**Checked against arammayhem.com.** [arammayhem.com](https://arammayhem.com)'s open data (CC BY 4.0, "Data: arammayhem.com") tags champion + hex combos as god / strong / trap. These tags are used as extra training labels. On combos the model was **not** trained on, a good combo scores above a trap 62% of the time. An automatic check of all 173 champions' top 15 finds no hex whose damage stat, range, mana, item or ally requirement doesn't fit the champion. arammayhem.com's pick rates are used only when its data is for the current patch. arammayhem.com also notes that Riot asks developers not to publish Mayhem hex win rates per champion.
 
 **Scores up to 90 by position; above 90 only for standouts.** A hex's position among the champion's hexes gives at most 90; 91–100 is kept for a hex clearly ahead of the champion's other top hexes (about 1 in 700 pairs).
 
@@ -210,9 +210,9 @@ Augur 是免费开源的**海克斯大乱斗**助手：海克斯排行、英雄�
 
 **每个英雄的推荐海克斯：** 一个小模型（`augur/model.py`）同时用所有英雄的 OP.GG 数据学习：相似英雄、相似海克斯，以及英雄特点 × 海克斯特点（包括 AP/AD 是否匹配）。在留出的 OP.GG 梯队上验证：准确率 58%（简单基线 48%）。英雄页面列出该英雄能遇到的所有海克斯（「显示全部」），包括 Augur 评分、OP.GG 梯队、OP.GG 表现分、选取率，以及有数据时你收集对局的胜率。
 
-**Augur 评分（0–100）：** 每个「英雄 + 海克斯」都有一个分数，表示它在这个英雄所有海克斯中的位置（96 = 强于约 96% 的海克斯），每个新版本重新计算。OP.GG 只列出按热度划分的 T3–T5（每个英雄约 130 个）。没列出的海克斯**可能是这个英雄最常选的，也可能几乎没人选**（全场最热门的 BEES!!! 在 172/173 个英雄上都没列出，最冷门之一的 Group Hug 也是）。所以「未列出」不再显示为 T1：页面显示「未列出」，分数由 Augur 估计，依据：这个海克斯本版本的整体热度、它需要的属性是否符合该英雄的真实出装（尤里卡「获得等于 30% AP 的技能急速」，德莱厄斯只出约 10% AP 装备：不符合），以及相似英雄。游戏本身决定没用的（近战的远距离海克斯、无法力英雄的法力海克斯、不出的装备的升级）接近 0 分。OP.GG 表现分单独一列，它不是胜率：没有人公开每个英雄的大乱斗海克斯胜率；显示的胜率来自你收集的对局。
+**Augur 评分（0–100）：** 每个「英雄 + 海克斯」都有一个分数，表示它在这个英雄所有海克斯中的位置（96 = 强于约 96% 的海克斯），每个新版本重新计算。OP.GG 只返回 **T3–T5**（每个英雄约 130 个），梯队按「出现时被选的比例」划分（T3 约 20%，T5 约 0%）。OP.GG 有追踪、但没有列给某英雄的海克斯是它的 **T1–T2**（选得更多），按「选取率比胜率更重要」排在 T3–T5 之前。但 T1–T2 只代表「出现时被选超过约 20%」（约 40% 的海克斯都是），而且某英雄完全没人选的海克斯也不会列出，所以 Augur 会检查是否符合该英雄在 OP.GG 的真实出装：需要的属性不符合（尤里卡「获得等于 30% AP 的技能急速」放在德莱厄斯身上）显示「未列出」并排在后面；护甲类海克斯（装甲冲击）对不出坦克装的英雄、只能靠治疗 / 护盾队友生效的海克斯（全心为你）对非辅助英雄，算作中等。OP.GG 几乎不追踪的海克斯（少于 5 个英雄有数据）算作「没有数据」，排在中间。游戏本身决定没用的（近战的远距离海克斯、无法力英雄的法力海克斯、不出的装备的升级）接近 0 分。OP.GG 表现分只在同一梯队内调整，单独一列显示，它不是胜率：没有人公开每个英雄的大乱斗海克斯胜率；显示的胜率来自你收集的对局。
 
-**与 arammayhem.com 对照：** [arammayhem.com](https://arammayhem.com) 的公开数据（CC BY 4.0）把英雄 + 海克斯组合标为 神 / 强 / 陷阱，作为额外的训练数据。在模型**没见过**的组合上，好组合分数高于陷阱的比例为 63%。旧版本把所有未列出的海克斯都当作顶级，导致尤里卡等对几乎所有英雄都显示 T1，现已修复。arammayhem.com 的选取率只在其数据与当前版本相同时使用。arammayhem.com 也说明 Riot 要求开发者不要公布每个英雄的大乱斗海克斯胜率。
+**与 arammayhem.com 对照：** [arammayhem.com](https://arammayhem.com) 的公开数据（CC BY 4.0）把英雄 + 海克斯组合标为 神 / 强 / 陷阱，作为额外的训练数据。在模型**没见过**的组合上，好组合分数高于陷阱的比例为 62%。对全部 173 个英雄前 15 名的自动检查：没有属性、射程、法力、装备或队友条件不符合的海克斯。arammayhem.com 的选取率只在其数据与当前版本相同时使用。arammayhem.com 也说明 Riot 要求开发者不要公布每个英雄的大乱斗海克斯胜率。
 
 **只显示能选的海克斯：** 海克斯列表来自当前正式服版本的游戏文件（CommunityDragon 的 `16.22` 目录，而不是可能跟随测试服的 "latest"）。Riot 的文件里仍有一些已禁用的海克斯，所以 Augur 还会去掉 `augur/removed_hexes.json` 中的（如「王中王，靴中靴」）以及 arammayhem.com 标记为已删除的——除非 OP.GG 当前版本的数据显示仍有玩家在选。你也可以在设置 → 隐藏的海克斯里自己隐藏任何海克斯。
 
@@ -224,7 +224,7 @@ Augur 是免费开源的**海克斯大乱斗**助手：海克斯排行、英雄�
 
 **模型的输入：** 每个英雄的 OP.GG 梯队、OP.GG 选取率（同一梯队中选得越多排越前），以及你收集的对局中的真实海克斯胜率（当前版本，按场次加权，数量够多后比 OP.GG 权重更高）。
 
-**关于 OP.GG 数据：** 每个英雄大约列出 130 个海克斯，只包含按热度划分的 **T3–T5**。没列出的海克斯可能是这个英雄最常选的，也可能几乎没人选，所以不当作任何梯队，由 Augur 估计（见上面的「Augur 评分」）。OP.GG 的表现分按场次加权，比梯队更重要。你自己收集的对局越多，OP.GG 的权重越低。
+**关于 OP.GG 数据：** OP.GG 只返回按选取率划分的 **T3–T5**；没列出的是 T1–T2 或完全没人选，Augur 用出装是否符合来区分（见上面的「Augur 评分」）。你自己收集的对局越多，OP.GG 的权重越低。
 
 ### 收集对局（不需要 API key）
 

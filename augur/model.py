@@ -25,9 +25,13 @@ from . import config
 
 TIER_VALUE = {3: 1.0, 4: 0.0, 5: -1.0}
 TOP_VALUE = 2.0
-# A hex OP.GG doesn't list for a champion: value from RARE_VALUE (rarely picked overall) to TOP_VALUE (one of
-# the most picked hexes), or MISFIT_VALUE when its damage type doesn't fit the champion's build
-RARE_VALUE, MISFIT_VALUE, UNLISTED_WEIGHT = 0.5, -1.0, 0.5  # tuned on held-out arammayhem.com combos
+# OP.GG returns only its tiers 3-5 (T3 = most picked of those). Tier decides most of a listed pair's value
+# (the user's rule: pick rate matters more than win rate); performance adjusts it.
+PERF_WEIGHT = 0.25
+# A hex OP.GG doesn't list for a champion is its T1-T2 (TOP_VALUE), less RARE_DROP for hexes rarely picked
+# anywhere, or MISFIT_VALUE when its damage stat doesn't fit the champion's build
+RARE_DROP, MISFIT_VALUE, UNLISTED_WEIGHT = 1.0, -1.0, 0.8
+SOFT_MISFIT_VALUE, TANK_MIN = 0.5, 0.25  # armor / ally-support hexes on champions they don't suit
 MISFIT_LEAN, MISFIT_AP = 0.6, 0.25
 CHAMP_TAGS = ["Fighter", "Tank", "Mage", "Assassin", "Marksman", "Support"]
 
@@ -61,6 +65,34 @@ def champion_ap_share(gamedata, champs):
             ap += "SpellDamage" in tags
             ad += bool(tags & {"Damage", "CriticalStrike", "AttackSpeed"}) and "SpellDamage" not in tags
         out.append(ap / (ap + ad) if ap + ad else float(gamedata["champions"][c].get("ap", 0.5)))
+    return np.array(out)
+
+
+_ALLY_RE = re.compile(r"(heal|shield)\w*[^.]{0,60}\ball(?:ied|y|ies)\b|\ball(?:ied|y|ies)\b[^.]{0,60}(heal|shield)", re.I)
+
+
+def needs_allies(aug):
+    """Hexes that work through healing or shielding allies (All For You, Empowered By The Faithful): only
+    supports get much from them. Text first, else the "support" tag."""
+    d = aug.get("desc", "")
+    if not d:
+        return "support" in aug.get("tags", [])
+    first = re.split(r"\n\s*\n", d)[0]  # the hex's own effect, not notes about other hexes
+    return bool(_ALLY_RE.search(first)) and not re.search(r"yourself|\byou and\b|your heals and shields are", first, re.I)
+
+
+def champion_tank_share(gamedata, champs):
+    """Share of tank items (armor, health, magic resist, no damage stats) in each champion's OP.GG ARAM build."""
+    from . import gaps
+    folder = config.ROOT / "data" / "opgg"
+    alias, items = gamedata.get("item_alias", {}), gamedata["items"]
+    out = []
+    for c in champs:
+        ids = [i for i in gaps._build_items(folder, c, alias) if "Boots" not in items.get(i, {}).get("tags", [])]
+        tank = sum(bool(set(items.get(i, {}).get("tags", [])) & {"Armor", "Health", "SpellBlock"})
+                   and not set(items.get(i, {}).get("tags", [])) & {"SpellDamage", "CriticalStrike", "AttackSpeed"}
+                   for i in ids)
+        out.append(tank / len(ids) if ids else 0.0)
     return np.array(out)
 
 
@@ -122,7 +154,7 @@ def _combo_labels(gamedata):
 
 def _hex_popularity(gamedata, hexes, summary):
     """0-1 position of each hex by how often players pick it overall: arammayhem.com open data (CC BY 4.0)
-    when it is for the current patch, else OP.GG's pick rate from its current-patch lists."""
+    when it is for the current patch, else estimated from OP.GG's current-patch tiers."""
     rates = {}
     try:
         from . import arammayhem
@@ -134,8 +166,17 @@ def _hex_popularity(gamedata, hexes, summary):
         rates = {h: by.get(arammayhem._norm(gamedata["augments"][h]["name"])) for h in hexes}
     except Exception:
         pass
-    vals = np.array([rates.get(h) if rates.get(h) is not None else
-                     (summary["hexes"].get(h, {}).get("pick_rate") or 0) * (1 if not rates else np.nan) for h in hexes], float)
+    if not rates:
+        # OP.GG, this patch: on how many champions is the hex picked a lot (unlisted = T1-T2, or T3 / T4)
+        # rather than rarely (T5)? Checked against arammayhem.com's pick rates: rank correlation +0.28
+        # (the listed-only pick rate used before was -0.15, because top-tier hexes are the unlisted ones).
+        folder = config.ROOT / "data" / "opgg"
+        ops = [json.loads(p.read_text(encoding="utf-8"))["augments"] for p in folder.glob("[0-9]*.json")]
+        rates = {}
+        for h in hexes:
+            if sum(h in o for o in ops) >= 5:  # OP.GG tracks it
+                rates[h] = float(np.mean([1.0 if h not in o else {3: 0.9, 4: 0.6}.get(o[h][0], 0.0) for o in ops]))
+    vals = np.array([rates.get(h) if rates.get(h) is not None else np.nan for h in hexes], float)
     ok = ~np.isnan(vals)
     out = np.full(len(hexes), 0.5)
     if ok.sum() > 1:
@@ -164,9 +205,16 @@ def build_matrix(gamedata):
     Y = np.zeros((len(champs), len(hexes)))
     W = np.zeros_like(Y)
     combos = _combo_labels(gamedata)
-    leans = [hex_lean(gamedata["augments"][h]) for h in hexes]
+    # damage stat a hex needs: from its text, else the type gaps.py infers from OP.GG (Lich Brain has no text)
+    htype = summary.get("hex_type", {})
+    leans = [hex_lean(gamedata["augments"][h]) or {"ap": 1.0, "ad": -1.0}.get(htype.get(h), 0.0) for h in hexes]
     aps = champion_ap_share(gamedata, champs)
     popular = _hex_popularity(gamedata, hexes, summary)
+    misfit = build_matrix.misfit = {}  # champion -> unlisted hexes whose damage stat doesn't fit its build
+    tanks = champion_tank_share(gamedata, champs)
+    is_support = ["Support" in gamedata["champions"][c]["tags"] for c in champs]
+    needs_tank = {h for h in hexes if {"armor", "tank"} & set(gamedata["augments"][h].get("tags", []))}
+    needs_support = {h for h in hexes if needs_allies(gamedata["augments"][h])}
     for i, c in enumerate(champs):
         aug = json.loads((folder / f"{c}.json").read_text(encoding="utf-8"))["augments"]
         try:
@@ -177,25 +225,33 @@ def build_matrix(gamedata):
         med, sd = (float(np.median(perf)), float(np.std(perf)) or 10.0) if perf else (100.0, 10.0)
         for j, h in enumerate(hexes):
             e = aug.get(h)
-            if e and e[0] in TIER_VALUE:
+            if e and e[2] < 0.01 and not summary["hexes"][h].get("infer_top"):
+                pass  # a hex OP.GG barely tracks, with no picks here: too little to mean anything (no data)
+            elif e and e[0] in TIER_VALUE:
                 # OP.GG's tier is mostly popularity, so a strong but rarely picked hex gets T5. Its performance
                 # score is the better strength signal; trust it by sample size (pick rate x champion games).
                 n = max(e[2], 0.002) * games
                 trust = n / (n + 25)
                 z = max(-2.0, min(2.0, (e[1] - med) / sd))
-                Y[i, j] = 0.5 + 0.3 * TIER_VALUE[e[0]] + 1.2 * z * trust
-                W[i, j] = 0.4 + 0.6 * trust
+                Y[i, j] = TIER_VALUE[e[0]] + PERF_WEIGHT * z * trust  # tier = pick rate first, performance adjusts
+                W[i, j] = 1.0
             elif not e and h in gaps.get(c, ()):
                 Y[i, j], W[i, j] = -1.0, 0.6  # needs range on a melee champion, or mana without mana
             elif not e and h in unknown.get(c, ()):
-                # Not listed: either OP.GG's hidden top tiers (T1-T2, popular) or nobody picks it on this
-                # champion. Popular hexes overall (arammayhem.com pick rate) lean to the first, unless the hex's
-                # damage type doesn't fit the champion's real build (Eureka, an AP hex, on Darius).
+                # Not listed: OP.GG returns only tiers 3-5, so this is its T1-T2 for the champion (picked more
+                # than T3), unless nobody picked it at all: likely when the hex's damage stat doesn't fit the
+                # champion's real build (Eureka, an AP hex, on Darius) or the hex is rarely picked anywhere.
                 lean, ap = leans[j], aps[i]
                 if (lean >= MISFIT_LEAN and ap <= MISFIT_AP) or (lean <= -MISFIT_LEAN and ap >= 1 - MISFIT_AP):
                     Y[i, j], W[i, j] = MISFIT_VALUE, UNLISTED_WEIGHT
+                    misfit.setdefault(c, []).append(h)
+                elif (h in needs_tank and tanks[i] < TANK_MIN) or (h in needs_support and not is_support[i]):
+                    # T1-T2 only means "picked more than ~20% when offered" (about 40% of hexes are). An armor
+                    # hex (Armored Impact) on a champion without tank items, or an ally-heal hex on a
+                    # non-support, counts as average there, not top
+                    Y[i, j], W[i, j] = SOFT_MISFIT_VALUE, UNLISTED_WEIGHT
                 else:
-                    Y[i, j], W[i, j] = RARE_VALUE + (TOP_VALUE - RARE_VALUE) * popular[j], UNLISTED_WEIGHT
+                    Y[i, j], W[i, j] = TOP_VALUE - (1 - popular[j]) * RARE_DROP, UNLISTED_WEIGHT
             lab = combos.get((c, h))
             if lab is not None:  # arammayhem.com editorial tags (CC BY): good or trap for this champion
                 Y[i, j], W[i, j] = (2.4, 2.5) if lab > 0 else (-1.5, 2.5)
@@ -332,7 +388,7 @@ def style_scores(Y, W, pred, champs, hexes):
     return out
 
 
-def _hex_strength(scores_by_champ, champs):
+def _hex_strength(scores_by_champ, champs, misfit=None):
     """Overall strength of each hex for the hex tier list, from its Augur scores on every champion (weighted
     by the champion's OP.GG games): a hex that is great on a few champions and useless on the rest is not
     top tier for everyone. Writes strength (same scale the tier letters use) and how many champions have
@@ -369,6 +425,7 @@ def _hex_strength(scores_by_champ, champs):
     for h, e in summary["hexes"].items():
         if h not in mean:
             e["strength"], e["top_champs"] = None, 0
+    summary["misfit"] = {c: sorted(v) for c, v in (misfit or {}).items()}
     path.write_text(json.dumps(summary), encoding="utf-8")
 
 
@@ -419,6 +476,6 @@ def train(gamedata, log=print, folds=5):
             out["full"][c] = {hexes[j]: round(float(pred[i, j]), 2) for j in range(len(hexes))}
         out["scores"], out["low_sample"] = scores(Y, W, pred, champs, hexes)
         out["style_scores"] = style_scores(Y, W, pred, champs, hexes)
-        _hex_strength(out["scores"], champs)
+        _hex_strength(out["scores"], champs, getattr(build_matrix, "misfit", {}))
     (config.ROOT / "data" / "opgg" / "model.json").write_text(json.dumps(out, separators=(",", ":")), encoding="utf-8")
     return out

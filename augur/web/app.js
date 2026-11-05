@@ -257,19 +257,22 @@
       { label: T("pickrate"), key: "pick", num: true, render: (r) => (r.games ? pct(r.pick) : r.pickOp ? el("span", { title: "OP.GG" }, pct(r.pick)) : "-") },
       { label: T("games"), key: "games", num: true, render: (r) => num(r.games) },
     ];
-    // OP.GG tier for this champion: OP.GG lists its tiers 3-5 (by popularity). A hex it leaves out is either
-    // one of the most picked or almost never picked, so it shows "not listed" and the score is the model's.
+    // OP.GG tier for this champion: OP.GG returns only tiers 3-5 (T1 = most picked), so a hex it tracks but
+    // leaves out is T1-T2, unless it doesn't fit the champion (gap, or a damage stat its build doesn't use)
     const opAug = S.opgg[cid] && S.opgg[cid].augments;
+    const inList = (k) => S.opggAll && S.opggAll[k] && (S.opggAll[k][cid] || []).map(String);
+    const gaps = inList("gaps") || [], misfit = inList("misfit") || [];
     for (const r of rows) {
-      const e = opAug && opAug[r.a.id];
-      const gap = S.opggAll && S.opggAll.gaps && (S.opggAll.gaps[cid] || []).map(String).includes(String(r.a.id));
+      const e = opAug && opAug[r.a.id], all = S.opggAll && S.opggAll.hexes[r.a.id], id = String(r.a.id);
       if (e) { r.opTier = "T" + e[0]; r.opRank = 6 - e[0]; }
-      else if (opAug && gap) { r.opTier = T("gapCol"); r.opRank = 0.5; }
+      else if (opAug && gaps.includes(id)) { r.opTier = T("gapCol"); r.opRank = 0.5; }
+      else if (opAug && misfit.includes(id)) { r.opTier = T("opggUnlisted"); r.opRank = 0.25; r.est = true; }
+      else if (opAug && all && all.infer_top) { r.opTier = "T1-T2"; r.opRank = 4; }
       else if (opAug) { r.opTier = T("opggUnlisted"); r.opRank = 0; r.est = true; }
       else { r.opTier = "-"; r.opRank = 0; }
     }
     if (opAug) hexCols.splice(3, 0, { label: T("opggTierCol"), key: "opRank", num: true, render: (r) =>
-      el("span", { class: r.est ? "muted" : r.opRank === 1 ? "neg" : r.opRank ? "" : "muted",
+      el("span", { class: r.est ? "muted" : r.opRank >= 4 ? "pos" : r.opRank === 1 ? "neg" : r.opRank ? "" : "muted",
                    title: r.est ? T("opggUnlistedNote") : "" }, r.opTier) },
       { label: T("perfCol"), key: "perf", num: true, render: (r) => (r.perf != null
         ? el("span", { title: T("perfNote") }, r.perf.toFixed(1)) : el("span", { class: "muted" }, "-")) });
