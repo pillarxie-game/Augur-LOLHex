@@ -344,25 +344,21 @@ def summarize(gamedata):
                 e["w"] += pop
                 e["rel"] += pop * (p - med)
                 e["champs"].append([c["id"], round(p - med, 1), pop])
-    # OP.GG lists only tiers 3-5 per champion. A hex it tracks but leaves out for a champion is in that
-    # champion's top tiers (1-2): checked against independent rankings for Yasuo and Lux (18 of 18 each).
-    tier_value = {"top": 2.0, 3: 0.8, 4: 0.0, 5: -0.8}
+    # OP.GG lists only its tiers 3-5 (by popularity). A missing hex is either one of the champion's most
+    # picked hexes or one nobody picks on it, so it is NOT counted here. This listed-only strength is a
+    # fallback: after training, model._hex_strength replaces it with the hex's scores across all champions.
     hexes = {}
     for hid, e in per_hex.items():
         t3, t4, t5 = e["tiers"]
-        # Ability hexes ("Upgrades one of your champion's abilities...") only exist for some champions, and
-        # hexes OP.GG lists for under 5 champions are too rare: for those, a missing entry means "no data".
         desc = gamedata["augments"][hid].get("desc", "").lower()
-        e["infer_top"] = e["listed"] >= 5 and "upgrades one of your champion" not in desc
-        top = max(0, champs - e["listed"]) if e["infer_top"] else 0
-        champs_counted = top + e["listed"]
-        e["strength"] = round((top * tier_value["top"] + t3 * tier_value[3] + t4 * tier_value[4]
-                               + t5 * tier_value[5]) / champs_counted, 2) if champs_counted else None
+        e["infer_top"] = e["listed"] >= 5 and "upgrades one of your champion" not in desc  # gaps.py classifies these
+        top = 0
+        e["strength"] = round((0.8 * t3 - 0.8 * t5) / e["listed"], 2) if e["listed"] else None
         e["top"] = top
         e["champs"].sort(key=lambda x: -x[1])
         hexes[hid] = {
             "score": round(e["rel"] / e["w"], 2) if e["w"] else None,  # vs each champion's median, weighted by popularity
-            "strength": e["strength"], "top_champs": e["top"], "infer_top": e["infer_top"],  # tier-based: champions with it in OP.GG T1-T2
+            "strength": e["strength"], "top_champs": 0, "infer_top": e["infer_top"],  # top_champs: set by model._hex_strength
             "listed": e["listed"], "tiers": e["tiers"],
             "pick_rate": round(e["picks"] / total_play, 4) if plays else None,  # share of all players picking it
             "best": e["champs"][:8], "worst": e["champs"][-5:][::-1] if len(e["champs"]) > 8 else [],
@@ -373,7 +369,7 @@ def summarize(gamedata):
         if path.exists():
             b = json.loads(path.read_text(encoding="utf-8"))
             champ_stats[str(c["id"])] = {k: b.get(k) for k in ("win_rate", "play", "pick_rate", "tier", "rank")}
-    # Which missing hexes are top tier and which are "almost nobody takes it" (see gaps.py)
+    # Which missing hexes are useless for the champion (gaps) and which the model estimates (see gaps.py)
     gaps, unknown, build_fit, hex_type, styles = {}, {}, {}, {}, {}
     try:
         from . import gaps as gaps_mod
@@ -383,13 +379,6 @@ def summarize(gamedata):
         build_fit = {c: sorted(h for h, d in row.items() if d == "build") for c, row in cls.items()}
         hex_type = dict(getattr(gaps_mod.classify, "hex_type", {}))
         styles = _build_styles(gamedata)
-        for hid, e in hexes.items():  # top-tier counts exclude gaps
-            if e["infer_top"]:
-                n_gap = sum(1 for row in gaps.values() if hid in row)
-                e["top_champs"] = max(0, e["top_champs"] - n_gap)
-                t3, t4, t5 = e["tiers"]
-                counted = e["top_champs"] + e["listed"] + n_gap
-                e["strength"] = round((e["top_champs"] * 2.0 + t3 * 0.8 - t5 * 0.8 - n_gap * 0.8) / counted, 2) if counted else None
     except Exception:
         pass
     out = {"champions": champs, "champ_stats": champ_stats, "hexes": hexes, "gaps": gaps, "unknown": unknown,

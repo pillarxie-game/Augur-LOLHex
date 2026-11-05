@@ -1,7 +1,8 @@
 """A small model that fills in OP.GG hex tiers where OP.GG has no entry for a champion.
 
 Training data: OP.GG's real tier for each (champion, hex) pair:
-    T1-T2 (a tracked hex OP.GG leaves out for the champion) = 2, T3 = 1, T4 = 0, T5 = -1.
+    T3 = 1, T4 = 0, T5 = -1, adjusted by OP.GG's performance score; a hex OP.GG leaves out for the
+    champion gets a weak value from its overall popularity and its AP/AD fit with the champion's build.
 Pairs with no information (ability hexes a champion can't get, hexes OP.GG rarely tracks) are what
 the model predicts. It learns from similar champions and similar hexes:
 
@@ -12,6 +13,7 @@ It is checked on held-out real tiers before use; if it does not beat a simple ba
 (mean + biases), its predictions are not published.
 """
 import json
+import re
 import time
 
 try:
@@ -23,16 +25,56 @@ from . import config
 
 TIER_VALUE = {3: 1.0, 4: 0.0, 5: -1.0}
 TOP_VALUE = 2.0
+# A hex OP.GG doesn't list for a champion: value from RARE_VALUE (rarely picked overall) to TOP_VALUE (one of
+# the most picked hexes), or MISFIT_VALUE when its damage type doesn't fit the champion's build
+RARE_VALUE, MISFIT_VALUE, UNLISTED_WEIGHT = 0.5, -1.0, 0.5  # tuned on held-out arammayhem.com combos
+MISFIT_LEAN, MISFIT_AP = 0.6, 0.25
 CHAMP_TAGS = ["Fighter", "Tank", "Mage", "Assassin", "Marksman", "Support"]
 
 
+_AP_WORDS = re.compile(r"ability power", re.I)
+_AD_WORDS = re.compile(r"attack damage|attack speed", re.I)
+
+
+def hex_lean(aug):
+    """Which damage stat a hex is about: +1 = AP (ability power), -1 = AD (attack damage,
+    attack speed), 0 = neither or both. Only stat words count: "abilities", "attacks", "critical" or
+    "on-hit" are used by AD and AP champions alike (Back To Basics is great on Graves).
+    Eureka ("ability haste equal to 30% AP") = +1, Marksmage ("physical damage equal to 75% AP") = +1."""
+    d, tags = aug.get("desc", ""), set(aug.get("tags", []))
+    d = re.sub(r"\(\s*\+[^()]*\)", " ", d)  # "(+ 40% AP)" is damage scaling, not what the hex needs
+    ap = len(re.findall(r"\bAP\b", d)) + len(_AP_WORDS.findall(d)) + 2 * ("ap" in tags)
+    ad = len(re.findall(r"\bAD\b", d)) + len(_AD_WORDS.findall(d)) + 2 * bool(tags & {"ad", "attackspeed"})
+    return (ap - ad) / (ap + ad) if ap + ad else 0.0
+
+
+def champion_ap_share(gamedata, champs):
+    """Share of AP items in each champion's OP.GG ARAM build (0 = all AD, 1 = all AP)."""
+    from . import gaps
+    folder = config.ROOT / "data" / "opgg"
+    alias, items = gamedata.get("item_alias", {}), gamedata["items"]
+    out = []
+    for c in champs:
+        ap = ad = 0
+        for iid in gaps._build_items(folder, c, alias):
+            tags = set(items.get(iid, {}).get("tags", []))
+            ap += "SpellDamage" in tags
+            ad += bool(tags & {"Damage", "CriticalStrike", "AttackSpeed"}) and "SpellDamage" not in tags
+        out.append(ap / (ap + ad) if ap + ad else float(gamedata["champions"][c].get("ap", 0.5)))
+    return np.array(out)
+
+
 def _features(gamedata, champs, hexes):
+    """Champion traits x hex traits. The AP/AD pair (champion's real build x hex text) lets the model learn
+    that an AP hex does badly on an AD champion even where OP.GG has no data for the pair."""
     hex_tags = sorted({t for h in hexes for t in gamedata["augments"][h].get("tags", [])})
+    aps = champion_ap_share(gamedata, champs)
     C = np.array([[1.0 if t in gamedata["champions"][c]["tags"] else 0.0 for t in CHAMP_TAGS]
-                  + [gamedata["champions"][c]["ap"], 1.0 if gamedata["champions"][c]["flags"]["ranged"] else 0.0]
-                  for c in champs])
+                  + [2 * aps[i] - 1, 1.0 if gamedata["champions"][c]["flags"]["ranged"] else 0.0]
+                  for i, c in enumerate(champs)])
     H = np.array([[1.0 if t in gamedata["augments"][h].get("tags", []) else 0.0 for t in hex_tags]
                   + [1.0 if gamedata["augments"][h]["rarity"] == r else 0.0 for r in ("silver", "gold", "prismatic")]
+                  + [hex_lean(gamedata["augments"][h])]
                   for h in hexes])
     return C, H
 
@@ -78,11 +120,35 @@ def _combo_labels(gamedata):
     return out
 
 
+def _hex_popularity(gamedata, hexes, summary):
+    """0-1 position of each hex by how often players pick it overall: arammayhem.com open data (CC BY 4.0)
+    when it is for the current patch, else OP.GG's pick rate from its current-patch lists."""
+    rates = {}
+    try:
+        from . import arammayhem
+        data = arammayhem.open_data("augments")
+        if not arammayhem.same_patch((data.get("meta") or {}).get("patch"), gamedata.get("version", "")):
+            raise ValueError("arammayhem.com data is for another patch")  # latest patch's data only
+        rows = data.get("rows", [])
+        by = {arammayhem._norm(r["name"]["en"]): r.get("pickRate") for r in rows if r.get("pickRate") is not None}
+        rates = {h: by.get(arammayhem._norm(gamedata["augments"][h]["name"])) for h in hexes}
+    except Exception:
+        pass
+    vals = np.array([rates.get(h) if rates.get(h) is not None else
+                     (summary["hexes"].get(h, {}).get("pick_rate") or 0) * (1 if not rates else np.nan) for h in hexes], float)
+    ok = ~np.isnan(vals)
+    out = np.full(len(hexes), 0.5)
+    if ok.sum() > 1:
+        r = vals[ok].argsort().argsort()
+        out[ok] = r / (ok.sum() - 1)
+    return out
+
+
 def build_matrix(gamedata):
     """Observed values Y and weights W (0 = unknown), plus the champion and hex order.
 
     Inputs, all real data:
-      * OP.GG tier per champion: T1-T2 = 2, T3 = 1, T4 = 0, T5 = -1 (gaps.py decides what a missing hex means)
+      * OP.GG tier per champion: T3 = 1, T4 = 0, T5 = -1, plus performance (gaps.py: what a missing hex means)
       * OP.GG pick rate: inside a tier, hexes players pick more often for that champion rank a bit higher
       * Your collected games: real hex win rate vs the champion's average, weighted by games; with enough
         games this outweighs OP.GG
@@ -98,6 +164,9 @@ def build_matrix(gamedata):
     Y = np.zeros((len(champs), len(hexes)))
     W = np.zeros_like(Y)
     combos = _combo_labels(gamedata)
+    leans = [hex_lean(gamedata["augments"][h]) for h in hexes]
+    aps = champion_ap_share(gamedata, champs)
+    popular = _hex_popularity(gamedata, hexes, summary)
     for i, c in enumerate(champs):
         aug = json.loads((folder / f"{c}.json").read_text(encoding="utf-8"))["augments"]
         try:
@@ -116,12 +185,17 @@ def build_matrix(gamedata):
                 z = max(-2.0, min(2.0, (e[1] - med) / sd))
                 Y[i, j] = 0.5 + 0.3 * TIER_VALUE[e[0]] + 1.2 * z * trust
                 W[i, j] = 0.4 + 0.6 * trust
-            elif not e and h in unknown.get(c, ()):
-                pass  # not enough evidence: the model estimates it
             elif not e and h in gaps.get(c, ()):
                 Y[i, j], W[i, j] = -1.0, 0.6  # needs range on a melee champion, or mana without mana
-            elif not e and summary["hexes"][h].get("infer_top"):
-                Y[i, j], W[i, j] = TOP_VALUE, 0.8
+            elif not e and h in unknown.get(c, ()):
+                # Not listed: either OP.GG's hidden top tiers (T1-T2, popular) or nobody picks it on this
+                # champion. Popular hexes overall (arammayhem.com pick rate) lean to the first, unless the hex's
+                # damage type doesn't fit the champion's real build (Eureka, an AP hex, on Darius).
+                lean, ap = leans[j], aps[i]
+                if (lean >= MISFIT_LEAN and ap <= MISFIT_AP) or (lean <= -MISFIT_LEAN and ap >= 1 - MISFIT_AP):
+                    Y[i, j], W[i, j] = MISFIT_VALUE, UNLISTED_WEIGHT
+                else:
+                    Y[i, j], W[i, j] = RARE_VALUE + (TOP_VALUE - RARE_VALUE) * popular[j], UNLISTED_WEIGHT
             lab = combos.get((c, h))
             if lab is not None:  # arammayhem.com editorial tags (CC BY): good or trap for this champion
                 Y[i, j], W[i, j] = (2.4, 2.5) if lab > 0 else (-1.5, 2.5)
@@ -258,6 +332,46 @@ def style_scores(Y, W, pred, champs, hexes):
     return out
 
 
+def _hex_strength(scores_by_champ, champs):
+    """Overall strength of each hex for the hex tier list, from its Augur scores on every champion (weighted
+    by the champion's OP.GG games): a hex that is great on a few champions and useless on the rest is not
+    top tier for everyone. Writes strength (same scale the tier letters use) and how many champions have
+    it in their top quarter into summary.json."""
+    folder = config.ROOT / "data" / "opgg"
+    path = folder / "summary.json"
+    summary = json.loads(path.read_text(encoding="utf-8"))
+    plays = {}
+    for c in champs:
+        try:
+            plays[c] = json.loads((folder / f"build_{c}.json").read_text(encoding="utf-8")).get("play") or 0
+        except (OSError, ValueError):
+            plays[c] = 0
+    total, weight, strong = {}, {}, {}
+    for c, row in scores_by_champ.items():
+        w = max(plays.get(c, 0), 100)
+        for h, v in row.items():
+            total[h] = total.get(h, 0) + w * v
+            weight[h] = weight.get(h, 0) + w
+            strong[h] = strong.get(h, 0) + (v >= 75)
+    mean = {h: total[h] / weight[h] for h in total}
+    order = sorted(mean, key=mean.get)
+    # position among all hexes -> the tier letters' scale: top 5% S+, next 15% S, 20% A, 25% B, 20% C, 15% D
+    knots = [(0, -1.0), (0.15, -0.5), (0.35, -0.2), (0.6, 0.4), (0.8, 0.9), (0.95, 1.4), (1, 1.8)]
+    for k, h in enumerate(order):
+        x = k / max(len(order) - 1, 1)
+        for (x0, y0), (x1, y1) in zip(knots, knots[1:]):
+            if x <= x1:
+                val = y0 + (y1 - y0) * (x - x0) / (x1 - x0)
+                break
+        e = summary["hexes"].get(h)
+        if e is not None:
+            e["strength"], e["top_champs"], e["mean_score"] = round(val, 2), strong[h], round(mean[h], 1)
+    for h, e in summary["hexes"].items():
+        if h not in mean:
+            e["strength"], e["top_champs"] = None, 0
+    path.write_text(json.dumps(summary), encoding="utf-8")
+
+
 def _score(pred, Y, mask):
     err = (pred - Y)[mask]
     rmse = float(np.sqrt((err ** 2).mean()))
@@ -301,10 +415,10 @@ def train(gamedata, log=print, folds=5):
             row = {hexes[j]: round(float(pred[i, j]), 2) for j in range(len(hexes)) if W[i, j] == 0}
             if row:
                 out["pred"][c] = row
-            # every pair: used to order hexes inside one OP.GG tier (which of a champion's ~116 T1-T2 hexes
-            # are also top for similar champions); checked against independent rankings for Yasuo and Lux
+            # every pair: used to order hexes inside one OP.GG tier
             out["full"][c] = {hexes[j]: round(float(pred[i, j]), 2) for j in range(len(hexes))}
         out["scores"], out["low_sample"] = scores(Y, W, pred, champs, hexes)
         out["style_scores"] = style_scores(Y, W, pred, champs, hexes)
+        _hex_strength(out["scores"], champs)
     (config.ROOT / "data" / "opgg" / "model.json").write_text(json.dumps(out, separators=(",", ":")), encoding="utf-8")
     return out

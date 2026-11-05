@@ -1,17 +1,13 @@
-"""Why is a hex missing from OP.GG's list for a champion: top tier, or almost nobody takes it?
+"""What a hex missing from OP.GG's list for a champion means.
 
-OP.GG lists only its tiers 3-5 per champion, so a missing hex is often in the champion's top tiers.
-But OP.GG also leaves out hexes with (almost) no games on that champion. This tells them apart using
-OP.GG's own data:
+OP.GG's tiers (3-5) follow popularity, and the hexes it lists for a champion already add up to about
+4-5 picks per game, so a missing hex is one players almost never pick on that champion. It is NOT a
+hidden top tier (that earlier assumption made rare hexes like Eureka look top tier on Darius).
 
-1. "Upgrade <item>" hexes: top tier only if the champion, or 2 of its most similar champions, build that
-   item in OP.GG's ARAM builds. (Lux doesn't build Sundered Sky, so Upgrade Sundered Sky is a gap.)
-2. Damage type: an AD / attack-speed hex missing for a champion whose OP.GG build is mostly AP items
-   (or an AP hex for a mostly-AD build), or a mana hex for a champion without mana, is a gap.
-3. Otherwise, the most similar champions vote: if they leave it out too, it is top for this kind of
-   champion; if they list it as weak and rarely picked, it is a gap.
-
-Checked against independent rankings: all 14 recommended Yasuo hexes and 14 of 14 Lux hexes stay top.
+Missing hexes are "gap" (useless for the champion, decided by the game itself) or "unknown":
+1. a hex that needs range on a melee champion, or a mana hex on a champion without mana: gap
+2. "Upgrade <item>" when neither the champion nor 2 similar champions build the item: gap
+3. everything else: unknown, estimated by the model from similar champions and hexes
 """
 import json
 import re
@@ -24,7 +20,7 @@ except ImportError:
 from . import config
 
 AD_TAGS = {"ad", "attackspeed"}  # crit / on-hit hexes can work through abilities (Jeweled Gauntlet, Twin Fire)
-LOW_SAMPLE = 20000  # champions with fewer OP.GG ARAM games: a missing hex alone doesn't mean top tier
+LOW_SAMPLE = 20000  # fallback when no champion has game counts
 RANGE_RE = re.compile(r"at least \D{0,3}\d{3,4} units|\d{3,4} units away|farther than \d+% of your (total )?attack range")
 VAL = {3: 1, 4: 0, 5: -1}
 NEIGHBOURS = 12
@@ -121,7 +117,6 @@ def classify(gamedata, summary):
             or list(np.argsort(-sim[i])[:NEIGHBOURS])  # learn from well-sampled lookalikes
         neighbours[c] = [champs[k] for k in nb[:5]]
         aps = aps_all[c]
-        low = plays.get(c, 0) < low_cut
         ranged = gamedata["champions"][c]["flags"].get("ranged")
         mana = gamedata["champions"][c].get("partype") == "Mana"
         row = {}
@@ -141,11 +136,11 @@ def classify(gamedata, summary):
                 # upgrades an item: only useful if the champion (or 2 similar champions) actually build it
                 ups = _upgraded_items(a, items, by_name)
                 built = bool(ups & builds[c]) or sum(bool(ups & builds[champs[k]]) for k in nb) >= 2
-                row[h] = ("unknown" if low else "top") if built else "gap"
-            elif low:
-                row[h] = "unknown"  # few games on this champion: a missing hex says little
+                row[h] = "unknown" if built else "gap"
             else:
-                row[h] = "top"
+                # Not listed = almost never picked on this champion (the hexes OP.GG lists already add up to
+                # about 4-5 picks per game). That alone doesn't say good or bad: the model estimates it.
+                row[h] = "unknown"
         out[c] = row
     # hex damage type: from tags/description, else inferred from who OP.GG lists it as weak for
     hex_type = {}

@@ -43,6 +43,7 @@
       this.opgg = opts.opgg || {}; // champion id -> {augments: {hex id: [tier, performance, popular]}}
       this.opggBuild = opts.opggBuild || {};
       this.opggAll = (opts.opggAll && opts.opggAll.hexes) || {};
+      this.opggChampions = (opts.opggAll && opts.opggAll.champions) || null;
       this.opggChamps = (opts.opggAll && opts.opggAll.champ_stats) || {};
       this.model = (opts.model && opts.model.useful && opts.model.pred) || {}; // champion -> hex -> estimated tier value
       this.modelFull = (opts.model && opts.model.useful && opts.model.full) || {};
@@ -208,10 +209,8 @@
     opggAllPart(h) {
       const a = this.opggAll[String(h)];
       if (!a || a.strength == null) return null;
-      if (!a.infer_top) return { v: Math.max(-1.5, Math.min(1.5, a.strength)) * 0.5, src: "opgg",
-                                 text: this.t("opggListedOnly", { n: a.listed }) };
-      return { v: Math.max(-1.5, Math.min(1.5, a.strength)), src: "opgg",
-               text: this.t("opggAllR2", { k: a.top_champs, n: a.top_champs + a.listed }) };
+      return { v: Math.max(-1.5, Math.min(1.5, a.strength)) * 0.5, src: "opgg",
+               text: this.t("opggAllR2", { k: a.top_champs || 0, n: this.opggChampions || "-" }) };
     }
 
     opggTier(h) {
@@ -269,7 +268,7 @@
       if (tierV == null) {
         const est = (this.model[String(cid)] || {})[String(h)];
         if (est != null) // OP.GG has nothing for this pair: the model's estimate from similar champions, trusted less
-          return { v: 0.8 * toPoints(est), src: "model", text: this.t("opggModelR", { c: cname, t: tierLabel(est) }) };
+          return { v: 0.8 * toPoints(est), src: "model", text: this.t("opggModelR", { c: cname, t: ((this.scores[String(cid)] || {})[String(h)] ?? "-") + "/100" }) };
         return { v: 0, text: this.t("opggNone") };
       }
       // Inside one tier, order by how the hex does for similar champions (the model), anchored to OP.GG's real tier
@@ -283,13 +282,12 @@
     }
 
     /* The OP.GG-based value (tier, ordered within the tier by similar champions) for one pair, before grading. */
-    /* OP.GG tier value for one pair: 2 = T1-T2, 1 = T3, 0 = T4, -1 = T5 or almost never taken, null = no data */
+    /* OP.GG tier value for one pair: 1 = T3, 0 = T4, -1 = T5 or useless for the champion, null = not listed */
     tierValue(cid, h) {
-      const o = this.opgg[String(cid)], e = o && o.augments && o.augments[String(h)], known = this.opggAll[String(h)];
+      const o = this.opgg[String(cid)], e = o && o.augments && o.augments[String(h)];
       if (e) return { 3: 1, 4: 0, 5: -1 }[e[0]] ?? null;
       if (this.gaps[String(cid)] && this.gaps[String(cid)].has(String(h))) return -1;
-      if (this.unknown[String(cid)] && this.unknown[String(cid)].has(String(h))) return null;
-      return known && known.infer_top ? 2 : null;
+      return null; // not listed: one of the most picked or almost never picked -> the model's estimate
     }
 
     opggValue(cid, h) {
