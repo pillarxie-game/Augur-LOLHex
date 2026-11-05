@@ -113,13 +113,15 @@ def classify(gamedata, summary):
     def builds_tag(c, tag):
         return sum(tag in items.get(i, {}).get("tags", []) for i in builds[c])
 
+    # "few games" is relative to this patch (early in a patch every champion has few games)
+    low_cut = max(500, 0.5 * float(np.median([p for p in plays.values() if p] or [LOW_SAMPLE])))
     out, neighbours = {}, {}
     for i, c in enumerate(champs):
-        nb = [k for k in np.argsort(-sim[i]) if plays.get(champs[k], 0) >= LOW_SAMPLE][:NEIGHBOURS] \
+        nb = [k for k in np.argsort(-sim[i]) if plays.get(champs[k], 0) >= low_cut][:NEIGHBOURS] \
             or list(np.argsort(-sim[i])[:NEIGHBOURS])  # learn from well-sampled lookalikes
         neighbours[c] = [champs[k] for k in nb[:5]]
         aps = aps_all[c]
-        low = plays.get(c, 0) < LOW_SAMPLE
+        low = plays.get(c, 0) < low_cut
         ranged = gamedata["champions"][c]["flags"].get("ranged")
         mana = gamedata["champions"][c].get("partype") == "Mana"
         row = {}
@@ -128,44 +130,22 @@ def classify(gamedata, summary):
                 continue
             a = A[h]
             tags = set(a.get("tags", []))
-            if a["name"].startswith("Upgrade "):
+            # Only certain cases count as "nobody takes it": a hex that needs range on a melee champion, or a
+            # mana hex on a champion without mana. Guesses from damage type, builds or similar champions were
+            # tested against arammayhem.com's tagged combos and were no better than chance, so a missing hex
+            # is otherwise "unknown" and the model estimates it.
+            needs_range = bool(RANGE_RE.search(a.get("desc", "").lower()))
+            if (needs_range and not ranged) or ("mana" in tags and not mana):
+                row[h] = "gap"
+            elif a["name"].startswith("Upgrade "):
+                # upgrades an item: only useful if the champion (or 2 similar champions) actually build it
                 ups = _upgraded_items(a, items, by_name)
                 built = bool(ups & builds[c]) or sum(bool(ups & builds[champs[k]]) for k in nb) >= 2
-                row[h] = "top" if built else "gap"
-                continue
-            via_abilities = "abilit" in a.get("desc", "").lower()
-            ad_only = (bool(tags & AD_TAGS) and "ap" not in tags and "adaptive" not in tags and not via_abilities) \
-                or inferred_type.get(h) == "ad"
-            ap_only = ("ap" in tags and "ad" not in tags and "adaptive" not in tags) or inferred_type.get(h) == "ap"
-            needs_range = bool(RANGE_RE.search(a.get("desc", "").lower()))
-            if (ad_only and aps > 0.7) or (ap_only and aps < 0.3) or ("mana" in tags and not mana) \
-                    or (needs_range and not ranged):
-                row[h] = "gap"
-                continue
-            # OP.GG's build says this champion builds on-hit / attack-speed items: those hexes fit (Ethereal Weapon on Kai'Sa)
-            if (tags & {"onhit", "attackspeed"}) and (builds_tag(c, "OnHit") or builds_tag(c, "AttackSpeed")):
-                row[h] = "build"
-                continue
-            top = gap = 0.0
-            for k in nb:
-                e = op[champs[k]].get(h)
-                w = max(sim[i, k], 0)
-                if not e:
-                    top += w
-                elif e[0] == 5 and e[2] < 0.01:
-                    gap += w
-                elif e[0] >= 4:
-                    gap += 0.5 * w
-            # few games on this champion: a missing hex is weak evidence either way, so unless similar
-            # champions clearly agree it is "unknown" (the model estimates it) rather than top or bottom
-            if not low:
-                row[h] = "top" if top >= gap else "gap"
-            elif top >= 1.5 * gap:
-                row[h] = "top"
-            elif gap >= 1.5 * top:
-                row[h] = "gap"
+                row[h] = ("unknown" if low else "top") if built else "gap"
+            elif low:
+                row[h] = "unknown"  # few games on this champion: a missing hex says little
             else:
-                row[h] = "unknown"
+                row[h] = "top"
         out[c] = row
     # hex damage type: from tags/description, else inferred from who OP.GG lists it as weak for
     hex_type = {}

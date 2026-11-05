@@ -84,3 +84,28 @@ def deleted(gamedata, site):
     treated as removed: OP.GG still has current-patch picks for most of those.)"""
     marked = {_norm(r["name"]) for r in site.get("hexes", {}).values() if r.get("deleted")}
     return {h for h, a in gamedata["augments"].items() if _norm(a["name"]) in marked}
+
+
+DATA = "https://arammayhem.com/data/v1/latest/{}.json"
+
+
+def open_data(name, refresh=False):
+    """arammayhem.com open data (CC BY 4.0, "Data: arammayhem.com"): champions / augments / combos.
+    Downloaded at most once a day."""
+    folder = config.ROOT / "data" / "arammayhem"
+    folder.mkdir(parents=True, exist_ok=True)
+    path = folder / f"{name}.json"
+    if path.exists() and not refresh and time.time() - path.stat().st_mtime < CACHE_HOURS * 3600:
+        return json.loads(path.read_text(encoding="utf-8"))
+    try:
+        d = net.get_json(DATA.format(name), timeout=60)
+    except Exception:
+        if path.exists():
+            return json.loads(path.read_text(encoding="utf-8"))
+        raise
+    path.write_text(json.dumps(d, ensure_ascii=False), encoding="utf-8")
+    return d
+
+
+def combos():
+    return open_data("combos").get("rows", [])

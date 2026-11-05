@@ -50,6 +50,34 @@ def _own_hex_stats():
     return s.get("hex", {}), s.get("champ", {})
 
 
+def _combo_labels(gamedata):
+    """(champion id, hex id) -> +1 / -1 from arammayhem.com's tagged combos (god / strong / blackTech = good,
+    trap = bad). Data: arammayhem.com, CC BY 4.0."""
+    try:
+        from . import arammayhem
+        rows = arammayhem.combos()
+    except Exception:
+        return {}
+    import re as _re
+    norm = lambda s: _re.sub(r"[^a-z0-9]", "", s.lower().replace("\u2019", "'"))
+    hexes = {norm(a["name"]): h for h, a in gamedata["augments"].items()}
+    champs = {norm(c["key"]): k for k, c in gamedata["champions"].items()}
+    champs.update({norm(c["name"]): k for k, c in gamedata["champions"].items()})
+    out = {}
+    for r in rows:
+        if len(r.get("augmentIds", [])) != 1:
+            continue
+        c = champs.get(norm(r["championId"])) or champs.get(norm(r["championName"]["en"]))
+        h = hexes.get(norm(r["augmentNames"][0]["en"]))
+        t = set(r.get("types", []))
+        if c and h:
+            if t & {"god", "strong", "blackTech"}:
+                out[(c, h)] = 1
+            elif "trap" in t:
+                out[(c, h)] = -1
+    return out
+
+
 def build_matrix(gamedata):
     """Observed values Y and weights W (0 = unknown), plus the champion and hex order.
 
@@ -69,24 +97,34 @@ def build_matrix(gamedata):
     hexes = [h for h, a in gamedata["augments"].items() if not a.get("disabled") and h in summary["hexes"]]
     Y = np.zeros((len(champs), len(hexes)))
     W = np.zeros_like(Y)
+    combos = _combo_labels(gamedata)
     for i, c in enumerate(champs):
         aug = json.loads((folder / f"{c}.json").read_text(encoding="utf-8"))["augments"]
-        logs = [np.log(e[2] + 0.003) for e in aug.values()]
-        mu, sd = (float(np.mean(logs)), float(np.std(logs)) or 1.0) if logs else (0.0, 1.0)
+        try:
+            games = json.loads((folder / f"build_{c}.json").read_text(encoding="utf-8")).get("play") or 1000
+        except (OSError, ValueError):
+            games = 1000
+        perf = [e[1] for e in aug.values() if e[2] >= 0.01]
+        med, sd = (float(np.median(perf)), float(np.std(perf)) or 10.0) if perf else (100.0, 10.0)
         for j, h in enumerate(hexes):
             e = aug.get(h)
             if e and e[0] in TIER_VALUE:
-                pick = max(-1.0, min(1.0, (np.log(e[2] + 0.003) - mu) / sd))
-                Y[i, j] = TIER_VALUE[e[0]] + 0.4 * pick  # picked more often -> a little higher in its tier
-                W[i, j] = 1.0 if e[2] >= 0.01 else 0.5  # rarely picked: OP.GG's tier is less certain
-            elif not e and h in build_fit.get(c, ()):
-                Y[i, j], W[i, j] = TOP_VALUE, 1.0  # the champion's OP.GG build fits this hex
+                # OP.GG's tier is mostly popularity, so a strong but rarely picked hex gets T5. Its performance
+                # score is the better strength signal; trust it by sample size (pick rate x champion games).
+                n = max(e[2], 0.002) * games
+                trust = n / (n + 25)
+                z = max(-2.0, min(2.0, (e[1] - med) / sd))
+                Y[i, j] = 0.5 + 0.3 * TIER_VALUE[e[0]] + 1.2 * z * trust
+                W[i, j] = 0.4 + 0.6 * trust
             elif not e and h in unknown.get(c, ()):
                 pass  # not enough evidence: the model estimates it
             elif not e and h in gaps.get(c, ()):
-                Y[i, j], W[i, j] = -1.0, 0.6  # missing because almost nobody takes it on this champion
+                Y[i, j], W[i, j] = -1.0, 0.6  # needs range on a melee champion, or mana without mana
             elif not e and summary["hexes"][h].get("infer_top"):
                 Y[i, j], W[i, j] = TOP_VALUE, 0.8
+            lab = combos.get((c, h))
+            if lab is not None:  # arammayhem.com editorial tags (CC BY): good or trap for this champion
+                Y[i, j], W[i, j] = (2.4, 2.5) if lab > 0 else (-1.5, 2.5)
             # your games: real win rate of this hex on this champion
             g = (own_hex.get(c) or {}).get(h)
             cg = own_champ.get(c)
@@ -137,12 +175,15 @@ def scores(Y, W, pred, champs, hexes, low_sample=20000, overrides=None, unavaila
     Champions with few OP.GG games lean more on similar champions."""
     folder = config.ROOT / "data" / "opgg"
     summary = json.loads((folder / "summary.json").read_text(encoding="utf-8"))
-    rarely = {(c, h) for c, hs in summary.get("gaps", {}).items() for h in hs}
-    for c in champs:  # listed, but popularity rounds to 0: nobody picks it
-        aug = json.loads((folder / f"{c}.json").read_text(encoding="utf-8"))["augments"]
-        rarely |= {(c, h) for h, e in aug.items() if e[2] < 0.005}
     if unavailable is None:
         unavailable = {c: set(v) for c, v in summary.get("unavailable", {}).items()}
+    plays = {}
+    for c in champs:
+        try:
+            plays[c] = json.loads((folder / f"build_{c}.json").read_text(encoding="utf-8")).get("play") or 0
+        except (OSError, ValueError):
+            plays[c] = 0
+    low_sample = max(500, 0.5 * float(np.median([p for p in plays.values() if p] or [low_sample])))  # relative to this patch
     out, low = {}, []
     for i, c in enumerate(champs):
         skip = unavailable.get(c, set())  # hexes this champion is never offered: no score at all
@@ -163,8 +204,6 @@ def scores(Y, W, pred, champs, hexes, low_sample=20000, overrides=None, unavaila
             if W[i, j] > 0:
                 t = Y[i, j]
                 v = a * t + (1 - a) * float(np.clip(pred[i, j], t - spread, t + spread))
-                if (c, hexes[j]) in rarely:  # (almost) nobody picks it on this champion: rank it at the bottom
-                    v = min(v, -1.0) - 0.5
                 vals.append(v)
             else:
                 vals.append(float(pred[i, j]) - 0.25)  # estimate only: a little below an equal real tier
@@ -252,11 +291,12 @@ def train(gamedata, log=print, folds=5):
                "observed_pairs": int(len(obs)), "predicted_pairs": int((W == 0).sum())}
     useful = m[0] < b[0] and m[1] >= b[1]
     log(f"Model check on held-out OP.GG tiers: tier accuracy {m[1]:.1%} (baseline {b[1]:.1%}), "
-        f"error {m[0]:.2f} (baseline {b[0]:.2f}) -> {'used' if useful else 'NOT used'}")
-    pred = fit(Y, W, C, H)
-    out = {"metrics": metrics, "useful": bool(useful), "built": int(time.time()), "pred": {}, "full": {},
-           "scores": {}, "low_sample": [], "game_version": gamedata.get("version")}
-    if useful:
+        f"error {m[0]:.2f} (baseline {b[0]:.2f}) -> {'full model' if useful else 'simple model (averages)'}")
+    # if the full model doesn't beat the simple one (averages per champion and per hex), use the simple one
+    pred = fit(Y, W, C, H) if useful else fit(Y, W, C, H, biases_only=True)
+    out = {"metrics": metrics, "useful": True, "full_model": bool(useful), "built": int(time.time()), "pred": {},
+           "full": {}, "scores": {}, "low_sample": [], "game_version": gamedata.get("version")}
+    if True:
         for i, c in enumerate(champs):
             row = {hexes[j]: round(float(pred[i, j]), 2) for j in range(len(hexes)) if W[i, j] == 0}
             if row:
