@@ -41,6 +41,7 @@ def build_matrix(gamedata):
     """Observed values Y, weights W (0 = unknown), plus the champion and hex order."""
     folder = config.ROOT / "data" / "opgg"
     summary = json.loads((folder / "summary.json").read_text(encoding="utf-8"))
+    gaps = {c: set(v) for c, v in summary.get("gaps", {}).items()}
     champs = [c for c in gamedata["champions"] if (folder / f"{c}.json").exists()]
     hexes = [h for h, a in gamedata["augments"].items() if not a.get("disabled") and h in summary["hexes"]]
     Y = np.zeros((len(champs), len(hexes)))
@@ -52,6 +53,8 @@ def build_matrix(gamedata):
             if e and e[0] in TIER_VALUE:
                 Y[i, j] = TIER_VALUE[e[0]]
                 W[i, j] = 1.0 if e[2] >= 0.01 else 0.5  # rarely picked: OP.GG's tier is less certain
+            elif not e and h in gaps.get(c, ()):
+                Y[i, j], W[i, j] = -1.0, 0.6  # missing because almost nobody takes it on this champion
             elif not e and summary["hexes"][h].get("infer_top"):
                 Y[i, j], W[i, j] = TOP_VALUE, 0.8
     return Y, W, champs, hexes

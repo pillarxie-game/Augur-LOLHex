@@ -10,6 +10,7 @@
 
   const T = {};
   T.en = {
+    opggGap: "OP.GG: almost nobody takes it on {c}", gapCol: "rarely taken",
     rankNote: "#{r} of {n} in this tier, by similar champions",
     opggModelR: "Estimate for {c} (OP.GG has no data): about {t}, from similar champions", opggModelNote: "Model estimate from similar champions (OP.GG has no data for this pair)",
     opggTierCol: "OP.GG tier",
@@ -77,6 +78,7 @@
   };
 
   T.zh = {
+    opggGap: "OP.GG：{c} 几乎没人选它", gapCol: "几乎没人选",
     rankNote: "同梯队 {n} 个中第 {r}（参考相似英雄）",
     opggModelR: "{c} 的估计（OP.GG 没有数据）：约 {t}，参考相似英雄", opggModelNote: "模型估计：参考相似英雄（OP.GG 没有这一对的数据）",
     opggTierCol: "OP.GG 梯队",
@@ -130,6 +132,7 @@
   };
 
   T["zh-TW"] = {
+    opggGap: "OP.GG：{c} 幾乎沒人選它", gapCol: "幾乎沒人選",
     rankNote: "同梯隊 {n} 個中第 {r}（參考相似英雄）",
     opggModelR: "{c} 的估計（OP.GG 沒有資料）：約 {t}，參考相似英雄", opggModelNote: "模型估計：參考相似英雄（OP.GG 沒有這一對的資料）",
     opggTierCol: "OP.GG 梯隊",
@@ -183,6 +186,7 @@
   };
 
   T.ko = {
+    opggGap: "OP.GG: {c}로는 거의 아무도 고르지 않음", gapCol: "거의 안 고름",
     rankNote: "같은 티어 {n}개 중 {r}위 (비슷한 챔피언 기준)",
     opggModelR: "{c} 추정치 (OP.GG 데이터 없음): 비슷한 챔피언 기준 약 {t}", opggModelNote: "비슷한 챔피언 기준 모델 추정치 (OP.GG 데이터 없음)",
     opggTierCol: "OP.GG 티어",
@@ -240,6 +244,7 @@
   };
 
   T.ja = {
+    opggGap: "OP.GG：{c} ではほとんど誰も選ばない", gapCol: "ほぼ選ばれない",
     rankNote: "同じティア {n} 個中 {r} 位（似たチャンピオン基準）",
     opggModelR: "{c} の推定（OP.GG にデータなし）：似たチャンピオンから約 {t}", opggModelNote: "似たチャンピオンからのモデル推定（OP.GG にデータなし）",
     opggTierCol: "OP.GG ティア",
@@ -297,6 +302,7 @@
   };
 
   T.es = {
+    opggGap: "OP.GG: casi nadie lo elige con {c}", gapCol: "casi nunca",
     rankNote: "N.º {r} de {n} en este nivel, según campeones parecidos",
     opggModelR: "Estimación para {c} (OP.GG no tiene datos): aprox. {t}, según campeones parecidos", opggModelNote: "Estimación del modelo según campeones parecidos (OP.GG no tiene datos)",
     opggTierCol: "Nivel OP.GG",
@@ -355,6 +361,7 @@
   };
 
   T.pt = {
+    opggGap: "OP.GG: quase ninguém escolhe com {c}", gapCol: "quase nunca",
     rankNote: "N.º {r} de {n} neste tier, com base em campeões parecidos",
     opggModelR: "Estimativa para {c} (o OP.GG não tem dados): cerca de {t}, com base em campeões parecidos", opggModelNote: "Estimativa do modelo com base em campeões parecidos (sem dados do OP.GG)",
     opggTierCol: "Tier OP.GG",
@@ -413,6 +420,7 @@
   };
 
   T.fr = {
+    opggGap: "OP.GG : presque personne ne le prend sur {c}", gapCol: "presque jamais",
     rankNote: "N° {r} sur {n} dans ce rang, d'après des champions similaires",
     opggModelR: "Estimation pour {c} (pas de données OP.GG) : environ {t}, d'après des champions similaires", opggModelNote: "Estimation du modèle d'après des champions similaires (pas de données OP.GG)",
     opggTierCol: "Rang OP.GG",
@@ -471,6 +479,7 @@
   };
 
   T.de = {
+    opggGap: "OP.GG: fast niemand wählt es mit {c}", gapCol: "fast nie",
     rankNote: "Platz {r} von {n} in dieser Stufe, nach ähnlichen Champions",
     opggModelR: "Schätzung für {c} (keine OP.GG-Daten): etwa {t}, nach ähnlichen Champions", opggModelNote: "Modellschätzung nach ähnlichen Champions (keine OP.GG-Daten)",
     opggTierCol: "OP.GG-Stufe",
@@ -529,6 +538,7 @@
   };
 
   T.it = {
+    opggGap: "OP.GG: quasi nessuno lo sceglie con {c}", gapCol: "quasi mai",
     rankNote: "N. {r} di {n} in questo livello, da campioni simili",
     opggModelR: "Stima per {c} (OP.GG non ha dati): circa {t}, da campioni simili", opggModelNote: "Stima del modello da campioni simili (nessun dato OP.GG)",
     opggTierCol: "Livello OP.GG",
@@ -587,6 +597,7 @@
   };
 
   T.pl = {
+    opggGap: "OP.GG: prawie nikt go nie wybiera na {c}", gapCol: "prawie nigdy",
     rankNote: "{r}. z {n} na tym poziomie, wg podobnych bohaterów",
     opggModelR: "Szacunek dla {c} (brak danych OP.GG): około {t}, na podstawie podobnych bohaterów", opggModelNote: "Szacunek modelu na podstawie podobnych bohaterów (brak danych OP.GG)",
     opggTierCol: "Poziom OP.GG",
@@ -645,6 +656,7 @@
   };
 
   T.ru = {
+    opggGap: "OP.GG: на {c} его почти никто не берёт", gapCol: "почти не берут",
     rankNote: "№{r} из {n} в этом тире, по похожим чемпионам",
     opggModelR: "Оценка для {c} (у OP.GG нет данных): примерно {t}, по похожим чемпионам", opggModelNote: "Оценка модели по похожим чемпионам (у OP.GG нет данных)",
     opggTierCol: "Тир OP.GG",
@@ -703,6 +715,7 @@
   };
 
   T.tr = {
+    opggGap: "OP.GG: {c} ile neredeyse kimse seçmiyor", gapCol: "neredeyse hiç",
     rankNote: "Bu seviyede {n} içinde {r}., benzer şampiyonlara göre",
     opggModelR: "{c} için tahmin (OP.GG verisi yok): benzer şampiyonlara göre yaklaşık {t}", opggModelNote: "Benzer şampiyonlara göre model tahmini (OP.GG verisi yok)",
     opggTierCol: "OP.GG seviyesi",
@@ -761,6 +774,7 @@
   };
 
   T.vi = {
+    opggGap: "OP.GG: gần như không ai chọn khi chơi {c}", gapCol: "hầu như không chọn",
     rankNote: "Hạng {r}/{n} trong hạng này, theo tướng tương tự",
     opggModelR: "Ước tính cho {c} (OP.GG không có dữ liệu): khoảng {t}, dựa trên tướng tương tự", opggModelNote: "Ước tính của mô hình dựa trên tướng tương tự (OP.GG không có dữ liệu)",
     opggTierCol: "Hạng OP.GG",
@@ -819,6 +833,7 @@
   };
 
   T.th = {
+    opggGap: "OP.GG: แทบไม่มีใครเลือกเมื่อเล่น {c}", gapCol: "แทบไม่มีใครเลือก",
     rankNote: "อันดับ {r} จาก {n} ในระดับนี้ อิงแชมเปียนที่คล้ายกัน",
     opggModelR: "ค่าประมาณสำหรับ {c} (OP.GG ไม่มีข้อมูล): ประมาณ {t} จากแชมเปียนที่คล้ายกัน", opggModelNote: "ค่าประมาณจากโมเดล อิงแชมเปียนที่คล้ายกัน (OP.GG ไม่มีข้อมูล)",
     opggTierCol: "ระดับ OP.GG",
@@ -877,6 +892,7 @@
   };
 
   T.id = {
+    opggGap: "OP.GG: hampir tidak ada yang memilihnya di {c}", gapCol: "hampir tidak dipilih",
     rankNote: "#{r} dari {n} di tier ini, menurut champion serupa",
     opggModelR: "Perkiraan untuk {c} (OP.GG tidak punya data): sekitar {t}, dari champion serupa", opggModelNote: "Perkiraan model dari champion serupa (OP.GG tidak punya data)",
     opggTierCol: "Tier OP.GG",

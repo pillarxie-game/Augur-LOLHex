@@ -45,7 +45,9 @@
       this.opggAll = (opts.opggAll && opts.opggAll.hexes) || {};
       this.opggChamps = (opts.opggAll && opts.opggAll.champ_stats) || {};
       this.model = (opts.model && opts.model.useful && opts.model.pred) || {}; // champion -> hex -> estimated tier value
-      this.modelFull = (opts.model && opts.model.useful && opts.model.full) || {}; // every pair, for ordering within a tier // champion id -> OP.GG ARAM win rate, games, tier // hex id -> {score, listed, best[]} across all champions // champion id -> OP.GG ARAM build (core, boots, item slots)
+      this.modelFull = (opts.model && opts.model.useful && opts.model.full) || {};
+      this.gaps = {}; // champion -> Set of hexes OP.GG leaves out because almost nobody takes them there
+      for (const [c, list] of Object.entries((opts.opggAll && opts.opggAll.gaps) || {})) this.gaps[c] = new Set(list.map(String)); // every pair, for ordering within a tier // champion id -> OP.GG ARAM win rate, games, tier // hex id -> {score, listed, best[]} across all champions // champion id -> OP.GG ARAM build (core, boots, item slots)
       this.lang = I18N.T[opts.lang] ? opts.lang : "en";
       this.g = wr(this.s.global) || 0.5;
       this.features = (this.s.meta && this.s.meta.features) || {};
@@ -224,9 +226,8 @@
       const e = o.augments[String(h)];
       const cname = this.name("champions", cid);
       const full = this.modelFull[String(cid)] || {};
-      const known = this.opggAll[String(h)];
-      // OP.GG tier value: 2 = T1-T2, 1 = T3, 0 = T4, -1 = T5 (null = no data)
-      const tierV = e ? ({ 3: 1, 4: 0, 5: -1 }[e[0]] ?? null) : known && known.infer_top ? 2 : null;
+      const tierV = this.tierValue(cid, h);
+      const isGap = !e && this.gaps[String(cid)] && this.gaps[String(cid)].has(String(h));
       const toPoints = (v) => this.pointsFor(cid, v); // position among this champion's own hexes -> grade points
       if (tierV == null) {
         const est = (this.model[String(cid)] || {})[String(h)];
@@ -238,16 +239,23 @@
       const m = full[String(h)];
       const v = m != null ? 0.5 * tierV + 0.5 * Math.max(tierV - 0.75, Math.min(tierV + 0.75, m)) : tierV;
       let text = e ? this.t("opggR", { c: cname, t: e[0], p: e[1].toFixed(1), m: (o._stats || { med: 0 }).med.toFixed(1) })
-                   : this.t("opggTop", { c: cname });
+                   : isGap ? this.t("opggGap", { c: cname }) : this.t("opggTop", { c: cname });
       const rk = this.tierRank(cid, h, tierV);
       if (rk) text += " · " + this.t("rankNote", { r: rk[0], n: rk[1] });
       return { v: toPoints(v), src: "opgg", text };
     }
 
     /* The OP.GG-based value (tier, ordered within the tier by similar champions) for one pair, before grading. */
-    opggValue(cid, h) {
+    /* OP.GG tier value for one pair: 2 = T1-T2, 1 = T3, 0 = T4, -1 = T5 or almost never taken, null = no data */
+    tierValue(cid, h) {
       const o = this.opgg[String(cid)], e = o && o.augments && o.augments[String(h)], known = this.opggAll[String(h)];
-      const tierV = e ? ({ 3: 1, 4: 0, 5: -1 }[e[0]] ?? null) : known && known.infer_top ? 2 : null;
+      if (e) return { 3: 1, 4: 0, 5: -1 }[e[0]] ?? null;
+      if (this.gaps[String(cid)] && this.gaps[String(cid)].has(String(h))) return -1;
+      return known && known.infer_top ? 2 : null;
+    }
+
+    opggValue(cid, h) {
+      const tierV = this.tierValue(cid, h);
       const m = (this.modelFull[String(cid)] || {})[String(h)];
       if (tierV == null) { const est = (this.model[String(cid)] || {})[String(h)]; return est != null ? est : null; }
       return m != null ? 0.5 * tierV + 0.5 * Math.max(tierV - 0.75, Math.min(tierV + 0.75, m)) : tierV;
@@ -283,11 +291,7 @@
       this._rank = this._rank || {};
       const key = cid + ":" + tierV;
       if (!this._rank[key]) {
-        const same = Object.keys(full).filter((x) => {
-          const e = o.augments[x], k = this.opggAll[x];
-          const tv = e ? ({ 3: 1, 4: 0, 5: -1 }[e[0]] ?? null) : k && k.infer_top ? 2 : null;
-          return tv === tierV;
-        }).sort((a, b) => full[b] - full[a]);
+        const same = Object.keys(full).filter((x) => this.tierValue(cid, x) === tierV).sort((a, b) => full[b] - full[a]);
         this._rank[key] = Object.fromEntries(same.map((x, i) => [x, i + 1]));
         this._rank[key]._n = same.length;
       }

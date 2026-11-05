@@ -306,7 +306,22 @@ def summarize(gamedata):
         if path.exists():
             b = json.loads(path.read_text(encoding="utf-8"))
             champ_stats[str(c["id"])] = {k: b.get(k) for k in ("win_rate", "play", "pick_rate", "tier", "rank")}
-    out = {"champions": champs, "champ_stats": champ_stats, "hexes": hexes, "built": int(time.time()),
+    # Which missing hexes are top tier and which are "almost nobody takes it" (see gaps.py)
+    gaps = {}
+    try:
+        from . import gaps as gaps_mod
+        cls, _ = gaps_mod.classify(gamedata, {"hexes": hexes})
+        gaps = {c: sorted(h for h, d in row.items() if d == "gap") for c, row in cls.items()}
+        for hid, e in hexes.items():  # top-tier counts exclude gaps
+            if e["infer_top"]:
+                n_gap = sum(1 for row in gaps.values() if hid in row)
+                e["top_champs"] = max(0, e["top_champs"] - n_gap)
+                t3, t4, t5 = e["tiers"]
+                counted = e["top_champs"] + e["listed"] + n_gap
+                e["strength"] = round((e["top_champs"] * 2.0 + t3 * 0.8 - t5 * 0.8 - n_gap * 0.8) / counted, 2) if counted else None
+    except Exception:
+        pass
+    out = {"champions": champs, "champ_stats": champ_stats, "hexes": hexes, "gaps": gaps, "built": int(time.time()),
            "game_version": _game_version(),
            "source": "OP.GG ARAM (mcp-api.op.gg)"}
     (folder / "summary.json").write_text(json.dumps(out), encoding="utf-8")

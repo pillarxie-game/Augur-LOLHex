@@ -248,7 +248,9 @@
     const opAug = S.opgg[cid] && S.opgg[cid].augments;
     for (const r of rows) {
       const e = opAug && opAug[r.a.id], all = S.opggAll && S.opggAll.hexes[r.a.id];
+      const gap = S.opggAll && S.opggAll.gaps && (S.opggAll.gaps[cid] || []).map(String).includes(String(r.a.id));
       if (e) { r.opTier = "T" + e[0]; r.opRank = 6 - e[0]; }
+      else if (opAug && gap) { r.opTier = T("gapCol"); r.opRank = 0.5; }
       else if (opAug && all && all.infer_top) { r.opTier = "T1-T2"; r.opRank = 4; }
       else if (S.model && S.model.useful && (S.model.pred[cid] || {})[r.a.id] != null) {
         const v = S.model.pred[cid][r.a.id]; r.opTier = "≈" + window.AugurGrade.tierLabel(v); r.opRank = Math.max(0.5, v + 2) - 0.01; r.est = true;
