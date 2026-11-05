@@ -218,10 +218,10 @@
             el("div", { style: "height:12px" }), box];
   }
 
-  function hexRowsFor(cid) {
+  function hexRowsFor(cid, style) {
     const g = S.grader;
     return Object.values(S.game.augments).filter((a) => !a.disabled).map((a) => {
-      const r = g.gradeHex({ champ: cid }, a.id);
+      const r = g.gradeHex({ champ: cid, style: style || undefined }, a.id);
       const cell = ((S.stats.hex || {})[cid] || {})[a.id];
       const ope = S.opgg[cid] && S.opgg[cid].augments && S.opgg[cid].augments[a.id];
       return { a, r, name: r.name, total: r.total, wr: wr(cell) ?? 0, games: n(cell), sc: r.score,
@@ -235,7 +235,9 @@
     if (!c) return [el("p", {}, "Unknown champion")];
     const g = S.grader, cell = (S.stats.champ || {})[cid];
     let rarity = store.get("rarity", "all");
-    const rows = hexRowsFor(cid);
+    const styles = S.grader.stylesFor(cid);
+    let style = styles.length ? store.get("style." + cid, null) : null;
+    const rows = hexRowsFor(cid, style);
     const hexCols = [
       { label: T("grade_"), key: "total", render: (r) => gradeBadge(r.r.grade) },
       { label: T("scoreCol"), key: "sc", num: true, render: (r) => el("b", {}, Math.round(r.sc)) },
@@ -252,6 +254,10 @@
       const gap = S.opggAll && S.opggAll.gaps && (S.opggAll.gaps[cid] || []).map(String).includes(String(r.a.id));
       if (e) { r.opTier = "T" + e[0]; r.opRank = 6 - e[0]; }
       else if (opAug && gap) { r.opTier = T("gapCol"); r.opRank = 0.5; }
+      else if (opAug && S.opggAll && S.opggAll.unknown && (S.opggAll.unknown[cid] || []).map(String).includes(String(r.a.id))) {
+        const v = S.model && S.model.pred[cid] && S.model.pred[cid][r.a.id];
+        r.opTier = v != null ? "≈" + window.AugurGrade.tierLabel(v) : "-"; r.opRank = v != null ? Math.max(0.5, v + 2) - 0.01 : 0; r.est = true;
+      }
       else if (opAug && all && all.infer_top) { r.opTier = "T1-T2"; r.opRank = 4; }
       else if (S.model && S.model.useful && (S.model.pred[cid] || {})[r.a.id] != null) {
         const v = S.model.pred[cid][r.a.id]; r.opTier = "≈" + window.AugurGrade.tierLabel(v); r.opRank = Math.max(0.5, v + 2) - 0.01; r.est = true;
@@ -326,7 +332,11 @@
         el("div", { class: "stat" }, el("b", {}, prof && prof.ap != null ? Math.round(prof.ap * 100) + "%" : Math.round(c.ap * 100) + "%"), el("span", {}, T("apDamage"))),
         el("div", { class: "stat" }, el("b", {}, prof ? prof.taken.toFixed(2) + "×" : "-"), el("span", {}, T("takenVsAvg")))),
       opggPanel,
-      el("h2", {}, T("bestHexes")), tabs, best,
+      el("h2", {}, T("bestHexes")),
+      styles.length ? el("div", { class: "tabs" }, [[null, "styleMixed"], ["ap", "styleAP"], ["ad", "styleAD"]].map(([v, k]) =>
+        el("button", { type: "button", class: v === style ? "on" : "", onclick: () => { store.set("style." + cid, v); route(); } }, T(k)))) : null,
+      styles.length ? el("p", { class: "muted small" }, T("styleNote")) : null,
+      tabs, best,
       pairs.length ? [el("h2", {}, T("bestCombos")), table(comboCols, pairs, "lift")] : null,
       el("div", { class: "cols" }, el("div", {}, el("h2", {}, T("items")), table(itemCols, items, "total")),
         el("div", {}, el("h2", {}, T("itemOrder")), slotTable)),

@@ -10,6 +10,7 @@
 
   const T = {};
   T.en = {
+    styleMixed: "Mixed", styleAP: "AP build", styleAD: "AD build", styleNote: "This champion is played both AP and AD. OP.GG mixes both, so each build has its own scores.",
     scoreR: "Score {s}/100 for {c} (better than {s}% of {c}'s hexes)", lowSample: "few OP.GG games for this champion: leans on similar champions", scoreCol: "Score",
     opggGap: "OP.GG: almost nobody takes it on {c}", gapCol: "rarely taken",
     rankNote: "#{r} of {n} in this tier, by similar champions",
@@ -79,6 +80,7 @@
   };
 
   T.zh = {
+    styleMixed: "混合", styleAP: "AP 出装", styleAD: "AD 出装", styleNote: "这个英雄有 AP 和 AD 两种玩法，OP.GG 的数据把两者混在一起，所以每种出装单独评分。",
     scoreR: "评分 {s}/100（强于 {c} {s}% 的海克斯）", lowSample: "该英雄 OP.GG 对局较少，更多参考相似英雄", scoreCol: "评分",
     opggGap: "OP.GG：{c} 几乎没人选它", gapCol: "几乎没人选",
     rankNote: "同梯队 {n} 个中第 {r}（参考相似英雄）",
@@ -134,6 +136,7 @@
   };
 
   T["zh-TW"] = {
+    styleMixed: "混合", styleAP: "AP 出裝", styleAD: "AD 出裝", styleNote: "這個英雄有 AP 和 AD 兩種玩法，OP.GG 的資料把兩者混在一起，所以每種出裝單獨評分。",
     scoreR: "評分 {s}/100（強於 {c} {s}% 的海克斯）", lowSample: "該英雄 OP.GG 對戰較少，更多參考相似英雄", scoreCol: "評分",
     opggGap: "OP.GG：{c} 幾乎沒人選它", gapCol: "幾乎沒人選",
     rankNote: "同梯隊 {n} 個中第 {r}（參考相似英雄）",
@@ -189,6 +192,7 @@
   };
 
   T.ko = {
+    styleMixed: "혼합", styleAP: "AP 빌드", styleAD: "AD 빌드", styleNote: "이 챔피언은 AP와 AD 두 방식으로 플레이됩니다. OP.GG는 둘을 섞어 보여 주므로 빌드별로 따로 점수를 매깁니다.",
     scoreR: "{c} 점수 {s}/100 ({c} 증강의 {s}%보다 좋음)", lowSample: "이 챔피언은 OP.GG 게임 수가 적어 비슷한 챔피언을 더 참고함", scoreCol: "점수",
     opggGap: "OP.GG: {c}로는 거의 아무도 고르지 않음", gapCol: "거의 안 고름",
     rankNote: "같은 티어 {n}개 중 {r}위 (비슷한 챔피언 기준)",
@@ -248,6 +252,7 @@
   };
 
   T.ja = {
+    styleMixed: "混合", styleAP: "AP ビルド", styleAD: "AD ビルド", styleNote: "このチャンピオンは AP と AD の両方で使われます。OP.GG は両方を混ぜているため、ビルドごとに別々に採点します。",
     scoreR: "{c} のスコア {s}/100（{c} のオーグメントの {s}% より上）", lowSample: "このチャンピオンは OP.GG の試合が少なく、似たチャンピオンを多く参考", scoreCol: "スコア",
     opggGap: "OP.GG：{c} ではほとんど誰も選ばない", gapCol: "ほぼ選ばれない",
     rankNote: "同じティア {n} 個中 {r} 位（似たチャンピオン基準）",
@@ -307,6 +312,7 @@
   };
 
   T.es = {
+    styleMixed: "Mixto", styleAP: "Build AP", styleAD: "Build AD", styleNote: "Este campeón se juega AP y AD. OP.GG mezcla ambos, así que cada build tiene su propia puntuación.",
     scoreR: "Puntuación {s}/100 para {c} (mejor que el {s}% de sus aumentos)", lowSample: "pocas partidas en OP.GG: se apoya en campeones parecidos", scoreCol: "Puntos",
     opggGap: "OP.GG: casi nadie lo elige con {c}", gapCol: "casi nunca",
     rankNote: "N.º {r} de {n} en este nivel, según campeones parecidos",
@@ -367,6 +373,7 @@
   };
 
   T.pt = {
+    styleMixed: "Misto", styleAP: "Build AP", styleAD: "Build AD", styleNote: "Este campeão é jogado AP e AD. O OP.GG mistura os dois, então cada build tem sua própria pontuação.",
     scoreR: "Pontuação {s}/100 para {c} (melhor que {s}% dos aprimoramentos dele)", lowSample: "poucas partidas no OP.GG: usa mais campeões parecidos", scoreCol: "Pontos",
     opggGap: "OP.GG: quase ninguém escolhe com {c}", gapCol: "quase nunca",
     rankNote: "N.º {r} de {n} neste tier, com base em campeões parecidos",
@@ -427,6 +434,7 @@
   };
 
   T.fr = {
+    styleMixed: "Mixte", styleAP: "Build AP", styleAD: "Build AD", styleNote: "Ce champion se joue AP et AD. OP.GG mélange les deux, donc chaque build a ses propres scores.",
     scoreR: "Score {s}/100 pour {c} (meilleur que {s} % de ses augments)", lowSample: "peu de parties sur OP.GG : s'appuie sur des champions similaires", scoreCol: "Score",
     opggGap: "OP.GG : presque personne ne le prend sur {c}", gapCol: "presque jamais",
     rankNote: "N° {r} sur {n} dans ce rang, d'après des champions similaires",
@@ -487,6 +495,7 @@
   };
 
   T.de = {
+    styleMixed: "Gemischt", styleAP: "AP-Build", styleAD: "AD-Build", styleNote: "Dieser Champion wird AP und AD gespielt. OP.GG mischt beides, daher hat jeder Build eigene Werte.",
     scoreR: "Wert {s}/100 für {c} (besser als {s} % seiner Augments)", lowSample: "wenige OP.GG-Spiele: stützt sich auf ähnliche Champions", scoreCol: "Wert",
     opggGap: "OP.GG: fast niemand wählt es mit {c}", gapCol: "fast nie",
     rankNote: "Platz {r} von {n} in dieser Stufe, nach ähnlichen Champions",
@@ -547,6 +556,7 @@
   };
 
   T.it = {
+    styleMixed: "Misto", styleAP: "Build AP", styleAD: "Build AD", styleNote: "Questo campione si gioca AP e AD. OP.GG mescola le due, quindi ogni build ha i suoi punteggi.",
     scoreR: "Punteggio {s}/100 per {c} (meglio del {s}% dei suoi potenziamenti)", lowSample: "poche partite su OP.GG: si basa su campioni simili", scoreCol: "Punti",
     opggGap: "OP.GG: quasi nessuno lo sceglie con {c}", gapCol: "quasi mai",
     rankNote: "N. {r} di {n} in questo livello, da campioni simili",
@@ -607,6 +617,7 @@
   };
 
   T.pl = {
+    styleMixed: "Mieszany", styleAP: "Build AP", styleAD: "Build AD", styleNote: "Tym bohaterem gra się AP i AD. OP.GG łączy oba style, więc każdy build ma własne wyniki.",
     scoreR: "Wynik {s}/100 dla {c} (lepszy niż {s}% jego wzmocnień)", lowSample: "mało gier w OP.GG: opiera się na podobnych bohaterach", scoreCol: "Wynik",
     opggGap: "OP.GG: prawie nikt go nie wybiera na {c}", gapCol: "prawie nigdy",
     rankNote: "{r}. z {n} na tym poziomie, wg podobnych bohaterów",
@@ -667,6 +678,7 @@
   };
 
   T.ru = {
+    styleMixed: "Смешанный", styleAP: "AP-сборка", styleAD: "AD-сборка", styleNote: "Этим чемпионом играют и через AP, и через AD. OP.GG смешивает оба стиля, поэтому у каждой сборки свои оценки.",
     scoreR: "Оценка {s}/100 для {c} (лучше {s}% его усилений)", lowSample: "мало игр на OP.GG: опирается на похожих чемпионов", scoreCol: "Оценка",
     opggGap: "OP.GG: на {c} его почти никто не берёт", gapCol: "почти не берут",
     rankNote: "№{r} из {n} в этом тире, по похожим чемпионам",
@@ -727,6 +739,7 @@
   };
 
   T.tr = {
+    styleMixed: "Karma", styleAP: "AP dizilimi", styleAD: "AD dizilimi", styleNote: "Bu şampiyon hem AP hem AD oynanıyor. OP.GG ikisini karıştırdığı için her dizilimin kendi puanı var.",
     scoreR: "{c} için puan {s}/100 (güçlendirmelerinin %{s}'inden iyi)", lowSample: "OP.GG'de az maç: benzer şampiyonlara dayanıyor", scoreCol: "Puan",
     opggGap: "OP.GG: {c} ile neredeyse kimse seçmiyor", gapCol: "neredeyse hiç",
     rankNote: "Bu seviyede {n} içinde {r}., benzer şampiyonlara göre",
@@ -787,6 +800,7 @@
   };
 
   T.vi = {
+    styleMixed: "Kết hợp", styleAP: "Lối AP", styleAD: "Lối AD", styleNote: "Tướng này được chơi cả AP lẫn AD. OP.GG gộp cả hai, nên mỗi lối lên đồ có điểm riêng.",
     scoreR: "Điểm {s}/100 cho {c} (tốt hơn {s}% lõi của {c})", lowSample: "ít trận trên OP.GG: dựa nhiều vào tướng tương tự", scoreCol: "Điểm",
     opggGap: "OP.GG: gần như không ai chọn khi chơi {c}", gapCol: "hầu như không chọn",
     rankNote: "Hạng {r}/{n} trong hạng này, theo tướng tương tự",
@@ -847,6 +861,7 @@
   };
 
   T.th = {
+    styleMixed: "รวม", styleAP: "บิลด์ AP", styleAD: "บิลด์ AD", styleNote: "แชมเปียนนี้เล่นได้ทั้ง AP และ AD และ OP.GG รวมทั้งสองแบบไว้ด้วยกัน จึงให้คะแนนแยกตามบิลด์",
     scoreR: "คะแนน {s}/100 สำหรับ {c} (ดีกว่า {s}% ของออกเมนต์ของ {c})", lowSample: "เกมใน OP.GG น้อย: อิงแชมเปียนที่คล้ายกันมากขึ้น", scoreCol: "คะแนน",
     opggGap: "OP.GG: แทบไม่มีใครเลือกเมื่อเล่น {c}", gapCol: "แทบไม่มีใครเลือก",
     rankNote: "อันดับ {r} จาก {n} ในระดับนี้ อิงแชมเปียนที่คล้ายกัน",
@@ -907,6 +922,7 @@
   };
 
   T.id = {
+    styleMixed: "Campuran", styleAP: "Build AP", styleAD: "Build AD", styleNote: "Champion ini dimainkan AP dan AD. OP.GG mencampur keduanya, jadi tiap build punya skor sendiri.",
     scoreR: "Skor {s}/100 untuk {c} (lebih baik dari {s}% augment {c})", lowSample: "sedikit game di OP.GG: lebih mengandalkan champion serupa", scoreCol: "Skor",
     opggGap: "OP.GG: hampir tidak ada yang memilihnya di {c}", gapCol: "hampir tidak dipilih",
     rankNote: "#{r} dari {n} di tier ini, menurut champion serupa",

@@ -37,26 +37,66 @@ def _features(gamedata, champs, hexes):
     return C, H
 
 
+def _own_hex_stats():
+    """Hex win rates from your collected games (current patch), if any: champion -> hex -> [games, wins]."""
+    cfg = config.load()
+    path = cfg["site_path"] / "data" / "stats.json"
+    try:
+        s = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return {}, {}
+    if s.get("meta", {}).get("demo"):
+        return {}, {}
+    return s.get("hex", {}), s.get("champ", {})
+
+
 def build_matrix(gamedata):
-    """Observed values Y, weights W (0 = unknown), plus the champion and hex order."""
+    """Observed values Y and weights W (0 = unknown), plus the champion and hex order.
+
+    Inputs, all real data:
+      * OP.GG tier per champion: T1-T2 = 2, T3 = 1, T4 = 0, T5 = -1 (gaps.py decides what a missing hex means)
+      * OP.GG pick rate: inside a tier, hexes players pick more often for that champion rank a bit higher
+      * Your collected games: real hex win rate vs the champion's average, weighted by games; with enough
+        games this outweighs OP.GG
+    """
     folder = config.ROOT / "data" / "opgg"
     summary = json.loads((folder / "summary.json").read_text(encoding="utf-8"))
     gaps = {c: set(v) for c, v in summary.get("gaps", {}).items()}
+    unknown = {c: set(v) for c, v in summary.get("unknown", {}).items()}
+    build_fit = {c: set(v) for c, v in summary.get("build_fit", {}).items()}
+    own_hex, own_champ = _own_hex_stats()
     champs = [c for c in gamedata["champions"] if (folder / f"{c}.json").exists()]
     hexes = [h for h, a in gamedata["augments"].items() if not a.get("disabled") and h in summary["hexes"]]
     Y = np.zeros((len(champs), len(hexes)))
     W = np.zeros_like(Y)
     for i, c in enumerate(champs):
         aug = json.loads((folder / f"{c}.json").read_text(encoding="utf-8"))["augments"]
+        logs = [np.log(e[2] + 0.003) for e in aug.values()]
+        mu, sd = (float(np.mean(logs)), float(np.std(logs)) or 1.0) if logs else (0.0, 1.0)
         for j, h in enumerate(hexes):
             e = aug.get(h)
             if e and e[0] in TIER_VALUE:
-                Y[i, j] = TIER_VALUE[e[0]]
+                pick = max(-1.0, min(1.0, (np.log(e[2] + 0.003) - mu) / sd))
+                Y[i, j] = TIER_VALUE[e[0]] + 0.4 * pick  # picked more often -> a little higher in its tier
                 W[i, j] = 1.0 if e[2] >= 0.01 else 0.5  # rarely picked: OP.GG's tier is less certain
+            elif not e and h in build_fit.get(c, ()):
+                Y[i, j], W[i, j] = TOP_VALUE, 1.0  # the champion's OP.GG build fits this hex
+            elif not e and h in unknown.get(c, ()):
+                pass  # not enough evidence: the model estimates it
             elif not e and h in gaps.get(c, ()):
                 Y[i, j], W[i, j] = -1.0, 0.6  # missing because almost nobody takes it on this champion
             elif not e and summary["hexes"][h].get("infer_top"):
                 Y[i, j], W[i, j] = TOP_VALUE, 0.8
+            # your games: real win rate of this hex on this champion
+            g = (own_hex.get(c) or {}).get(h)
+            cg = own_champ.get(c)
+            if g and g[0] >= 20 and cg and cg[0]:
+                base = cg[1] / cg[0]
+                wr = (g[1] + 150 * base) / (g[0] + 150)  # small samples pulled to the champion's average
+                yo = max(-1.5, min(2.5, 0.5 + (wr - base) * 100 / 4))  # +6 points of win rate ~ top tier
+                wo = 2.0 * g[0] / (g[0] + 150)
+                Y[i, j] = (W[i, j] * Y[i, j] + wo * yo) / (W[i, j] + wo)
+                W[i, j] += wo
     return Y, W, champs, hexes
 
 
@@ -90,7 +130,7 @@ def fit(Y, W, C, H, k=6, reg=0.05, steps=1500, lr=0.03, seed=0, biases_only=Fals
     return predict(P)
 
 
-def scores(Y, W, pred, champs, hexes, low_sample=20000):
+def scores(Y, W, pred, champs, hexes, low_sample=20000, overrides=None):
     """Augur score 0-100 for every (champion, hex): its position among that champion's own hexes.
     96 = better than about 96% of the champion's hexes. Based on OP.GG's real tier, ordered inside the
     tier by similar champions (the model); pairs without OP.GG data use the model's estimate.
@@ -112,7 +152,11 @@ def scores(Y, W, pred, champs, hexes, low_sample=20000):
             low.append(c)
         a, spread = (0.3, 1.0) if few else (0.5, 0.75)
         vals = []
+        ov = (overrides or {}).get(c, {})
         for j in range(len(hexes)):
+            if j in ov:  # build-style decision (see style_scores): replaces OP.GG's mixed-style numbers
+                vals.append(ov[j])
+                continue
             if W[i, j] > 0:
                 t = Y[i, j]
                 v = a * t + (1 - a) * float(np.clip(pred[i, j], t - spread, t + spread))
@@ -129,8 +173,46 @@ def scores(Y, W, pred, champs, hexes, low_sample=20000):
         for val in np.unique(v):
             idx = v == val
             ranks[idx] = ranks[idx].mean()
-        out[c] = {hexes[j]: int(round(100 * (ranks[j] + 0.5) / len(v))) for j in range(len(hexes))}
+        # up to 90 by position among the champion's hexes; 91-100 only for a hex clearly ahead of its
+        # other top hexes (more than half a standard deviation above the champion's 95th percentile)
+        q95, sd = float(np.percentile(v, 95)), float(v.std()) or 1.0
+        row = {}
+        for j in range(len(hexes)):
+            sc = 90 * (ranks[j] + 0.5) / len(v)
+            extra = (v[j] - q95) / sd - 0.5
+            if extra > 0:
+                sc += min(10, 10 * extra)
+            row[hexes[j]] = int(round(sc))
+        out[c] = row
     return out, low
+
+
+def style_scores(Y, W, pred, champs, hexes):
+    """For champions OP.GG shows building both AP and AD (Kai'Sa), scores for each build style.
+    OP.GG's numbers mix both styles, so within a style: hexes of that damage type (and, for AP, hexes that
+    make abilities apply on-hit) count as top tier; hexes of the other type count as almost never taken."""
+    summary = json.loads((config.ROOT / "data" / "opgg" / "summary.json").read_text(encoding="utf-8"))
+    types, styles = summary.get("hex_type", {}), summary.get("styles", {})
+    out = {}
+    for c, kinds in styles.items():
+        if c not in champs:
+            continue
+        i = champs.index(c)
+        out[c] = {}
+        onhit = "onhit" in kinds
+        for style in [k for k in kinds if k in ("ap", "ad")]:
+            ov = {}
+            for j, h in enumerate(hexes):
+                t = types.get(h)
+                if style == "ap" and t == "ap_onhit" and onhit:
+                    ov[j] = TOP_VALUE + 0.9  # AP on-hit build: abilities applying on-hit is a standout
+                elif t == style or (style == "ap" and t == "ap_onhit"):
+                    ov[j] = TOP_VALUE + 0.3 * float(np.tanh(pred[i, j]))  # top tier for this style, ordered by the model
+                elif (style == "ap" and t == "ad") or (style == "ad" and t in ("ap", "ap_onhit")):
+                    ov[j] = -1.5  # wrong damage type for this style
+            row, _ = scores(Y[i:i + 1], W[i:i + 1], pred[i:i + 1], [c], hexes, overrides={c: ov})
+            out[c][style] = row[c]
+    return out
 
 
 def _score(pred, Y, mask):
@@ -179,5 +261,6 @@ def train(gamedata, log=print, folds=5):
             # are also top for similar champions); checked against independent rankings for Yasuo and Lux
             out["full"][c] = {hexes[j]: round(float(pred[i, j]), 2) for j in range(len(hexes))}
         out["scores"], out["low_sample"] = scores(Y, W, pred, champs, hexes)
+        out["style_scores"] = style_scores(Y, W, pred, champs, hexes)
     (config.ROOT / "data" / "opgg" / "model.json").write_text(json.dumps(out, separators=(",", ":")), encoding="utf-8")
     return out

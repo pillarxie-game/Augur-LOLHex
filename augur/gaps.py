@@ -96,7 +96,7 @@ def classify(gamedata, summary):
     aps_all = {c: ap_share(c) for c in champs}
     inferred_type = {}
     for j, h in enumerate(hexes):
-        if A[h].get("desc") or A[h].get("tags"):
+        if {"ap", "ad", "attackspeed"} & set(A[h].get("tags", [])):
             continue
         who = [aps_all[champs[i]] for i in range(len(champs)) if listed[i, j]]
         if len(who) >= 5:
@@ -109,6 +109,9 @@ def classify(gamedata, summary):
             plays[c] = json.loads((folder / f"build_{c}.json").read_text(encoding="utf-8")).get("play") or 0
         except (OSError, ValueError):
             plays[c] = 0
+
+    def builds_tag(c, tag):
+        return sum(tag in items.get(i, {}).get("tags", []) for i in builds[c])
 
     out, neighbours = {}, {}
     for i, c in enumerate(champs):
@@ -139,6 +142,10 @@ def classify(gamedata, summary):
                     or (needs_range and not ranged):
                 row[h] = "gap"
                 continue
+            # OP.GG's build says this champion builds on-hit / attack-speed items: those hexes fit (Ethereal Weapon on Kai'Sa)
+            if (tags & {"onhit", "attackspeed"}) and (builds_tag(c, "OnHit") or builds_tag(c, "AttackSpeed")):
+                row[h] = "build"
+                continue
             top = gap = 0.0
             for k in nb:
                 e = op[champs[k]].get(h)
@@ -149,7 +156,28 @@ def classify(gamedata, summary):
                     gap += w
                 elif e[0] >= 4:
                     gap += 0.5 * w
-            # few games on this champion: a missing hex is weaker evidence, so similar champions must clearly agree
-            row[h] = "top" if top >= gap * (1.5 if low else 1.0) else "gap"
+            # few games on this champion: a missing hex is weak evidence either way, so unless similar
+            # champions clearly agree it is "unknown" (the model estimates it) rather than top or bottom
+            if not low:
+                row[h] = "top" if top >= gap else "gap"
+            elif top >= 1.5 * gap:
+                row[h] = "top"
+            elif gap >= 1.5 * top:
+                row[h] = "gap"
+            else:
+                row[h] = "unknown"
         out[c] = row
+    # hex damage type: from tags/description, else inferred from who OP.GG lists it as weak for
+    hex_type = {}
+    for h in hexes:
+        a, tags = A[h], set(A[h].get("tags", []))
+        via = "abilit" in a.get("desc", "").lower()
+        if "onhit" in tags and via:
+            hex_type[h] = "ap_onhit"  # abilities apply on-hit: great on AP on-hit builds (Ethereal Weapon on AP Kai'Sa)
+        elif ("ap" in tags and "ad" not in tags) or inferred_type.get(h) == "ap":
+            hex_type[h] = "ap"
+        elif (tags & AD_TAGS and "ap" not in tags and not via) or inferred_type.get(h) == "ad":
+            hex_type[h] = "ad"
+    classify.hex_type = hex_type
+    classify.ap_share = aps_all
     return out, neighbours

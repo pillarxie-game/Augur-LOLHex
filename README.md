@@ -68,6 +68,12 @@ The app also shows **OP.GG's ARAM build** on each champion page (tier, win rate,
 
 **Augur score (0–100).** Every champion + hex pair gets a score: its position among that champion's own hexes (96 = better than about 96% of them). It is computed by the model each time a new game version's OP.GG data is downloaded. Hexes almost nobody picks on a champion (missing for that reason, or listed with ~0% popularity) are ranked at the bottom. Range hexes ("hit from 600+ units") count as rarely taken on melee champions, and hexes with no description get their type from who OP.GG lists them as weak for (Lich Brain is weak on AD champions, so it's an AP hex). Most champions have few OP.GG ARAM games (median about 2,200), so for champions under 20,000 games a missing hex alone doesn't make it top tier; similar, well-sampled champions decide.
 
+**Scores up to 90 by position; above 90 only for standouts.** A hex's position among the champion's hexes gives at most 90; 91–100 is kept for a hex clearly ahead of the champion's other top hexes. With current OP.GG data no hex qualifies.
+
+**AP / AD builds.** For champions OP.GG shows building both AP and AD items in real numbers (AP and AD items each at least 12% of item purchases: Kai'Sa, Kayle, Kog'Maw, Katarina, Shyvana, Twisted Fate, Bard…), OP.GG's numbers mix both styles. Augur gives each style its own scores: hexes of that damage type rank as top tier, the other type's hexes rank at the bottom, and for AP on-hit builds (Kai'Sa with Nashor's Tooth) hexes that make abilities apply on-hit (Ethereal Weapon) rank highest. Champion pages have a Mixed / AP / AD switch; in a game the style is picked from the items you own.
+
+**Inputs to the model.** OP.GG tier per champion, OP.GG pick rate (within a tier, hexes picked more often rank higher), and real hex win rates from your collected games (current patch, weighted by games, outweighing OP.GG once there are enough).
+
 Try it: `python -m augur opgg Yasuo`.
 
 ## Collecting games
@@ -197,6 +203,12 @@ Augur 是免费开源的**海克斯大乱斗**助手：海克斯排行、英雄�
 **每个英雄的推荐海克斯：** OP.GG 的顶级梯队每个英雄大约有 116 个海克斯（占一半），单靠它分不出最好和还不错。Augur 用一个小模型（`augur/model.py`，用 173 个英雄的真实 OP.GG 梯队训练），按**相似英雄**的表现给同一梯队内的海克斯排序，并估计 OP.GG 没有数据的组合（标「≈」）。验证：在留出的真实梯队上准确率 54%（简单基线 35%）；和独立排行对比，拉克丝的 14 个推荐海克斯在她 105 个顶级海克斯中中位排名第 12（随机约第 52）。最后按该英雄自己所有海克斯中的位置打分：前 5% S+，接下来 15% S、20% A、25% B、20% C，最后 15% D。真实的 OP.GG 梯队不会被改写；你收集的对局会在此基础上继续修正。
 
 **Augur 评分（0–100）：** 每个「英雄 + 海克斯」都有一个分数，表示它在这个英雄所有海克斯中的位置（96 = 强于约 96% 的海克斯）。每次游戏更新、下载新版本的 OP.GG 数据后由模型重新计算。某英雄几乎没人选的海克斯（因此没被列出，或列出但热度约 0%）排在最后；需要远距离的海克斯（如「600 码以外命中」）对近战英雄算作几乎没人选；没有说明的海克斯根据 OP.GG 把它列为弱势的英雄判断类型（巫妖大脑在 AD 英雄上弱，所以是 AP 海克斯）。大多数英雄的 OP.GG 大乱斗对局较少（中位数约 2,200 场），对局少于 20,000 场的英雄，不会只因「未列出」就算顶级，而是参考对局多的相似英雄。
+
+**AP / AD 两种出装：** 对 OP.GG 数据显示 AP 和 AD 装备都有大量出装的英雄（各占出装次数 12% 以上：卡莎、凯尔、克格莫、卡特琳娜、希瓦娜、崔斯特、巴德……），OP.GG 的数字把两种玩法混在一起。Augur 为每种出装单独评分：同类伤害的海克斯算顶级，另一类排到最后；AP 攻击特效出装（例如出纳什之牙的卡莎）中，让技能触发攻击特效的海克斯（虚幻武器）排最高。英雄页面可以切换「混合 / AP / AD」；对局中会根据你已有的装备自动判断。
+
+**评分上限：** 按位置最多 90 分；91–100 只给明显领先于该英雄其他顶级海克斯的海克斯。目前的 OP.GG 数据中没有这样的海克斯。
+
+**模型的输入：** 每个英雄的 OP.GG 梯队、OP.GG 选取率（同一梯队中选得越多排越前），以及你收集的对局中的真实海克斯胜率（当前版本，按场次加权，数量够多后比 OP.GG 权重更高）。
 
 **关于 OP.GG 数据：** 每个英雄大约列出 95 个海克斯，只包含 **T3–T5**。OP.GG 有追踪、但没有列给某个英雄的海克斯，就是这个英雄的**顶级海克斯（T1–T2）**——我们用独立排行验证过：亚索和拉克丝各 18 个推荐海克斯，全部不在 OP.GG 的列表中。所以 Augur 把「未列出」算作 **T1–T2，明显加分**；技能海克斯（只有部分英雄能拿到）和 OP.GG 只给不到 5 个英雄列出的海克斯除外，这些视为「没有数据」。OP.GG 也会漏掉某英雄**几乎没人选**的海克斯（比如拉克丝的「升级：焚天」），`augur/gaps.py` 用 OP.GG 自己的数据区分：装备升级类海克斯只有在该英雄或相似英雄会出这件装备时才算顶级；出装以 AP 为主的英雄缺少的物理 / 攻速海克斯（或反过来），以及没有蓝条英雄的法力海克斯，算作「几乎没人选」；其余由最相似的英雄投票决定。独立排行中亚索和拉克丝的推荐海克斯没有被误判。评分里 OP.GG 部分主要看**梯队**（T1–T2 +2.0，T3 +0.8，T4 0，T5 −0.8），表现分只做小幅调整。很少有人选的海克斯数据不可靠，权重会降低。你自己收集的对局越多，OP.GG 的权重越低。
 

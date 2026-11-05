@@ -245,6 +245,37 @@ def fetch_all(gamedata, log=print, pause=0.4):
     return summary
 
 
+def _build_styles(gamedata):
+    """Champions OP.GG shows building both AP and AD items (e.g. Kai'Sa): {champion: ["ap", "ad"]}."""
+    folder = config.ROOT / "data" / "opgg"
+    items, alias = gamedata["items"], gamedata.get("item_alias", {})
+    out = {}
+    for c in gamedata["champions"]:
+        try:
+            b = json.loads((folder / f"build_{c}.json").read_text(encoding="utf-8"))
+        except (OSError, ValueError):
+            continue
+        recs = [r for r in [b.get("core")] + [r for v in (b.get("slots") or {}).values() for r in v] if r]
+        ap_play = ad_play = total = 0
+        ids = set()
+        for r in recs:
+            for i in r["ids"]:
+                total += r["play"]
+                i = alias.get(str(i), str(i))
+                ids.add(i)
+                tags = set(items.get(i, {}).get("tags", []))
+                if "SpellDamage" in tags:
+                    ap_play += r["play"]
+                elif tags & {"Damage", "CriticalStrike", "AttackSpeed"}:
+                    ad_play += r["play"]
+        # both styles are really played: AP items and AD items each at least 12% of all item purchases
+        if total and ap_play / total >= 0.12 and ad_play / total >= 0.12:
+            out[c] = ["ap", "ad"]
+            if any("OnHit" in items.get(i, {}).get("tags", []) for i in ids):
+                out[c].append("onhit")  # marker: this champion builds on-hit items
+    return out
+
+
 def summarize(gamedata):
     """Per hex across all champions: popularity-weighted performance, how many champions list it, best champions."""
     folder = config.ROOT / "data" / "opgg"
@@ -307,11 +338,15 @@ def summarize(gamedata):
             b = json.loads(path.read_text(encoding="utf-8"))
             champ_stats[str(c["id"])] = {k: b.get(k) for k in ("win_rate", "play", "pick_rate", "tier", "rank")}
     # Which missing hexes are top tier and which are "almost nobody takes it" (see gaps.py)
-    gaps = {}
+    gaps, unknown, build_fit, hex_type, styles = {}, {}, {}, {}, {}
     try:
         from . import gaps as gaps_mod
         cls, _ = gaps_mod.classify(gamedata, {"hexes": hexes})
         gaps = {c: sorted(h for h, d in row.items() if d == "gap") for c, row in cls.items()}
+        unknown = {c: sorted(h for h, d in row.items() if d == "unknown") for c, row in cls.items()}
+        build_fit = {c: sorted(h for h, d in row.items() if d == "build") for c, row in cls.items()}
+        hex_type = dict(getattr(gaps_mod.classify, "hex_type", {}))
+        styles = _build_styles(gamedata)
         for hid, e in hexes.items():  # top-tier counts exclude gaps
             if e["infer_top"]:
                 n_gap = sum(1 for row in gaps.values() if hid in row)
@@ -321,7 +356,9 @@ def summarize(gamedata):
                 e["strength"] = round((e["top_champs"] * 2.0 + t3 * 0.8 - t5 * 0.8 - n_gap * 0.8) / counted, 2) if counted else None
     except Exception:
         pass
-    out = {"champions": champs, "champ_stats": champ_stats, "hexes": hexes, "gaps": gaps, "built": int(time.time()),
+    out = {"champions": champs, "champ_stats": champ_stats, "hexes": hexes, "gaps": gaps, "unknown": unknown,
+           "build_fit": build_fit, "hex_type": hex_type, "styles": styles,
+           "built": int(time.time()),
            "game_version": _game_version(),
            "source": "OP.GG ARAM (mcp-api.op.gg)"}
     (folder / "summary.json").write_text(json.dumps(out), encoding="utf-8")

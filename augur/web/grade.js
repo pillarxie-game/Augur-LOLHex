@@ -47,9 +47,13 @@
       this.model = (opts.model && opts.model.useful && opts.model.pred) || {}; // champion -> hex -> estimated tier value
       this.modelFull = (opts.model && opts.model.useful && opts.model.full) || {};
       this.scores = (opts.model && opts.model.scores) || {}; // champion -> hex -> Augur score 0-100 (computed each version)
+      this.styleScores = (opts.model && opts.model.style_scores) || {}; // hybrid champions: champion -> "ap"/"ad" -> hex -> score
+      this.style = null; // "ap" / "ad" for hybrid champions, set per grading call
       this.lowSample = new Set(((opts.model && opts.model.low_sample) || []).map(String));
       this.gaps = {}; // champion -> Set of hexes OP.GG leaves out because almost nobody takes them there
-      for (const [c, list] of Object.entries((opts.opggAll && opts.opggAll.gaps) || {})) this.gaps[c] = new Set(list.map(String)); // every pair, for ordering within a tier // champion id -> OP.GG ARAM win rate, games, tier // hex id -> {score, listed, best[]} across all champions // champion id -> OP.GG ARAM build (core, boots, item slots)
+      for (const [c, list] of Object.entries((opts.opggAll && opts.opggAll.gaps) || {})) this.gaps[c] = new Set(list.map(String));
+      this.unknown = {}; // champion -> Set of hexes with too little evidence (the model estimates them)
+      for (const [c, list] of Object.entries((opts.opggAll && opts.opggAll.unknown) || {})) this.unknown[c] = new Set(list.map(String)); // every pair, for ordering within a tier // champion id -> OP.GG ARAM win rate, games, tier // hex id -> {score, listed, best[]} across all champions // champion id -> OP.GG ARAM build (core, boots, item slots)
       this.lang = I18N.T[opts.lang] ? opts.lang : "en";
       this.g = wr(this.s.global) || 0.5;
       this.features = (this.s.meta && this.s.meta.features) || {};
@@ -216,13 +220,29 @@
 
     /* OP.GG for this champion. OP.GG lists only its tiers 3-5; a hex it tracks but leaves out for this
        champion is in that champion's top tiers (1-2). The tier counts most; performance is a small adjustment. */
+    /* Build styles this champion has its own scores for (e.g. Kai'Sa: ["ap", "ad"]). */
+    stylesFor(cid) { return Object.keys(this.styleScores[String(cid)] || {}); }
+
+    /* Pick AP or AD from the items you own (for hybrid champions), else null (mixed). */
+    styleFromItems(cid, items) {
+      if (!this.stylesFor(cid).length || !items || !items.length) return null;
+      let ap = 0, ad = 0;
+      for (const i of items) {
+        const t = new Set((this.game.items[String(i)] || {}).tags || []);
+        if (t.has("SpellDamage")) ap++; else if (t.has("Damage") || t.has("CriticalStrike") || t.has("AttackSpeed")) ad++;
+      }
+      return ap > ad ? "ap" : ad > ap ? "ad" : null;
+    }
+
     opggPart(cid, h) {
-      const sc = (this.scores[String(cid)] || {})[String(h)];
+      const styled = this.style && (this.styleScores[String(cid)] || {})[this.style];
+      const sc = (styled || this.scores[String(cid)] || {})[String(h)];
       const o = this.opgg[String(cid)];
       if (sc != null && o && o.augments) {
         const base = this.opggPartRaw(cid, h, o);
         const pts = this.pointsForPct(cid, sc / 100);
         let text = this.t("scoreR", { s: sc, c: this.name("champions", cid) });
+        if (styled) text += " · " + this.t(this.style === "ap" ? "styleAP" : "styleAD");
         if (base && base.text) text += " · " + base.text.split(" · ")[0];
         if (this.lowSample.has(String(cid))) text += " · " + this.t("lowSample");
         return { v: pts, src: base && base.src === "model" ? "model" : "opgg", text, score: sc };
@@ -266,6 +286,7 @@
       const o = this.opgg[String(cid)], e = o && o.augments && o.augments[String(h)], known = this.opggAll[String(h)];
       if (e) return { 3: 1, 4: 0, 5: -1 }[e[0]] ?? null;
       if (this.gaps[String(cid)] && this.gaps[String(cid)].has(String(h))) return -1;
+      if (this.unknown[String(cid)] && this.unknown[String(cid)].has(String(h))) return null;
       return known && known.infer_top ? 2 : null;
     }
 
@@ -325,6 +346,7 @@
 
     gradeHex(ctx, h) {
       const cid = String(ctx.champ), aug = this.game.augments[String(h)];
+      this.style = ctx.style || this.styleFromItems(cid, ctx.items);
       if (!aug) return null;
       const owned = ctx.owned || [], allies = ctx.allies || [], enemies = ctx.enemies || [];
       const parts = [];
