@@ -127,6 +127,9 @@ def make_handler(cfg, gamedata):
                 return self.read_screen(None)
             if path.startswith("/api/opgg") and not cfg.get("use_opgg", True):
                 return self.send_json({"error": "OP.GG is turned off in settings"})
+            if path == "/api/opgg_model":
+                f = config.ROOT / "data" / "opgg" / "model.json"
+                return self.send_json(json.loads(f.read_text(encoding="utf-8")) if f.exists() else {"error": "no model yet"})
             if path == "/api/opgg_summary":
                 f = config.ROOT / "data" / "opgg" / "summary.json"
                 return self.send_json(json.loads(f.read_text(encoding="utf-8")) if f.exists() else {"error": "not downloaded yet"})

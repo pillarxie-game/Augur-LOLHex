@@ -10,7 +10,7 @@
   };
 
   const S = { lang: store.get("lang", I18N.best(navigator.language)), game: null, stats: null,
-              personal: null, local: false, grader: null, opgg: {}, opggBuild: {}, opggAll: null, match: store.get("match", { champ: null, allies: [], enemies: [], owned: [], offers: [], items: [] }) };
+              personal: null, local: false, grader: null, opgg: {}, opggBuild: {}, opggAll: null, model: null, match: store.get("match", { champ: null, allies: [], enemies: [], owned: [], offers: [], items: [] }) };
   if (!I18N.T[S.lang]) S.lang = "en";
   const T = (k) => I18N.pick(S.lang, k) ?? k;
 
@@ -99,6 +99,8 @@
     if (S.local && S.settings.use_opgg !== false) {
       const sum = await get("api/opgg_summary");
       if (sum && sum.hexes) S.opggAll = sum;
+      const mdl = await get("api/opgg_model");
+      if (mdl && mdl.pred) S.model = mdl;
     } else if (!S.local) {
       // A test or offline copy can ship OP.GG data and icons as files next to the page.
       const bundle = await get("data/opgg_all.json");
@@ -106,6 +108,7 @@
         S.opggAll = bundle.summary;
         Object.assign(S.opgg, bundle.hexes || {});
         Object.assign(S.opggBuild, bundle.builds || {});
+        if (bundle.model) S.model = bundle.model;
       }
       const icons = await get("data/icons.json");
       if (icons) for (const kind of ["augments", "champions", "items"])
@@ -115,7 +118,7 @@
     return true;
   }
   function makeGrader() {
-    S.grader = new Grader(S.game, S.stats, { lang: S.lang, personal: S.personal, opgg: S.opgg, opggBuild: S.opggBuild, opggAll: S.opggAll });
+    S.grader = new Grader(S.game, S.stats, { lang: S.lang, personal: S.personal, opgg: S.opgg, opggBuild: S.opggBuild, opggAll: S.opggAll, model: S.model });
   }
   /* OP.GG hex stats for one champion (local helper only). Calls back once loaded. */
   async function loadOpgg(cid, then) {
@@ -165,8 +168,8 @@
       ];
       if (S.opggAll) cols.splice(3, 0,
         { label: T("opggTopCol"), key: "optop", num: true, render: (r) => (r.optop < 0 ? el("span", { class: "muted" }, "-")
-          : el("span", { title: T("opggAllR2").replace("{k}", r.optop).replace("{n}", S.opggAll.champions) }, r.optop + " / " + S.opggAll.champions)) },
-        { label: T("opggScore"), key: "ops", num: true, render: (r) => (r.ops === -99 ? el("span", { class: "muted" }, "-") : signed(r.ops)) });
+          : el("span", { title: T("opggAllR2").replace("{k}", r.optop).replace("{n}", S.opggAll.champions) }, r.optop + " / " + S.opggAll.champions)) });
+
       box.replaceChildren(table(cols, rows, hasStats() || S.opggAll ? "tierv" : "name", hasStats() || !!S.opggAll));
     }
     const tabs = el("div", { class: "tabs", role: "tablist" }, ["all", "silver", "gold", "prismatic"].map((r) =>
@@ -241,9 +244,19 @@
       { label: T("pickrate"), key: "pick", num: true, render: (r) => (r.games ? pct(r.pick) : r.pickOp ? el("span", { title: "OP.GG" }, pct(r.pick)) : "-") },
       { label: T("games"), key: "games", num: true, render: (r) => num(r.games) },
     ];
-    if (S.opgg[cid] && S.opgg[cid].augments) hexCols.splice(3, 0, { label: T("opggCol"), key: "op", num: true, render: (r) =>
-      r.op < 0 ? el("span", { class: "muted" }, "-") : el("span", { title: "tier " + r.opTier }, r.op.toFixed(1)) });
-    for (const r of rows) { const e = S.opgg[cid] && S.opgg[cid].augments && S.opgg[cid].augments[r.a.id]; r.op = e ? e[1] : -1; r.opTier = e ? e[0] : null; }
+    // OP.GG tier for this champion: listed hexes are T3-T5; a tracked hex left out is T1-T2 (see README)
+    const opAug = S.opgg[cid] && S.opgg[cid].augments;
+    for (const r of rows) {
+      const e = opAug && opAug[r.a.id], all = S.opggAll && S.opggAll.hexes[r.a.id];
+      if (e) { r.opTier = "T" + e[0]; r.opRank = 6 - e[0]; }
+      else if (opAug && all && all.infer_top) { r.opTier = "T1-T2"; r.opRank = 4; }
+      else if (S.model && S.model.useful && (S.model.pred[cid] || {})[r.a.id] != null) {
+        const v = S.model.pred[cid][r.a.id]; r.opTier = "≈" + window.AugurGrade.tierLabel(v); r.opRank = Math.max(0.5, v + 2) - 0.01; r.est = true;
+      } else { r.opTier = "-"; r.opRank = 0; }
+    }
+    if (opAug) hexCols.splice(3, 0, { label: T("opggTierCol"), key: "opRank", num: true, render: (r) =>
+      el("span", { class: r.est ? "muted" : r.opRank >= 4 ? "pos" : r.opRank === 1 ? "neg" : r.opRank ? "" : "muted",
+                   title: r.est ? T("opggModelNote") : "" }, r.opTier) });
     const best = el("div"), worst = el("div");
     function drawHexes() {
       const f = rows.filter((r) => rarity === "all" || r.rar === rarity).sort((a, b) => b.total - a.total);
@@ -577,7 +590,7 @@
       <p>所有胜率都来自 Riot 官方比赛数据（match-v5 API 或你自己的英雄联盟客户端）。海克斯列表、名称和图标来自游戏文件（CommunityDragon 镜像），说明文字来自 League of Legends Wiki（CC BY-SA）。</p>
       <h3>评分怎么算</h3>
       <p>每个评分是若干部分相加，单位是胜率百分点：这个英雄带它的实际胜率、全英雄胜率、和英雄是否契合、敌我阵容（实测）、和已有海克斯的搭配（实测）、第几轮选、以及你自己的战绩。样本少时会向先验值收缩：<code>(场次 × 实测 + K × 先验) / (场次 + K)</code>，所以 10 场的运气不会让评分乱跳。分数 = 50 + 5 × 总和，对应 S+ 到 D。</p>
-      <p>旧版本的对局权重更低（每旧一个版本 ×${(1 / 2).toFixed(1)}），评分会跟上当前版本的平衡。</p>
+      <p>只使用当前版本的对局；游戏更新新版本后，OP.GG 数据会自动重新下载，评分跟随当前版本的平衡。</p>
       <h3>局限</h3>
       <p>比赛数据只记录选了什么，不记录当时可选的另外两张卡。胜率是相关性，不完全是因果。</p>` : `
       <p><b>Augur</b> is a free, open-source ARAM Mayhem tool: hex tier lists, per-champion hexes and builds, and a grade with reasons for every hex card you are offered.</p>
@@ -585,7 +598,7 @@
       <p>All win rates come from Riot's own match data (the match-v5 API, or your own League client). The hex list, names and icons come from the game files (mirrored by CommunityDragon); descriptions come from the League of Legends Wiki (CC BY-SA).</p>
       <h3>How grades work</h3>
       <p>A grade adds up parts, each in win-rate points: how this champion does with the hex, how it does for everyone, fit with the champion, both teams (measured), synergy with hexes you own (measured), the pick round, and your own record. Small samples are pulled toward a prior: <code>(games × measured + K × prior) / (games + K)</code>, so 10 lucky games barely move a grade. Score = 50 + 5 × total, shown as S+ to D.</p>
-      <p>Older patches count less (×0.5 per patch), so grades follow the current balance.</p>
+      <p>Only the current patch counts, and OP.GG data is re-downloaded when a new game version comes out, so grades follow the current balance.</p>
       <h3>Limits</h3>
       <p>Match data shows which hex was picked, not the two that were skipped. Win rate shows correlation, not proof of cause.</p>` }),
       el("h3", {}, T("games")), el("p", {}, hasStats()

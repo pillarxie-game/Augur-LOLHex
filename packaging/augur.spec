@@ -19,7 +19,7 @@ a = Analysis(
     pathex=[str(ROOT)],
     datas=datas,
     binaries=binaries,
-    hiddenimports=["augur.__main__", "augur.collect", "augur.lcu", "augur.opgg", "augur.screen", "PIL.ImageGrab"],
+    hiddenimports=["augur.__main__", "augur.collect", "augur.lcu", "augur.opgg", "augur.model", "augur.screen", "PIL.ImageGrab"],
     excludes=["tkinter", "matplotlib", "IPython", "pytest"],
 )
 pyz = PYZ(a.pure)

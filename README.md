@@ -64,6 +64,8 @@ What OP.GG gives and doesn't give:
 
 The app also shows **OP.GG's ARAM build** on each champion page (tier, win rate, core items, boots and 4th/5th item options), and item grades include OP.GG's numbers. Later items are compared with the other options for the same slot, because players who are already winning buy more items.
 
+**Recommended hexes per champion.** OP.GG's top tier holds about 116 hexes per champion (half the pool), so on its own it can't tell a champion's best hexes from merely good ones. A small model (`augur/model.py`, trained on the real OP.GG tiers of all 173 champions) orders hexes inside each tier by how they do for **similar champions**, and fills in pairs OP.GG has no data for (marked "≈", as estimates). Checked on held-out real tiers: 54% exact tier accuracy vs 35% for a simple baseline. Checked against an independent ranking: Lux's 14 recommended hexes rank at a median of #12 of 105 in her top tier (random order would give about #52). Grades are then given by position among the champion's own hexes: top 5% S+, next 15% S, 20% A, 25% B, 20% C, bottom 15% D. Real OP.GG tiers are never overwritten, and your collected games count on top once you have them.
+
 Try it: `python -m augur opgg Yasuo`.
 
 ## Collecting games
@@ -107,7 +109,7 @@ To update it automatically every day, add a repository secret `RIOT_API_KEY` and
 All numbers are win-rate points (+1.0 ≈ one percent more wins).
 
 1. **Counting.** Every game adds 10 rows (one per player) to tables of games and wins: champion, champion + hex, hex by round, hex pairs, hex × team situation, champion + item + slot.
-2. **Recent patches count more.** Only the newest 3 patches are used, each older patch counting half as much, so grades follow the current balance.
+2. **Current patch only.** Only games from the newest patch count, so grades follow the current balance. (Set `"patches_kept": 3` in `config.local.json` to also use older patches at half weight each.) OP.GG data is re-downloaded whenever a new game version comes out.
 3. **Small samples are pulled toward a prior:** `estimate = (games × measured + K × prior) / (games + K)`. 10 lucky games barely move a grade. 3,000 games mostly speak for themselves.
 4. **The parts of a hex grade:**
    - *Champion data*: this champion's win rate with the hex, minus the champion's own average.
@@ -190,6 +192,8 @@ Augur 是免费开源的**海克斯大乱斗**助手：海克斯排行、英雄�
 
 不使用 Hexdata 或 WeGame 的数据。
 
+**每个英雄的推荐海克斯：** OP.GG 的顶级梯队每个英雄大约有 116 个海克斯（占一半），单靠它分不出最好和还不错。Augur 用一个小模型（`augur/model.py`，用 173 个英雄的真实 OP.GG 梯队训练），按**相似英雄**的表现给同一梯队内的海克斯排序，并估计 OP.GG 没有数据的组合（标「≈」）。验证：在留出的真实梯队上准确率 54%（简单基线 35%）；和独立排行对比，拉克丝的 14 个推荐海克斯在她 105 个顶级海克斯中中位排名第 12（随机约第 52）。最后按该英雄自己所有海克斯中的位置打分：前 5% S+，接下来 15% S、20% A、25% B、20% C，最后 15% D。真实的 OP.GG 梯队不会被改写；你收集的对局会在此基础上继续修正。
+
 **关于 OP.GG 数据：** 每个英雄大约列出 95 个海克斯，只包含 **T3–T5**。OP.GG 有追踪、但没有列给某个英雄的海克斯，就是这个英雄的**顶级海克斯（T1–T2）**——我们用独立排行验证过：亚索和拉克丝各 18 个推荐海克斯，全部不在 OP.GG 的列表中。所以 Augur 把「未列出」算作 **T1–T2，明显加分**；技能海克斯（只有部分英雄能拿到）和 OP.GG 只给不到 5 个英雄列出的海克斯除外，这些视为「没有数据」。评分里 OP.GG 部分主要看**梯队**（T1–T2 +2.0，T3 +0.8，T4 0，T5 −0.8），表现分只做小幅调整。很少有人选的海克斯数据不可靠，权重会降低。你自己收集的对局越多，OP.GG 的权重越低。
 
 ### 收集对局（不需要 API key）
@@ -205,7 +209,7 @@ python -m augur build
 
 ### 评分怎么算
 
-每个评分由几部分相加，单位是胜率百分点：这个英雄带它的实际胜率、全英雄的胜率、OP.GG 的数据、和英雄是否契合（AP / AD / 普攻 / 法力等）、敌我阵容（实测）、和已有海克斯的搭配（实测）、第几轮选、以及你自己的战绩。样本少时向先验值收缩：`(场次 × 实测 + K × 先验) / (场次 + K)`，所以 10 场的运气不会让评分乱跳。新版本的对局权重更高（每旧一个版本 ×0.5）。分数 = 50 + 5 × 总和，对应 S+ 到 D。
+每个评分由几部分相加，单位是胜率百分点：这个英雄带它的实际胜率、全英雄的胜率、OP.GG 的数据、和英雄是否契合（AP / AD / 普攻 / 法力等）、敌我阵容（实测）、和已有海克斯的搭配（实测）、第几轮选、以及你自己的战绩。样本少时向先验值收缩：`(场次 × 实测 + K × 先验) / (场次 + K)`，所以 10 场的运气不会让评分乱跳。只使用**当前版本**的对局，评分跟随当前平衡（想同时使用旧版本，可在 `config.local.json` 设置 `"patches_kept": 3`，每旧一个版本权重 ×0.5）。游戏更新新版本后，OP.GG 数据会自动重新下载。分数 = 50 + 5 × 总和，对应 S+ 到 D。
 
 **局限：** 比赛数据只记录选了哪个海克斯，不记录当时另外两张是什么；胜率是相关性，不完全是因果。
 

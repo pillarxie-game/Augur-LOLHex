@@ -26,6 +26,9 @@
   const signed = (x) => (x >= 0 ? "+" : "") + x.toFixed(1) + "%";
   const games = (x) => Math.round(x).toLocaleString("en-US");
 
+  // Tier value (2 = T1-T2, 1 = T3, 0 = T4, -1 = T5) -> label
+  function tierLabel(v) { return v >= 1.5 ? "T1-T2" : v >= 0.5 ? "T3" : v >= -0.5 ? "T4" : "T5"; }
+
   function letter(total, table) {
     for (const [min, g] of table || GRADES) if (total >= min) return g;
     return "D";
@@ -40,10 +43,15 @@
       this.opgg = opts.opgg || {}; // champion id -> {augments: {hex id: [tier, performance, popular]}}
       this.opggBuild = opts.opggBuild || {};
       this.opggAll = (opts.opggAll && opts.opggAll.hexes) || {};
-      this.opggChamps = (opts.opggAll && opts.opggAll.champ_stats) || {}; // champion id -> OP.GG ARAM win rate, games, tier // hex id -> {score, listed, best[]} across all champions // champion id -> OP.GG ARAM build (core, boots, item slots)
+      this.opggChamps = (opts.opggAll && opts.opggAll.champ_stats) || {};
+      this.model = (opts.model && opts.model.useful && opts.model.pred) || {}; // champion -> hex -> estimated tier value
+      this.modelFull = (opts.model && opts.model.useful && opts.model.full) || {}; // every pair, for ordering within a tier // champion id -> OP.GG ARAM win rate, games, tier // hex id -> {score, listed, best[]} across all champions // champion id -> OP.GG ARAM build (core, boots, item slots)
       this.lang = I18N.T[opts.lang] ? opts.lang : "en";
       this.g = wr(this.s.global) || 0.5;
       this.features = (this.s.meta && this.s.meta.features) || {};
+      // Hand-written rules ("AP hex on an AD champion", "enemy has 3 tanks") are off by default:
+      // grades use only real data (OP.GG and collected games). Tests can switch them on.
+      this.rules = !!opts.rules;
     }
 
     t(key, vars) {
@@ -94,6 +102,7 @@
     hexTier(h) { return letter(this.hexAllDelta(h), TIERS); }
 
     fitRules(cid, aug) {
+      if (!this.rules) return [];
       const p = this.profile(cid), tags = new Set(aug.tags || []), out = [];
       const cname = this.name("champions", cid);
       const apOnly = tags.has("ap") && !tags.has("ad") && !tags.has("adaptive");
@@ -145,13 +154,15 @@
           const hw = wr((this.s.hex_all || {})[String(h)]) || this.g;
           lift = ((wr(cellHF) - base) - (hw - this.g)) * 100;
         }
+        if (!this.rules) prior = 0;
+        if (!this.rules && games_ < 50) continue; // not measured yet: no real data, so nothing to say
         const v = shrink(games_, lift, prior, K.ctx);
         if (Math.abs(v) < 0.2 && !prior) continue;
         let text = this.t(f, { k: hits.length, names: names(hits) });
         if (games_ >= 50) text += " · " + this.t("dataNote", { d: signed(lift), n: games(games_) });
         out.push({ v, text });
       }
-      if (tags.has("antitank") && enemyTanks.length === 0 && enemies.length >= 3)
+      if (this.rules && tags.has("antitank") && enemyTanks.length === 0 && enemies.length >= 3)
         out.push({ v: -0.5, text: this.t("fewTanks") });
       return out;
     }
@@ -164,7 +175,7 @@
         const oa = this.game.augments[String(o)];
         if (!oa) continue;
         const shared = STACK_TAGS.filter((t) => (aug.tags || []).includes(t) && (oa.tags || []).includes(t));
-        const prior = Math.min(1.2, 0.4 * shared.length);
+        const prior = this.rules ? Math.min(1.2, 0.4 * shared.length) : 0;
         const [a, b] = [Number(h), Number(o)].sort((x, y) => x - y);
         const cell = (this.s.pair_all || {})[a + "_" + b];
         let lift = 0;
@@ -172,6 +183,7 @@
           const ow = smooth((this.s.hex_all || {})[String(o)], this.g, K.hexAll);
           lift = ((wr(cell) - ow) - (hw - this.g)) * 100;
         }
+        if (!this.rules && n(cell) < 30) continue;
         const v = shrink(n(cell), lift, prior, K.pair);
         if (Math.abs(v) < 0.2) continue;
         const text = n(cell) >= 30 || !shared.length
@@ -211,16 +223,76 @@
       }
       const e = o.augments[String(h)];
       const cname = this.name("champions", cid);
-      if (!e) {
-        const known = this.opggAll[String(h)];
-        if (known && known.infer_top) return { v: 2.0, src: "opgg", text: this.t("opggTop", { c: cname }) };
+      const full = this.modelFull[String(cid)] || {};
+      const known = this.opggAll[String(h)];
+      // OP.GG tier value: 2 = T1-T2, 1 = T3, 0 = T4, -1 = T5 (null = no data)
+      const tierV = e ? ({ 3: 1, 4: 0, 5: -1 }[e[0]] ?? null) : known && known.infer_top ? 2 : null;
+      const toPoints = (v) => this.pointsFor(cid, v); // position among this champion's own hexes -> grade points
+      if (tierV == null) {
+        const est = (this.model[String(cid)] || {})[String(h)];
+        if (est != null) // OP.GG has nothing for this pair: the model's estimate from similar champions, trusted less
+          return { v: 0.8 * toPoints(est), src: "model", text: this.t("opggModelR", { c: cname, t: tierLabel(est) }) };
         return { v: 0, text: this.t("opggNone") };
       }
-      const [tier, perf, pop] = e;
-      const tierV = { 3: 0.8, 4: 0, 5: -0.8 }[tier] ?? 0;
-      const trust = Math.min(1, pop / 0.03);
-      const adj = 0.5 * trust * Math.max(-1, Math.min(1, (perf - o._stats.med) / o._stats.sd));
-      return { v: tierV + adj, src: "opgg", text: this.t("opggR", { c: cname, t: tier, p: perf.toFixed(1), m: o._stats.med.toFixed(1) }) };
+      // Inside one tier, order by how the hex does for similar champions (the model), anchored to OP.GG's real tier
+      const m = full[String(h)];
+      const v = m != null ? 0.5 * tierV + 0.5 * Math.max(tierV - 0.75, Math.min(tierV + 0.75, m)) : tierV;
+      let text = e ? this.t("opggR", { c: cname, t: e[0], p: e[1].toFixed(1), m: (o._stats || { med: 0 }).med.toFixed(1) })
+                   : this.t("opggTop", { c: cname });
+      const rk = this.tierRank(cid, h, tierV);
+      if (rk) text += " · " + this.t("rankNote", { r: rk[0], n: rk[1] });
+      return { v: toPoints(v), src: "opgg", text };
+    }
+
+    /* The OP.GG-based value (tier, ordered within the tier by similar champions) for one pair, before grading. */
+    opggValue(cid, h) {
+      const o = this.opgg[String(cid)], e = o && o.augments && o.augments[String(h)], known = this.opggAll[String(h)];
+      const tierV = e ? ({ 3: 1, 4: 0, 5: -1 }[e[0]] ?? null) : known && known.infer_top ? 2 : null;
+      const m = (this.modelFull[String(cid)] || {})[String(h)];
+      if (tierV == null) { const est = (this.model[String(cid)] || {})[String(h)]; return est != null ? est : null; }
+      return m != null ? 0.5 * tierV + 0.5 * Math.max(tierV - 0.75, Math.min(tierV + 0.75, m)) : tierV;
+    }
+
+    /* Grade points from a value's position among this champion's own hexes:
+       top 5% S+, next 15% S, next 20% A, next 25% B, next 20% C, bottom 15% D. */
+    pointsFor(cid, v) {
+      this._dist = this._dist || {};
+      if (!this._dist[cid]) {
+        this._dist[cid] = Object.values(this.game.augments).filter((a) => !a.disabled)
+          .map((a) => this.opggValue(cid, a.id)).filter((x) => x != null).sort((a, b) => a - b);
+      }
+      const d = this._dist[cid];
+      if (!d.length) return 0;
+      let below = 0;
+      while (below < d.length && d[below] < v) below++;
+      let same = 0;
+      while (below + same < d.length && d[below + same] === v) same++;
+      const pctl = (below + same / 2) / d.length; // 0 = worst, 1 = best
+      const knots = [[0, -3], [0.15, -1.5], [0.35, 0], [0.6, 1.5], [0.8, 3], [0.95, 4.5], [1, 5.5]];
+      for (let i = 1; i < knots.length; i++) {
+        const [x0, y0] = knots[i - 1], [x1, y1] = knots[i];
+        if (pctl <= x1) return y0 + (y1 - y0) * (pctl - x0) / (x1 - x0);
+      }
+      return 5.5;
+    }
+
+    /* Rank of a hex among this champion's hexes in the same OP.GG tier, by the model (similar champions). */
+    tierRank(cid, h, tierV) {
+      const full = this.modelFull[String(cid)], o = this.opgg[String(cid)];
+      if (!full || !o) return null;
+      this._rank = this._rank || {};
+      const key = cid + ":" + tierV;
+      if (!this._rank[key]) {
+        const same = Object.keys(full).filter((x) => {
+          const e = o.augments[x], k = this.opggAll[x];
+          const tv = e ? ({ 3: 1, 4: 0, 5: -1 }[e[0]] ?? null) : k && k.infer_top ? 2 : null;
+          return tv === tierV;
+        }).sort((a, b) => full[b] - full[a]);
+        this._rank[key] = Object.fromEntries(same.map((x, i) => [x, i + 1]));
+        this._rank[key]._n = same.length;
+      }
+      const r = this._rank[key][String(h)];
+      return r ? [r, this._rank[key]._n] : null;
     }
 
     gradeHex(ctx, h) {
@@ -292,7 +364,7 @@
       const beat = pool.filter((x) => x > best).length / pool.length;
       result.reroll = bestGain >= 0.4
         ? { card: pick.id, gain: bestGain, text: this.t("reroll", { h: pick.name, d: signed(bestGain), p: Math.round(beat * 100) + "%" }) }
-        : { card: null, gain: bestGain, text: this.t("noReroll", { p: Math.round((1 - beat) * 100) + "%" }) };
+        : { card: null, gain: bestGain, text: this.t("noReroll", { p: Math.round(pool.filter((x) => x < best - 0.05).length / pool.length * 100) + "%" }) };
       return result;
     }
 
@@ -370,6 +442,7 @@
         const op = this.opggItemPart(cid, i);
         if (op) parts.push({ v: (1 - a) * op.v, text: op.text, src: "opgg" });
         const fitW = (1 - a) * (op ? 0.5 : 1);
+        if (this.rules) {
         if (tags.has("SpellDamage") && !tags.has("Damage") && p.ap < 0.35) parts.push({ v: -3 * fitW, text: this.t("apItemAd") });
         if ((tags.has("Damage") || tags.has("CriticalStrike")) && !tags.has("SpellDamage") && p.ap > 0.65)
           parts.push({ v: -3 * fitW, text: this.t("adItemAp") });
@@ -378,6 +451,7 @@
         if (tags.has("Armor") && feats.ead) parts.push({ v: p.front ? 1.0 : 0.6, text: this.t("armorItem") });
         if ((tags.has("AntiTank") || tags.has("ArmorPenetration") || tags.has("MagicPenetration")) && feats.etank)
           parts.push({ v: 1.0, text: this.t("shredItem", { k: feats.etank.length, names: names(feats.etank) }) });
+        }
         const total = parts.reduce((s, x) => s + x.v, 0);
         parts.sort((x, y) => Math.abs(y.v) - Math.abs(x.v));
         out.push({ id: it.id, name: this.name("items", i), icon: it.icon, total, grade: letter(total),
@@ -402,9 +476,9 @@
         else if (rt.src === "own")
           parts.push({ v: (rt.wr - this.g) * 100, text: this.t("champWr", { wr: pct(wr(cell)), n: games(n(cell)) }) });
         else parts.push({ v: 0, text: this.t("champNoData") });
-        if (team.length >= 3 && front === 0 && c.flags.front) parts.push({ v: 1.0, text: this.t("needFront") });
-        if (team.length >= 3 && apCount >= 3 && !c.flags.apdmg) parts.push({ v: 0.7, text: this.t("needAd") });
-        if (team.length >= 3 && apCount === 0 && c.flags.apdmg) parts.push({ v: 0.7, text: this.t("needAp") });
+        if (this.rules && team.length >= 3 && front === 0 && c.flags.front) parts.push({ v: 1.0, text: this.t("needFront") });
+        if (this.rules && team.length >= 3 && apCount >= 3 && !c.flags.apdmg) parts.push({ v: 0.7, text: this.t("needAd") });
+        if (this.rules && team.length >= 3 && apCount === 0 && c.flags.apdmg) parts.push({ v: 0.7, text: this.t("needAp") });
         const total = parts.reduce((s, x) => s + x.v, 0);
         return { id: Number(cid), name: this.name("champions", cid), icon: c.icon, mine: String(cid) === String(ctx.me),
                  total, grade: letter(total), games: n(cell), parts };
@@ -412,7 +486,7 @@
     }
   }
 
-  const api = { Grader, letter, wr, smooth, GRADES, TIERS, K };
+  const api = { Grader, letter, wr, smooth, GRADES, TIERS, K, tierLabel };
   if (typeof module !== "undefined" && module.exports) module.exports = api;
   else root.AugurGrade = api;
 })(typeof window !== "undefined" ? window : this);

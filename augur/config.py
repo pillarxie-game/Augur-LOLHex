@@ -33,8 +33,8 @@ DEFAULTS = {
     "riot_region": "asia",
     # ARAM Mayhem queue ids (from the client's queues.json).
     "queues": [2400],
-    # Only games from the newest N patches count. Each older patch counts for patch_decay times less.
-    "patches_kept": 3,
+    # Only games from the newest N patches count (1 = current patch only). Older ones count patch_decay times less.
+    "patches_kept": 1,
     "patch_decay": 0.5,
     # Your Riot IDs ("Name#TAG"). Your own games in the database give the "your record" part of grades.
     "my_riot_ids": [],

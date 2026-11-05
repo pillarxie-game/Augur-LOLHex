@@ -87,7 +87,14 @@ def main():
     threading.Thread(target=httpd.serve_forever, daemon=True).start()
     refresh_in_background(cfg)
     summary = config.ROOT / "data" / "opgg" / "summary.json"
-    if cfg.get("use_opgg", True) and (not summary.exists() or time.time() - summary.stat().st_mtime > 86400):
+    stale_version = False
+    if summary.exists():
+        try:
+            import json as _json
+            stale_version = _json.loads(summary.read_text(encoding="utf-8")).get("game_version") != g.get("version")
+        except ValueError:
+            stale_version = True
+    if cfg.get("use_opgg", True) and (not summary.exists() or stale_version or time.time() - summary.stat().st_mtime > 86400):
         cfg["_start_job"]("opgg_all")  # OP.GG data for all champions, refreshed daily
     base = f"http://127.0.0.1:{port}/"
 

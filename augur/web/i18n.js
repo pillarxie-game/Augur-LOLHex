@@ -10,6 +10,9 @@
 
   const T = {};
   T.en = {
+    rankNote: "#{r} of {n} in this tier, by similar champions",
+    opggModelR: "Estimate for {c} (OP.GG has no data): about {t}, from similar champions", opggModelNote: "Model estimate from similar champions (OP.GG has no data for this pair)",
+    opggTierCol: "OP.GG tier",
     opggListedOnly: "OP.GG: only listed for {n} champions (ability hex or rarely offered)",
     opggTop: "OP.GG: top tier (T1-T2) for {c}", opggNone: "OP.GG has no data for this hex", opggAllR2: "OP.GG: top tier (T1-T2) for {k} of {n} champions", opggTopCol: "OP.GG T1-T2",
     opggChampWr: "OP.GG ARAM: {wr} win rate ({n} games, tier {t})", opggWr: "Win rate (OP.GG)",
@@ -74,6 +77,9 @@
   };
 
   T.zh = {
+    rankNote: "同梯队 {n} 个中第 {r}（参考相似英雄）",
+    opggModelR: "{c} 的估计（OP.GG 没有数据）：约 {t}，参考相似英雄", opggModelNote: "模型估计：参考相似英雄（OP.GG 没有这一对的数据）",
+    opggTierCol: "OP.GG 梯队",
     opggListedOnly: "OP.GG：只对 {n} 个英雄有数据（技能海克斯或很少出现）",
     opggTop: "OP.GG：{c} 的顶级海克斯（T1-T2）", opggNone: "OP.GG 没有这个海克斯的数据", opggAllR2: "OP.GG：在 {n} 个英雄中有 {k} 个是顶级（T1-T2）", opggTopCol: "OP.GG T1-T2",
     opggChampWr: "OP.GG 大乱斗：胜率 {wr}（{n} 场，T{t}）", opggWr: "胜率（OP.GG）",
@@ -124,6 +130,9 @@
   };
 
   T["zh-TW"] = {
+    rankNote: "同梯隊 {n} 個中第 {r}（參考相似英雄）",
+    opggModelR: "{c} 的估計（OP.GG 沒有資料）：約 {t}，參考相似英雄", opggModelNote: "模型估計：參考相似英雄（OP.GG 沒有這一對的資料）",
+    opggTierCol: "OP.GG 梯隊",
     opggListedOnly: "OP.GG：只對 {n} 個英雄有資料（技能海克斯或很少出現）",
     opggTop: "OP.GG：{c} 的頂級海克斯（T1-T2）", opggNone: "OP.GG 沒有這個海克斯的資料", opggAllR2: "OP.GG：在 {n} 個英雄中有 {k} 個是頂級（T1-T2）", opggTopCol: "OP.GG T1-T2",
     opggChampWr: "OP.GG ARAM：勝率 {wr}（{n} 場，T{t}）", opggWr: "勝率（OP.GG）",
@@ -174,6 +183,9 @@
   };
 
   T.ko = {
+    rankNote: "같은 티어 {n}개 중 {r}위 (비슷한 챔피언 기준)",
+    opggModelR: "{c} 추정치 (OP.GG 데이터 없음): 비슷한 챔피언 기준 약 {t}", opggModelNote: "비슷한 챔피언 기준 모델 추정치 (OP.GG 데이터 없음)",
+    opggTierCol: "OP.GG 티어",
     opggListedOnly: "OP.GG: 챔피언 {n}명만 데이터 있음 (스킬 증강이거나 드물게 등장)",
     opggTop: "OP.GG: {c}의 최상위 증강 (T1-T2)", opggNone: "OP.GG에 이 증강 데이터가 없음", opggAllR2: "OP.GG: 챔피언 {n}명 중 {k}명에게 최상위 (T1-T2)", opggTopCol: "OP.GG T1-T2",
     opggChampWr: "OP.GG 칼바람: 승률 {wr} ({n}게임, {t}티어)", opggWr: "승률 (OP.GG)",
@@ -228,6 +240,9 @@
   };
 
   T.ja = {
+    rankNote: "同じティア {n} 個中 {r} 位（似たチャンピオン基準）",
+    opggModelR: "{c} の推定（OP.GG にデータなし）：似たチャンピオンから約 {t}", opggModelNote: "似たチャンピオンからのモデル推定（OP.GG にデータなし）",
+    opggTierCol: "OP.GG ティア",
     opggListedOnly: "OP.GG：{n} 体のみデータあり（スキル強化か、まれにしか出ない）",
     opggTop: "OP.GG：{c} の最上位オーグメント（T1-T2）", opggNone: "OP.GG にこのオーグメントのデータはありません", opggAllR2: "OP.GG：{n} 体中 {k} 体で最上位（T1-T2）", opggTopCol: "OP.GG T1-T2",
     opggChampWr: "OP.GG ARAM：勝率 {wr}（{n} 試合、ティア {t}）", opggWr: "勝率（OP.GG）",
@@ -282,6 +297,9 @@
   };
 
   T.es = {
+    rankNote: "N.º {r} de {n} en este nivel, según campeones parecidos",
+    opggModelR: "Estimación para {c} (OP.GG no tiene datos): aprox. {t}, según campeones parecidos", opggModelNote: "Estimación del modelo según campeones parecidos (OP.GG no tiene datos)",
+    opggTierCol: "Nivel OP.GG",
     opggListedOnly: "OP.GG: solo tiene datos de {n} campeones (aumento de habilidad o poco frecuente)",
     opggTop: "OP.GG: nivel superior (T1-T2) para {c}", opggNone: "OP.GG no tiene datos de este aumento", opggAllR2: "OP.GG: nivel superior (T1-T2) para {k} de {n} campeones", opggTopCol: "OP.GG T1-T2",
     opggChampWr: "OP.GG ARAM: {wr} de victorias ({n} partidas, nivel {t})", opggWr: "Victorias (OP.GG)",
@@ -337,6 +355,9 @@
   };
 
   T.pt = {
+    rankNote: "N.º {r} de {n} neste tier, com base em campeões parecidos",
+    opggModelR: "Estimativa para {c} (o OP.GG não tem dados): cerca de {t}, com base em campeões parecidos", opggModelNote: "Estimativa do modelo com base em campeões parecidos (sem dados do OP.GG)",
+    opggTierCol: "Tier OP.GG",
     opggListedOnly: "OP.GG: só tem dados de {n} campeões (aprimoramento de habilidade ou raro)",
     opggTop: "OP.GG: tier mais alto (T1-T2) para {c}", opggNone: "O OP.GG não tem dados deste aprimoramento", opggAllR2: "OP.GG: tier mais alto (T1-T2) para {k} de {n} campeões", opggTopCol: "OP.GG T1-T2",
     opggChampWr: "OP.GG ARAM: {wr} de vitórias ({n} partidas, tier {t})", opggWr: "Vitórias (OP.GG)",
@@ -392,6 +413,9 @@
   };
 
   T.fr = {
+    rankNote: "N° {r} sur {n} dans ce rang, d'après des champions similaires",
+    opggModelR: "Estimation pour {c} (pas de données OP.GG) : environ {t}, d'après des champions similaires", opggModelNote: "Estimation du modèle d'après des champions similaires (pas de données OP.GG)",
+    opggTierCol: "Rang OP.GG",
     opggListedOnly: "OP.GG : données pour {n} champions seulement (augment de compétence ou rare)",
     opggTop: "OP.GG : rang supérieur (T1-T2) pour {c}", opggNone: "OP.GG n'a pas de données pour cet augment", opggAllR2: "OP.GG : rang supérieur (T1-T2) pour {k} champions sur {n}", opggTopCol: "OP.GG T1-T2",
     opggChampWr: "OP.GG ARAM : {wr} de victoires ({n} parties, rang {t})", opggWr: "Victoires (OP.GG)",
@@ -447,6 +471,9 @@
   };
 
   T.de = {
+    rankNote: "Platz {r} von {n} in dieser Stufe, nach ähnlichen Champions",
+    opggModelR: "Schätzung für {c} (keine OP.GG-Daten): etwa {t}, nach ähnlichen Champions", opggModelNote: "Modellschätzung nach ähnlichen Champions (keine OP.GG-Daten)",
+    opggTierCol: "OP.GG-Stufe",
     opggListedOnly: "OP.GG: nur Daten für {n} Champions (Fähigkeits-Augment oder selten)",
     opggTop: "OP.GG: Top-Stufe (T1-T2) für {c}", opggNone: "OP.GG hat keine Daten zu diesem Augment", opggAllR2: "OP.GG: Top-Stufe (T1-T2) für {k} von {n} Champions", opggTopCol: "OP.GG T1-T2",
     opggChampWr: "OP.GG ARAM: {wr} Siegrate ({n} Spiele, Stufe {t})", opggWr: "Siegrate (OP.GG)",
@@ -502,6 +529,9 @@
   };
 
   T.it = {
+    rankNote: "N. {r} di {n} in questo livello, da campioni simili",
+    opggModelR: "Stima per {c} (OP.GG non ha dati): circa {t}, da campioni simili", opggModelNote: "Stima del modello da campioni simili (nessun dato OP.GG)",
+    opggTierCol: "Livello OP.GG",
     opggListedOnly: "OP.GG: dati solo per {n} campioni (potenziamento di abilità o raro)",
     opggTop: "OP.GG: livello massimo (T1-T2) per {c}", opggNone: "OP.GG non ha dati su questo potenziamento", opggAllR2: "OP.GG: livello massimo (T1-T2) per {k} campioni su {n}", opggTopCol: "OP.GG T1-T2",
     opggChampWr: "OP.GG ARAM: {wr} di vittorie ({n} partite, livello {t})", opggWr: "Vittorie (OP.GG)",
@@ -557,6 +587,9 @@
   };
 
   T.pl = {
+    rankNote: "{r}. z {n} na tym poziomie, wg podobnych bohaterów",
+    opggModelR: "Szacunek dla {c} (brak danych OP.GG): około {t}, na podstawie podobnych bohaterów", opggModelNote: "Szacunek modelu na podstawie podobnych bohaterów (brak danych OP.GG)",
+    opggTierCol: "Poziom OP.GG",
     opggListedOnly: "OP.GG: dane tylko dla {n} bohaterów (wzmocnienie umiejętności lub rzadkie)",
     opggTop: "OP.GG: najwyższy poziom (T1-T2) dla {c}", opggNone: "OP.GG nie ma danych o tym wzmocnieniu", opggAllR2: "OP.GG: najwyższy poziom (T1-T2) dla {k} z {n} bohaterów", opggTopCol: "OP.GG T1-T2",
     opggChampWr: "OP.GG ARAM: {wr} wygranych ({n} gier, poziom {t})", opggWr: "Wygrane (OP.GG)",
@@ -612,6 +645,9 @@
   };
 
   T.ru = {
+    rankNote: "№{r} из {n} в этом тире, по похожим чемпионам",
+    opggModelR: "Оценка для {c} (у OP.GG нет данных): примерно {t}, по похожим чемпионам", opggModelNote: "Оценка модели по похожим чемпионам (у OP.GG нет данных)",
+    opggTierCol: "Тир OP.GG",
     opggListedOnly: "OP.GG: данные только для {n} чемпионов (усиление умения или редкое)",
     opggTop: "OP.GG: высший тир (T1-T2) для {c}", opggNone: "У OP.GG нет данных об этом усилении", opggAllR2: "OP.GG: высший тир (T1-T2) у {k} из {n} чемпионов", opggTopCol: "OP.GG T1-T2",
     opggChampWr: "OP.GG ARAM: {wr} побед ({n} игр, тир {t})", opggWr: "Победы (OP.GG)",
@@ -667,6 +703,9 @@
   };
 
   T.tr = {
+    rankNote: "Bu seviyede {n} içinde {r}., benzer şampiyonlara göre",
+    opggModelR: "{c} için tahmin (OP.GG verisi yok): benzer şampiyonlara göre yaklaşık {t}", opggModelNote: "Benzer şampiyonlara göre model tahmini (OP.GG verisi yok)",
+    opggTierCol: "OP.GG seviyesi",
     opggListedOnly: "OP.GG: yalnızca {n} şampiyon için veri var (yetenek güçlendirmesi veya nadir)",
     opggTop: "OP.GG: {c} için en üst seviye (T1-T2)", opggNone: "OP.GG'de bu güçlendirmenin verisi yok", opggAllR2: "OP.GG: {n} şampiyonun {k} tanesi için en üst seviye (T1-T2)", opggTopCol: "OP.GG T1-T2",
     opggChampWr: "OP.GG ARAM: {wr} kazanma ({n} maç, seviye {t})", opggWr: "Kazanma (OP.GG)",
@@ -722,6 +761,9 @@
   };
 
   T.vi = {
+    rankNote: "Hạng {r}/{n} trong hạng này, theo tướng tương tự",
+    opggModelR: "Ước tính cho {c} (OP.GG không có dữ liệu): khoảng {t}, dựa trên tướng tương tự", opggModelNote: "Ước tính của mô hình dựa trên tướng tương tự (OP.GG không có dữ liệu)",
+    opggTierCol: "Hạng OP.GG",
     opggListedOnly: "OP.GG: chỉ có dữ liệu cho {n} tướng (lõi kỹ năng hoặc hiếm gặp)",
     opggTop: "OP.GG: hạng cao nhất (T1-T2) cho {c}", opggNone: "OP.GG không có dữ liệu về lõi này", opggAllR2: "OP.GG: hạng cao nhất (T1-T2) cho {k}/{n} tướng", opggTopCol: "OP.GG T1-T2",
     opggChampWr: "OP.GG ARAM: thắng {wr} ({n} trận, hạng {t})", opggWr: "Tỉ lệ thắng (OP.GG)",
@@ -777,6 +819,9 @@
   };
 
   T.th = {
+    rankNote: "อันดับ {r} จาก {n} ในระดับนี้ อิงแชมเปียนที่คล้ายกัน",
+    opggModelR: "ค่าประมาณสำหรับ {c} (OP.GG ไม่มีข้อมูล): ประมาณ {t} จากแชมเปียนที่คล้ายกัน", opggModelNote: "ค่าประมาณจากโมเดล อิงแชมเปียนที่คล้ายกัน (OP.GG ไม่มีข้อมูล)",
+    opggTierCol: "ระดับ OP.GG",
     opggListedOnly: "OP.GG: มีข้อมูลแค่ {n} แชมเปียน (ออกเมนต์สกิลหรือพบน้อย)",
     opggTop: "OP.GG: ระดับสูงสุด (T1-T2) สำหรับ {c}", opggNone: "OP.GG ไม่มีข้อมูลออกเมนต์นี้", opggAllR2: "OP.GG: ระดับสูงสุด (T1-T2) สำหรับ {k} จาก {n} แชมเปียน", opggTopCol: "OP.GG T1-T2",
     opggChampWr: "OP.GG ARAM: ชนะ {wr} ({n} เกม, ระดับ {t})", opggWr: "อัตราชนะ (OP.GG)",
@@ -832,6 +877,9 @@
   };
 
   T.id = {
+    rankNote: "#{r} dari {n} di tier ini, menurut champion serupa",
+    opggModelR: "Perkiraan untuk {c} (OP.GG tidak punya data): sekitar {t}, dari champion serupa", opggModelNote: "Perkiraan model dari champion serupa (OP.GG tidak punya data)",
+    opggTierCol: "Tier OP.GG",
     opggListedOnly: "OP.GG: hanya ada data untuk {n} champion (augment skill atau jarang muncul)",
     opggTop: "OP.GG: tier teratas (T1-T2) untuk {c}", opggNone: "OP.GG tidak punya data augment ini", opggAllR2: "OP.GG: tier teratas (T1-T2) untuk {k} dari {n} champion", opggTopCol: "OP.GG T1-T2",
     opggChampWr: "OP.GG ARAM: win rate {wr} ({n} game, tier {t})", opggWr: "Win rate (OP.GG)",

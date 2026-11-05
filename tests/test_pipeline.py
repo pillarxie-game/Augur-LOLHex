@@ -104,7 +104,8 @@ class Pipeline(unittest.TestCase):
             m, ps = collect.parse_match(fake_match(f"KR_{i}", v), None, COMPLETED)
             db.save_game(con, m, ps)
         con.commit()
-        self.assertEqual(stats.patch_weights(con, self.cfg), {"16.21": 1.0, "16.20": 0.5, "16.19": 0.25})
+        self.assertEqual(stats.patch_weights(con, self.cfg), {"16.21": 1.0})  # default: current patch only
+        self.assertEqual(stats.patch_weights(con, dict(self.cfg, patches_kept=3)), {"16.21": 1.0, "16.20": 0.5, "16.19": 0.25})
 
 
 if __name__ == "__main__":

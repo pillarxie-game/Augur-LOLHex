@@ -19,6 +19,19 @@ HEADERS = {"Content-Type": "application/json", "Accept": "application/json, text
 CACHE_HOURS = 12
 
 
+def _game_version():
+    """Current game version (from the downloaded game data); OP.GG data from an older version is refetched."""
+    try:
+        return json.loads((config.ROOT / "data" / "gamedata.json").read_text(encoding="utf-8")).get("version")
+    except (OSError, ValueError):
+        return None
+
+
+def _fresh(cached):
+    return (time.time() - cached.get("fetched", 0) < CACHE_HOURS * 3600
+            and cached.get("game_version") == _game_version())
+
+
 def _rpc(method, params=None, sid=None, rid=1):
     h = dict(HEADERS)
     if sid:
@@ -72,7 +85,7 @@ def aram_augments(champ_id, refresh=False):
     path = folder / f"{int(champ_id)}.json"
     if path.exists() and not refresh:
         cached = json.loads(path.read_text(encoding="utf-8"))
-        if time.time() - cached.get("fetched", 0) < CACHE_HOURS * 3600:
+        if _fresh(cached):
             return cached
     try:
         text = call_tool("lol_list_aram_augments", {
@@ -84,7 +97,7 @@ def aram_augments(champ_id, refresh=False):
             return {**json.loads(path.read_text(encoding="utf-8")), "stale": True}
         raise
     data = {"champion": int(champ_id), "augments": parse_augments(text), "fetched": int(time.time()),
-            "source": "OP.GG (mcp-api.op.gg)"}
+            "game_version": _game_version(), "source": "OP.GG (mcp-api.op.gg)"}
     path.write_text(json.dumps(data), encoding="utf-8")
     return data
 
@@ -176,7 +189,7 @@ def champion_build(champ_key, champ_id, refresh=False):
     path = folder / f"build_{int(champ_id)}.json"
     if path.exists() and not refresh:
         cached = json.loads(path.read_text(encoding="utf-8"))
-        if time.time() - cached.get("fetched", 0) < CACHE_HOURS * 3600:
+        if _fresh(cached):
             return cached
     try:
         text = _build_text(champ_key)
@@ -198,7 +211,7 @@ def champion_build(champ_key, champ_id, refresh=False):
         "core": _items(data[1]) if is_item(data[1]) else None,
         "boots": _items(data[2]) if is_item(data[2]) else None,
         "slots": {str(4 + i): [_items(x) for x in lst] for i, lst in enumerate(lists[:3])},
-        "fetched": int(time.time()), "source": "OP.GG ARAM (mcp-api.op.gg)",
+        "fetched": int(time.time()), "game_version": _game_version(), "source": "OP.GG ARAM (mcp-api.op.gg)",
     }
     path.write_text(json.dumps(out), encoding="utf-8")
     return out
@@ -224,6 +237,11 @@ def fetch_all(gamedata, log=print, pause=0.4):
             log(f"  {i}/{len(champs)} champions")
     summary = summarize(gamedata)
     log(f"OP.GG data for {ok} champions ({failed} failed); {len(summary['hexes'])} hexes summarized.")
+    try:
+        from . import model
+        model.train(gamedata, log=log)  # fills hexes OP.GG has no tier for, from similar champions
+    except Exception as e:
+        log(f"Model skipped: {e}")
     return summary
 
 
@@ -289,6 +307,7 @@ def summarize(gamedata):
             b = json.loads(path.read_text(encoding="utf-8"))
             champ_stats[str(c["id"])] = {k: b.get(k) for k in ("win_rate", "play", "pick_rate", "tier", "rank")}
     out = {"champions": champs, "champ_stats": champ_stats, "hexes": hexes, "built": int(time.time()),
+           "game_version": _game_version(),
            "source": "OP.GG ARAM (mcp-api.op.gg)"}
     (folder / "summary.json").write_text(json.dumps(out), encoding="utf-8")
     return out

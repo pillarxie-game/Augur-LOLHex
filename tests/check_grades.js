@@ -5,7 +5,7 @@ const root = path.join(__dirname, "..");
 const game = JSON.parse(fs.readFileSync(path.join(root, "data/gamedata.json")));
 const stats = JSON.parse(fs.readFileSync(path.join(root, "data-demo/stats.json")));
 const truth = JSON.parse(fs.readFileSync(path.join(root, "data-demo/truth.json")));
-const G = new Grader(game, stats, { lang: process.argv[2] || "en" });
+const G = new Grader(game, stats, { lang: process.argv[2] || "en", rules: true });
 const id = (name) => Number(Object.values(game.champions).find((c) => c.key === name).id);
 const hex = (name) => Object.values(game.augments).find((a) => a.name === name).id;
 let fails = 0;
