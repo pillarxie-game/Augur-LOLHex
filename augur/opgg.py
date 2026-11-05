@@ -245,6 +245,36 @@ def fetch_all(gamedata, log=print, pause=0.4):
     return summary
 
 
+def _unavailable(gamedata):
+    """Hexes a champion is never offered: {champion: [hex ids]}.
+    'Become melee' (Draw Your Sword) is only for ranged champions and 'become ranged' only for melee ones.
+    (OP.GG's listing pattern can't show availability: a hex listed only for ranged champions is usually
+    just top tier, so hidden, for melee ones.)"""
+    folder = config.ROOT / "data" / "opgg"
+    C, A = gamedata["champions"], gamedata["augments"]
+    counts = {}
+    for c in C:
+        p = folder / f"{c}.json"
+        if not p.exists():
+            continue
+        for h in json.loads(p.read_text(encoding="utf-8"))["augments"]:
+            r = counts.setdefault(h, [0, 0])
+            r[0 if C[c]["flags"]["ranged"] else 1] += 1
+    ranged_only, melee_only = set(), set()
+    for h, a in A.items():
+        d = a.get("desc", "").lower()
+        if "become melee" in d:
+            ranged_only.add(h)
+        elif "become ranged" in d:
+            melee_only.add(h)
+    out = {}
+    for c, ch in C.items():
+        bad = melee_only if ch["flags"]["ranged"] else ranged_only
+        if bad:
+            out[c] = sorted(bad)
+    return out
+
+
 def _build_styles(gamedata):
     """Champions OP.GG shows building both AP and AD items (e.g. Kai'Sa): {champion: ["ap", "ad"]}."""
     folder = config.ROOT / "data" / "opgg"
@@ -358,6 +388,7 @@ def summarize(gamedata):
         pass
     out = {"champions": champs, "champ_stats": champ_stats, "hexes": hexes, "gaps": gaps, "unknown": unknown,
            "build_fit": build_fit, "hex_type": hex_type, "styles": styles,
+           "unavailable": _unavailable(gamedata),
            "built": int(time.time()),
            "game_version": _game_version(),
            "source": "OP.GG ARAM (mcp-api.op.gg)"}

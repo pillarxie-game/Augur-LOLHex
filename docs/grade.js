@@ -52,6 +52,8 @@
       this.lowSample = new Set(((opts.model && opts.model.low_sample) || []).map(String));
       this.gaps = {}; // champion -> Set of hexes OP.GG leaves out because almost nobody takes them there
       for (const [c, list] of Object.entries((opts.opggAll && opts.opggAll.gaps) || {})) this.gaps[c] = new Set(list.map(String));
+      this.unavailable = {}; // champion -> Set of hexes this champion is never offered (e.g. Draw Your Sword for melee)
+      for (const [c, list] of Object.entries((opts.opggAll && opts.opggAll.unavailable) || {})) this.unavailable[c] = new Set(list.map(String));
       this.unknown = {}; // champion -> Set of hexes with too little evidence (the model estimates them)
       for (const [c, list] of Object.entries((opts.opggAll && opts.opggAll.unknown) || {})) this.unknown[c] = new Set(list.map(String)); // every pair, for ordering within a tier // champion id -> OP.GG ARAM win rate, games, tier // hex id -> {score, listed, best[]} across all champions // champion id -> OP.GG ARAM build (core, boots, item slots)
       this.lang = I18N.T[opts.lang] ? opts.lang : "en";
@@ -311,7 +313,7 @@
     pointsFor(cid, v) {
       this._dist = this._dist || {};
       if (!this._dist[cid]) {
-        this._dist[cid] = Object.values(this.game.augments).filter((a) => !a.disabled)
+        this._dist[cid] = Object.values(this.game.augments).filter((a) => !a.disabled && this.offered(cid, a.id))
           .map((a) => this.opggValue(cid, a.id)).filter((x) => x != null).sort((a, b) => a - b);
       }
       const d = this._dist[cid];
@@ -343,6 +345,8 @@
       const r = this._rank[key][String(h)];
       return r ? [r, this._rank[key]._n] : null;
     }
+
+    offered(cid, h) { return !(this.unavailable[String(cid)] && this.unavailable[String(cid)].has(String(h))); }
 
     gradeHex(ctx, h) {
       const cid = String(ctx.champ), aug = this.game.augments[String(h)];
@@ -401,7 +405,7 @@
       const rarity = offers[0].rarity;
       const skip = new Set([...(ctx.owned || []), ...(ctx.offers || [])].map(String));
       const pool = Object.values(this.game.augments)
-        .filter((a) => a.rarity === rarity && !a.disabled && !skip.has(String(a.id)))
+        .filter((a) => a.rarity === rarity && !a.disabled && !skip.has(String(a.id)) && this.offered(ctx.champ, a.id))
         .map((a) => this.gradeHex(ctx, a.id).total);
       if (!pool.length) return result;
       const totals = offers.map((o) => o.total), best = Math.max(...totals);

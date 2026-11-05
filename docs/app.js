@@ -220,7 +220,7 @@
 
   function hexRowsFor(cid, style) {
     const g = S.grader;
-    return Object.values(S.game.augments).filter((a) => !a.disabled).map((a) => {
+    return Object.values(S.game.augments).filter((a) => !a.disabled && g.offered(cid, a.id)).map((a) => {
       const r = g.gradeHex({ champ: cid, style: style || undefined }, a.id);
       const cell = ((S.stats.hex || {})[cid] || {})[a.id];
       const ope = S.opgg[cid] && S.opgg[cid].augments && S.opgg[cid].augments[a.id];
@@ -446,7 +446,7 @@
       const taken = new Set([...M.owned, ...M.offers].map(String));
       return el("div", { class: "chips" }, M[key].map((h, i) => chip("augments", h, () => { M[key].splice(i, 1); saveMatch(); draw(); })),
         M[key].length < count ? picker("augments", T("addHex"), (id) => { M[key].push(id); saveMatch(); draw(); },
-          (a) => !taken.has(String(a.id)) && !a.disabled) : null);
+          (a) => !taken.has(String(a.id)) && !a.disabled && (!M.champ || S.grader.offered(M.champ, a.id))) : null);
     }
 
     async function fromGame(silent) {

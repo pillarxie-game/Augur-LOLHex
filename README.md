@@ -72,6 +72,8 @@ The app also shows **OP.GG's ARAM build** on each champion page (tier, win rate,
 
 **AP / AD builds.** For champions OP.GG shows building both AP and AD items in real numbers (AP and AD items each at least 12% of item purchases: Kai'Sa, Kayle, Kog'Maw, Katarina, Shyvana, Twisted Fate, Bard…), OP.GG's numbers mix both styles. Augur gives each style its own scores: hexes of that damage type rank as top tier, the other type's hexes rank at the bottom, and for AP on-hit builds (Kai'Sa with Nashor's Tooth) hexes that make abilities apply on-hit (Ethereal Weapon) rank highest. Champion pages have a Mixed / AP / AD switch; in a game the style is picked from the items you own.
 
+**Hexes a champion can't get.** Draw Your Sword ("become melee") is only offered to ranged champions, so it doesn't appear for melee ones (Poppy) and isn't ranked for them. OP.GG's listing pattern can't show availability (a hex listed only for ranged champions is usually just top tier, so hidden, for melee ones), so only the hex description decides this.
+
 **Inputs to the model.** OP.GG tier per champion, OP.GG pick rate (within a tier, hexes picked more often rank higher), and real hex win rates from your collected games (current patch, weighted by games, outweighing OP.GG once there are enough).
 
 Try it: `python -m augur opgg Yasuo`.
@@ -205,6 +207,8 @@ Augur 是免费开源的**海克斯大乱斗**助手：海克斯排行、英雄�
 **Augur 评分（0–100）：** 每个「英雄 + 海克斯」都有一个分数，表示它在这个英雄所有海克斯中的位置（96 = 强于约 96% 的海克斯）。每次游戏更新、下载新版本的 OP.GG 数据后由模型重新计算。某英雄几乎没人选的海克斯（因此没被列出，或列出但热度约 0%）排在最后；需要远距离的海克斯（如「600 码以外命中」）对近战英雄算作几乎没人选；没有说明的海克斯根据 OP.GG 把它列为弱势的英雄判断类型（巫妖大脑在 AD 英雄上弱，所以是 AP 海克斯）。大多数英雄的 OP.GG 大乱斗对局较少（中位数约 2,200 场），对局少于 20,000 场的英雄，不会只因「未列出」就算顶级，而是参考对局多的相似英雄。
 
 **AP / AD 两种出装：** 对 OP.GG 数据显示 AP 和 AD 装备都有大量出装的英雄（各占出装次数 12% 以上：卡莎、凯尔、克格莫、卡特琳娜、希瓦娜、崔斯特、巴德……），OP.GG 的数字把两种玩法混在一起。Augur 为每种出装单独评分：同类伤害的海克斯算顶级，另一类排到最后；AP 攻击特效出装（例如出纳什之牙的卡莎）中，让技能触发攻击特效的海克斯（虚幻武器）排最高。英雄页面可以切换「混合 / AP / AD」；对局中会根据你已有的装备自动判断。
+
+**英雄拿不到的海克斯：**「亮出你的剑」（变为近战）只会给远程英雄，所以近战英雄（如波比）的列表里不会出现，也不参与排名。OP.GG 的列出规律无法说明是否可选（只给远程英雄列出的海克斯，通常只是对近战英雄是顶级而被隐藏），所以只按海克斯说明判断。
 
 **评分上限：** 按位置最多 90 分；91–100 只给明显领先于该英雄其他顶级海克斯的海克斯。目前的 OP.GG 数据中没有这样的海克斯。
 

@@ -130,7 +130,7 @@ def fit(Y, W, C, H, k=6, reg=0.05, steps=1500, lr=0.03, seed=0, biases_only=Fals
     return predict(P)
 
 
-def scores(Y, W, pred, champs, hexes, low_sample=20000, overrides=None):
+def scores(Y, W, pred, champs, hexes, low_sample=20000, overrides=None, unavailable=None):
     """Augur score 0-100 for every (champion, hex): its position among that champion's own hexes.
     96 = better than about 96% of the champion's hexes. Based on OP.GG's real tier, ordered inside the
     tier by similar champions (the model); pairs without OP.GG data use the model's estimate.
@@ -141,8 +141,11 @@ def scores(Y, W, pred, champs, hexes, low_sample=20000, overrides=None):
     for c in champs:  # listed, but popularity rounds to 0: nobody picks it
         aug = json.loads((folder / f"{c}.json").read_text(encoding="utf-8"))["augments"]
         rarely |= {(c, h) for h, e in aug.items() if e[2] < 0.005}
+    if unavailable is None:
+        unavailable = {c: set(v) for c, v in summary.get("unavailable", {}).items()}
     out, low = {}, []
     for i, c in enumerate(champs):
+        skip = unavailable.get(c, set())  # hexes this champion is never offered: no score at all
         try:
             play = json.loads((folder / f"build_{c}.json").read_text(encoding="utf-8")).get("play") or 0
         except (OSError, ValueError):
@@ -165,7 +168,8 @@ def scores(Y, W, pred, champs, hexes, low_sample=20000, overrides=None):
                 vals.append(v)
             else:
                 vals.append(float(pred[i, j]) - 0.25)  # estimate only: a little below an equal real tier
-        v = np.array(vals)
+        keep = [j for j in range(len(hexes)) if hexes[j] not in skip]
+        v = np.array([vals[j] for j in keep])
         order = v.argsort()
         ranks = np.empty(len(v))
         ranks[order] = np.arange(len(v))
@@ -177,9 +181,9 @@ def scores(Y, W, pred, champs, hexes, low_sample=20000, overrides=None):
         # other top hexes (more than half a standard deviation above the champion's 95th percentile)
         q95, sd = float(np.percentile(v, 95)), float(v.std()) or 1.0
         row = {}
-        for j in range(len(hexes)):
-            sc = 90 * (ranks[j] + 0.5) / len(v)
-            extra = (v[j] - q95) / sd - 0.5
+        for k, j in enumerate(keep):
+            sc = 90 * (ranks[k] + 0.5) / len(v)
+            extra = (v[k] - q95) / sd - 0.5
             if extra > 0:
                 sc += min(10, 10 * extra)
             row[hexes[j]] = int(round(sc))
