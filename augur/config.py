@@ -53,7 +53,9 @@ DEFAULTS = {
     "overlay_position": "top-right",  # top-right, top-left, bottom-right, bottom-left
     "overlay_opacity": 0.92,
     "use_opgg": True,           # add OP.GG's ARAM hex stats to grades
+    "use_arammayhem": True,     # drop hexes arammayhem.com marks as deleted (one page, read at most daily)
     "ocr_extra": ["ko", "ja"],  # extra OCR scripts for Korean / Japanese clients
+    "hidden_hexes": [],         # hexes you know aren't in the game right now (any language), hidden everywhere
     "data_dir": "data",
     "site_dir": "docs",
 }
@@ -90,7 +92,7 @@ def load():
 EDITABLE = {
     "ui_lang": str, "auto_read": bool, "read_interval": (int, float), "overlay": bool,
     "overlay_position": str, "overlay_opacity": (int, float), "use_opgg": bool,
-    "my_riot_ids": list, "lockfile_paths": list, "ocr_extra": list, "riot_region": str,
+    "my_riot_ids": list, "lockfile_paths": list, "ocr_extra": list, "riot_region": str, "hidden_hexes": list, "use_arammayhem": bool,
 }
 
 

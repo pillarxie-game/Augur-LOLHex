@@ -6,6 +6,7 @@ from PyInstaller.utils.hooks import collect_data_files, collect_dynamic_libs
 ROOT = Path(SPECPATH).parent
 datas = [
     (str(ROOT / "augur" / "web"), "augur/web"),
+    (str(ROOT / "augur" / "removed_hexes.json"), "augur"),
     (str(ROOT / "data" / "gamedata.json"), "data"),
 ]
 for folder in ("icons", "ocr"):  # hex icons + Korean/Japanese OCR models (download with: python -m augur update)
@@ -19,7 +20,7 @@ a = Analysis(
     pathex=[str(ROOT)],
     datas=datas,
     binaries=binaries,
-    hiddenimports=["augur.__main__", "augur.collect", "augur.lcu", "augur.opgg", "augur.model", "augur.gaps", "augur.screen", "PIL.ImageGrab"],
+    hiddenimports=["augur.__main__", "augur.collect", "augur.lcu", "augur.opgg", "augur.model", "augur.gaps", "augur.arammayhem", "augur.screen", "PIL.ImageGrab"],
     excludes=["tkinter", "matplotlib", "IPython", "pytest"],
 )
 pyz = PYZ(a.pure)

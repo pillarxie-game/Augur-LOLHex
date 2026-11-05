@@ -8,6 +8,7 @@ Sources (all public, re-downloaded each patch):
 import json
 import re
 import time
+from pathlib import Path
 
 from . import net
 
@@ -106,7 +107,29 @@ def icon_url(path):
     return f"{CDRAGON}/default/{path}"
 
 
-def fetch_augments(log=print):
+def cdragon_base(version):
+    """CommunityDragon folder for the live game version (16.22.1 -> 16.22). "latest" can follow the test server."""
+    short = ".".join(version.split(".")[:2])
+    try:
+        net.request(f"https://raw.communitydragon.org/{short}/plugins/rcp-be-lol-game-data/global/default/v1/augment-lists.json", timeout=20)
+        return f"https://raw.communitydragon.org/{short}/plugins/rcp-be-lol-game-data/global"
+    except Exception:
+        return CDRAGON
+
+
+def removed_hexes():
+    """Hexes still in Riot's files but not offered in the game (augur/removed_hexes.json)."""
+    path = Path(__file__).resolve().parent / "removed_hexes.json"
+    try:
+        return {k.lower(): v for k, v in json.loads(path.read_text(encoding="utf-8")).items() if not k.startswith("_")}
+    except (OSError, ValueError):
+        return {}
+
+
+def fetch_augments(log=print, base=None):
+    global CDRAGON
+    if base:
+        CDRAGON = base
     lists = net.get_json(f"{CDRAGON}/default/v1/augment-lists.json")
     pool = next((l["augmentList"] for l in lists if l.get("modeName") == MODE), None)
     if not pool:
@@ -126,9 +149,13 @@ def fetch_augments(log=print):
     except Exception as e:  # descriptions are nice to have, not required
         log(f"  wiki descriptions unavailable ({e}); continuing without them")
         wiki = {}
+    removed = removed_hexes()
     out = {}
     for a in en:
         if a["augmentNameId"].lower() not in pool_names or not a["nameTRA"].strip():
+            continue
+        if a["augmentNameId"].lower() in removed or a["nameTRA"].lower() in removed:
+            log(f"  left out (not in the game): {a['nameTRA']}")
             continue
         w = wiki.get(norm(a["nameTRA"]), {})
         desc = w.get("desc", "")
@@ -243,18 +270,43 @@ def fetch_items(version, log=print):
     return out, alias
 
 
+def _picked_this_version(cfg, hex_id, version):
+    """True if OP.GG's cached data for this game version shows champions picking the hex (1%+ of games)."""
+    folder = cfg["data_path"] / "opgg"
+    for f in folder.glob("[0-9]*.json"):
+        try:
+            d = json.loads(f.read_text(encoding="utf-8"))
+        except (OSError, ValueError):
+            continue
+        e = d.get("augments", {}).get(str(hex_id))
+        if d.get("game_version") == version and e and e[2] >= 0.01:
+            return True
+    return False
+
+
 def update(cfg, log=print):
     log("Downloading game data...")
     version = net.get_json(f"{DDRAGON}/api/versions.json")[0]
-    log(f"  game version {version}")
+    log(f"  game version {version} (hex list from {cdragon_base(version).split('/')[3]})")
     data = {
         "version": version,
         "langs": list(LANGS),
         "updated": time.strftime("%Y-%m-%d"),
-        "augments": fetch_augments(log),
+        "augments": fetch_augments(log, cdragon_base(version)),
         "champions": fetch_champions(version, log),
     }
     data["items"], data["item_alias"] = fetch_items(version, log)
+    if cfg.get("use_arammayhem", True):
+        try:  # hexes still in Riot's files but marked deleted on arammayhem.com
+            from . import arammayhem
+            gone = arammayhem.deleted(data, arammayhem.hex_list())
+            # current-patch evidence wins: keep a "deleted" hex if OP.GG's data for this game version shows picks
+            gone = {h for h in gone if not _picked_this_version(cfg, h, version)}
+            for h in gone:
+                log(f"  left out (deleted, per arammayhem.com): {data['augments'][h]['name']}")
+                data["augments"].pop(h)
+        except Exception as e:
+            log(f"  arammayhem.com unavailable ({e}); using Riot's list")
     path = cfg["data_path"] / "gamedata.json"
     with open(path, "w", encoding="utf-8") as f:
         json.dump(data, f, ensure_ascii=False, separators=(",", ":"))

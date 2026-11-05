@@ -10,6 +10,8 @@
 
   const T = {};
   T.en = {
+    sAram: "Hide hexes arammayhem.com marks as deleted (reads one page, at most once a day)",
+    sHidden: "Hidden hexes", sHiddenHelp: "Hexes that aren't in the game right now, one per line (name in any language). They are hidden everywhere.",
     styleMixed: "Mixed", styleAP: "AP build", styleAD: "AD build", styleNote: "This champion is played both AP and AD. OP.GG mixes both, so each build has its own scores.",
     scoreR: "Score {s}/100 for {c} (better than {s}% of {c}'s hexes)", lowSample: "few OP.GG games for this champion: leans on similar champions", scoreCol: "Score",
     opggGap: "OP.GG: almost nobody takes it on {c}", gapCol: "rarely taken",
@@ -80,6 +82,8 @@
   };
 
   T.zh = {
+    sAram: "隐藏 arammayhem.com 标记为已删除的海克斯（每天最多读取一页）",
+    sHidden: "隐藏的海克斯", sHiddenHelp: "当前不在游戏中的海克斯，每行一个（任意语言的名字）。会在所有地方隐藏。",
     styleMixed: "混合", styleAP: "AP 出装", styleAD: "AD 出装", styleNote: "这个英雄有 AP 和 AD 两种玩法，OP.GG 的数据把两者混在一起，所以每种出装单独评分。",
     scoreR: "评分 {s}/100（强于 {c} {s}% 的海克斯）", lowSample: "该英雄 OP.GG 对局较少，更多参考相似英雄", scoreCol: "评分",
     opggGap: "OP.GG：{c} 几乎没人选它", gapCol: "几乎没人选",
@@ -136,6 +140,8 @@
   };
 
   T["zh-TW"] = {
+    sAram: "隱藏 arammayhem.com 標記為已刪除的海克斯（每天最多讀取一頁）",
+    sHidden: "隱藏的海克斯", sHiddenHelp: "目前不在遊戲中的海克斯，每行一個（任何語言的名稱）。會在所有地方隱藏。",
     styleMixed: "混合", styleAP: "AP 出裝", styleAD: "AD 出裝", styleNote: "這個英雄有 AP 和 AD 兩種玩法，OP.GG 的資料把兩者混在一起，所以每種出裝單獨評分。",
     scoreR: "評分 {s}/100（強於 {c} {s}% 的海克斯）", lowSample: "該英雄 OP.GG 對戰較少，更多參考相似英雄", scoreCol: "評分",
     opggGap: "OP.GG：{c} 幾乎沒人選它", gapCol: "幾乎沒人選",
@@ -192,6 +198,8 @@
   };
 
   T.ko = {
+    sAram: "arammayhem.com에서 삭제로 표시된 증강 숨기기 (하루 최대 한 페이지)",
+    sHidden: "숨긴 증강", sHiddenHelp: "현재 게임에 없는 증강, 한 줄에 하나 (아무 언어 이름). 모든 곳에서 숨깁니다.",
     styleMixed: "혼합", styleAP: "AP 빌드", styleAD: "AD 빌드", styleNote: "이 챔피언은 AP와 AD 두 방식으로 플레이됩니다. OP.GG는 둘을 섞어 보여 주므로 빌드별로 따로 점수를 매깁니다.",
     scoreR: "{c} 점수 {s}/100 ({c} 증강의 {s}%보다 좋음)", lowSample: "이 챔피언은 OP.GG 게임 수가 적어 비슷한 챔피언을 더 참고함", scoreCol: "점수",
     opggGap: "OP.GG: {c}로는 거의 아무도 고르지 않음", gapCol: "거의 안 고름",
@@ -252,6 +260,8 @@
   };
 
   T.ja = {
+    sAram: "arammayhem.com で削除扱いのオーグメントを隠す（1 日最大 1 ページ）",
+    sHidden: "非表示のオーグメント", sHiddenHelp: "今ゲームにないオーグメントを 1 行に 1 つ（どの言語の名前でも可）。すべての画面で非表示にします。",
     styleMixed: "混合", styleAP: "AP ビルド", styleAD: "AD ビルド", styleNote: "このチャンピオンは AP と AD の両方で使われます。OP.GG は両方を混ぜているため、ビルドごとに別々に採点します。",
     scoreR: "{c} のスコア {s}/100（{c} のオーグメントの {s}% より上）", lowSample: "このチャンピオンは OP.GG の試合が少なく、似たチャンピオンを多く参考", scoreCol: "スコア",
     opggGap: "OP.GG：{c} ではほとんど誰も選ばない", gapCol: "ほぼ選ばれない",
@@ -312,6 +322,8 @@
   };
 
   T.es = {
+    sAram: "Ocultar aumentos que arammayhem.com marca como eliminados (lee una página, como mucho una vez al día)",
+    sHidden: "Aumentos ocultos", sHiddenHelp: "Aumentos que no están en el juego ahora, uno por línea (nombre en cualquier idioma). Se ocultan en todas partes.",
     styleMixed: "Mixto", styleAP: "Build AP", styleAD: "Build AD", styleNote: "Este campeón se juega AP y AD. OP.GG mezcla ambos, así que cada build tiene su propia puntuación.",
     scoreR: "Puntuación {s}/100 para {c} (mejor que el {s}% de sus aumentos)", lowSample: "pocas partidas en OP.GG: se apoya en campeones parecidos", scoreCol: "Puntos",
     opggGap: "OP.GG: casi nadie lo elige con {c}", gapCol: "casi nunca",
@@ -373,6 +385,8 @@
   };
 
   T.pt = {
+    sAram: "Ocultar aprimoramentos que o arammayhem.com marca como excluídos (lê uma página, no máximo uma vez por dia)",
+    sHidden: "Aprimoramentos ocultos", sHiddenHelp: "Aprimoramentos que não estão no jogo agora, um por linha (nome em qualquer idioma). Ficam ocultos em todo lugar.",
     styleMixed: "Misto", styleAP: "Build AP", styleAD: "Build AD", styleNote: "Este campeão é jogado AP e AD. O OP.GG mistura os dois, então cada build tem sua própria pontuação.",
     scoreR: "Pontuação {s}/100 para {c} (melhor que {s}% dos aprimoramentos dele)", lowSample: "poucas partidas no OP.GG: usa mais campeões parecidos", scoreCol: "Pontos",
     opggGap: "OP.GG: quase ninguém escolhe com {c}", gapCol: "quase nunca",
@@ -434,6 +448,8 @@
   };
 
   T.fr = {
+    sAram: "Masquer les augments marqués supprimés par arammayhem.com (lit une page, au plus une fois par jour)",
+    sHidden: "Augments masqués", sHiddenHelp: "Augments absents du jeu actuellement, un par ligne (nom dans n'importe quelle langue). Ils sont masqués partout.",
     styleMixed: "Mixte", styleAP: "Build AP", styleAD: "Build AD", styleNote: "Ce champion se joue AP et AD. OP.GG mélange les deux, donc chaque build a ses propres scores.",
     scoreR: "Score {s}/100 pour {c} (meilleur que {s} % de ses augments)", lowSample: "peu de parties sur OP.GG : s'appuie sur des champions similaires", scoreCol: "Score",
     opggGap: "OP.GG : presque personne ne le prend sur {c}", gapCol: "presque jamais",
@@ -495,6 +511,8 @@
   };
 
   T.de = {
+    sAram: "Von arammayhem.com als gelöscht markierte Augments ausblenden (liest eine Seite, höchstens einmal täglich)",
+    sHidden: "Ausgeblendete Augments", sHiddenHelp: "Augments, die gerade nicht im Spiel sind, einer pro Zeile (Name in beliebiger Sprache). Sie werden überall ausgeblendet.",
     styleMixed: "Gemischt", styleAP: "AP-Build", styleAD: "AD-Build", styleNote: "Dieser Champion wird AP und AD gespielt. OP.GG mischt beides, daher hat jeder Build eigene Werte.",
     scoreR: "Wert {s}/100 für {c} (besser als {s} % seiner Augments)", lowSample: "wenige OP.GG-Spiele: stützt sich auf ähnliche Champions", scoreCol: "Wert",
     opggGap: "OP.GG: fast niemand wählt es mit {c}", gapCol: "fast nie",
@@ -556,6 +574,8 @@
   };
 
   T.it = {
+    sAram: "Nascondi i potenziamenti segnati come eliminati da arammayhem.com (legge una pagina, al massimo una volta al giorno)",
+    sHidden: "Potenziamenti nascosti", sHiddenHelp: "Potenziamenti non presenti nel gioco ora, uno per riga (nome in qualsiasi lingua). Vengono nascosti ovunque.",
     styleMixed: "Misto", styleAP: "Build AP", styleAD: "Build AD", styleNote: "Questo campione si gioca AP e AD. OP.GG mescola le due, quindi ogni build ha i suoi punteggi.",
     scoreR: "Punteggio {s}/100 per {c} (meglio del {s}% dei suoi potenziamenti)", lowSample: "poche partite su OP.GG: si basa su campioni simili", scoreCol: "Punti",
     opggGap: "OP.GG: quasi nessuno lo sceglie con {c}", gapCol: "quasi mai",
@@ -617,6 +637,8 @@
   };
 
   T.pl = {
+    sAram: "Ukryj wzmocnienia oznaczone jako usunięte na arammayhem.com (czyta jedną stronę, najwyżej raz dziennie)",
+    sHidden: "Ukryte wzmocnienia", sHiddenHelp: "Wzmocnienia, których teraz nie ma w grze, jedno w wierszu (nazwa w dowolnym języku). Są ukryte wszędzie.",
     styleMixed: "Mieszany", styleAP: "Build AP", styleAD: "Build AD", styleNote: "Tym bohaterem gra się AP i AD. OP.GG łączy oba style, więc każdy build ma własne wyniki.",
     scoreR: "Wynik {s}/100 dla {c} (lepszy niż {s}% jego wzmocnień)", lowSample: "mało gier w OP.GG: opiera się na podobnych bohaterach", scoreCol: "Wynik",
     opggGap: "OP.GG: prawie nikt go nie wybiera na {c}", gapCol: "prawie nigdy",
@@ -678,6 +700,8 @@
   };
 
   T.ru = {
+    sAram: "Скрывать усиления, отмеченные удалёнными на arammayhem.com (читает одну страницу, не чаще раза в день)",
+    sHidden: "Скрытые усиления", sHiddenHelp: "Усиления, которых сейчас нет в игре, по одному в строке (название на любом языке). Они скрываются везде.",
     styleMixed: "Смешанный", styleAP: "AP-сборка", styleAD: "AD-сборка", styleNote: "Этим чемпионом играют и через AP, и через AD. OP.GG смешивает оба стиля, поэтому у каждой сборки свои оценки.",
     scoreR: "Оценка {s}/100 для {c} (лучше {s}% его усилений)", lowSample: "мало игр на OP.GG: опирается на похожих чемпионов", scoreCol: "Оценка",
     opggGap: "OP.GG: на {c} его почти никто не берёт", gapCol: "почти не берут",
@@ -739,6 +763,8 @@
   };
 
   T.tr = {
+    sAram: "arammayhem.com'un silindi olarak işaretlediği güçlendirmeleri gizle (günde en fazla bir sayfa okur)",
+    sHidden: "Gizlenen güçlendirmeler", sHiddenHelp: "Şu anda oyunda olmayan güçlendirmeler, satır başına bir tane (herhangi bir dilde ad). Her yerde gizlenir.",
     styleMixed: "Karma", styleAP: "AP dizilimi", styleAD: "AD dizilimi", styleNote: "Bu şampiyon hem AP hem AD oynanıyor. OP.GG ikisini karıştırdığı için her dizilimin kendi puanı var.",
     scoreR: "{c} için puan {s}/100 (güçlendirmelerinin %{s}'inden iyi)", lowSample: "OP.GG'de az maç: benzer şampiyonlara dayanıyor", scoreCol: "Puan",
     opggGap: "OP.GG: {c} ile neredeyse kimse seçmiyor", gapCol: "neredeyse hiç",
@@ -800,6 +826,8 @@
   };
 
   T.vi = {
+    sAram: "Ẩn các lõi mà arammayhem.com đánh dấu đã xóa (đọc một trang, tối đa mỗi ngày một lần)",
+    sHidden: "Lõi bị ẩn", sHiddenHelp: "Các lõi hiện không có trong game, mỗi dòng một cái (tên bằng ngôn ngữ bất kỳ). Sẽ bị ẩn ở mọi nơi.",
     styleMixed: "Kết hợp", styleAP: "Lối AP", styleAD: "Lối AD", styleNote: "Tướng này được chơi cả AP lẫn AD. OP.GG gộp cả hai, nên mỗi lối lên đồ có điểm riêng.",
     scoreR: "Điểm {s}/100 cho {c} (tốt hơn {s}% lõi của {c})", lowSample: "ít trận trên OP.GG: dựa nhiều vào tướng tương tự", scoreCol: "Điểm",
     opggGap: "OP.GG: gần như không ai chọn khi chơi {c}", gapCol: "hầu như không chọn",
@@ -861,6 +889,8 @@
   };
 
   T.th = {
+    sAram: "ซ่อนออกเมนต์ที่ arammayhem.com ระบุว่าถูกลบ (อ่านหนึ่งหน้า สูงสุดวันละครั้ง)",
+    sHidden: "ออกเมนต์ที่ซ่อน", sHiddenHelp: "ออกเมนต์ที่ตอนนี้ไม่มีในเกม บรรทัดละหนึ่ง (ชื่อภาษาใดก็ได้) จะถูกซ่อนทุกที่",
     styleMixed: "รวม", styleAP: "บิลด์ AP", styleAD: "บิลด์ AD", styleNote: "แชมเปียนนี้เล่นได้ทั้ง AP และ AD และ OP.GG รวมทั้งสองแบบไว้ด้วยกัน จึงให้คะแนนแยกตามบิลด์",
     scoreR: "คะแนน {s}/100 สำหรับ {c} (ดีกว่า {s}% ของออกเมนต์ของ {c})", lowSample: "เกมใน OP.GG น้อย: อิงแชมเปียนที่คล้ายกันมากขึ้น", scoreCol: "คะแนน",
     opggGap: "OP.GG: แทบไม่มีใครเลือกเมื่อเล่น {c}", gapCol: "แทบไม่มีใครเลือก",
@@ -922,6 +952,8 @@
   };
 
   T.id = {
+    sAram: "Sembunyikan augment yang ditandai dihapus oleh arammayhem.com (membaca satu halaman, paling sering sekali sehari)",
+    sHidden: "Augment tersembunyi", sHiddenHelp: "Augment yang sekarang tidak ada di game, satu per baris (nama dalam bahasa apa pun). Disembunyikan di mana-mana.",
     styleMixed: "Campuran", styleAP: "Build AP", styleAD: "Build AD", styleNote: "Champion ini dimainkan AP dan AD. OP.GG mencampur keduanya, jadi tiap build punya skor sendiri.",
     scoreR: "Skor {s}/100 untuk {c} (lebih baik dari {s}% augment {c})", lowSample: "sedikit game di OP.GG: lebih mengandalkan champion serupa", scoreCol: "Skor",
     opggGap: "OP.GG: hampir tidak ada yang memilihnya di {c}", gapCol: "hampir tidak dipilih",

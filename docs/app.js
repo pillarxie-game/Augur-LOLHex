@@ -114,8 +114,18 @@
       if (icons) for (const kind of ["augments", "champions", "items"])
         for (const [id, uri] of Object.entries(icons[kind] || {})) if (S.game[kind][id]) S.game[kind][id].icon = uri;
     }
+    applyHidden();
     makeGrader();
     return true;
+  }
+  /* Hexes you marked as not in the game (Settings): treated like removed ones everywhere. */
+  function applyHidden() {
+    const hidden = new Set(((S.settings && S.settings.hidden_hexes) || []).map((x) => x.trim().toLowerCase()).filter(Boolean));
+    if (!hidden.size) return;
+    for (const a of Object.values(S.game.augments)) {
+      const names = [a.name, a.name_zh, a.api, ...Object.values(a.names || {})].filter(Boolean).map((x) => x.toLowerCase());
+      if (names.some((n) => hidden.has(n))) a.disabled = true;
+    }
   }
   function makeGrader() {
     S.grader = new Grader(S.game, S.stats, { lang: S.lang, personal: S.personal, opgg: S.opgg, opggBuild: S.opggBuild, opggAll: S.opggAll, model: S.model });
@@ -643,12 +653,13 @@
         const set = new Set(st.ocr_extra || []); e.target.checked ? set.add(c) : set.delete(c); st.ocr_extra = [...set]; } }), l)));
     async function save() {
       const body = {};
-      for (const k of ["ui_lang", "auto_read", "read_interval", "overlay", "overlay_position", "overlay_opacity", "use_opgg", "my_riot_ids", "lockfile_paths", "ocr_extra"])
+      for (const k of ["ui_lang", "auto_read", "read_interval", "overlay", "overlay_position", "overlay_opacity", "use_opgg", "my_riot_ids", "lockfile_paths", "ocr_extra", "hidden_hexes", "use_arammayhem"])
         if (st[k] !== undefined && st[k] !== null) body[k] = st[k];
       const r = await fetch("api/settings", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) })
         .then((x) => x.json()).catch(() => ({ error: "offline" }));
       if (r.error) { msg.textContent = r.error; return; }
       S.settings = r;
+      applyHidden(); makeGrader();
       if (r.ui_lang && r.ui_lang !== S.lang) { S.lang = r.ui_lang; store.set("lang", S.lang); makeGrader(); chrome(); route(); return; }
       msg.textContent = T("sSaved");
     }
@@ -677,8 +688,10 @@
           el("div", { class: "row small", style: "margin-top:6px" }, T("sPosition"), posSel),
           el("div", { class: "row small", style: "margin-top:6px" }, T("sOpacity"), opacity))),
         row("OP.GG", el("label", { class: "row" }, check("use_opgg"), T("sOpgg"))),
+        row("arammayhem.com", el("label", { class: "row" }, check("use_arammayhem"), T("sAram"))),
         row("Riot ID", lines("my_riot_ids")), el("div"), el("p", { class: "muted small", style: "margin:0" }, T("sRiotIds")),
-        row("Lockfile", lines("lockfile_paths")), el("div"), el("p", { class: "muted small", style: "margin:0" }, T("sLockfile"))),
+        row("Lockfile", lines("lockfile_paths")), el("div"), el("p", { class: "muted small", style: "margin:0" }, T("sLockfile")),
+        row(T("sHidden"), lines("hidden_hexes")), el("div"), el("p", { class: "muted small", style: "margin:0" }, T("sHiddenHelp"))),
         el("div", { class: "row", style: "margin-top:12px" }, el("button", { type: "button", class: "primary", onclick: save }, T("sSave")), msg)),
       el("h2", {}, T("sData")),
       el("div", { class: "panel" },
@@ -794,6 +807,8 @@
       el("p", {}, `Augur · game data ${S.game.version} · ${hasStats() ? num(m.total_games) + " games" : "no games yet"}`),
       el("p", {}, "Augur isn't endorsed by Riot Games and doesn't reflect the views or opinions of Riot Games or anyone officially involved in producing or managing Riot Games properties. Riot Games, and all associated properties are trademarks or registered trademarks of Riot Games, Inc."),
       el("p", {}, "Hex descriptions: League of Legends Wiki, CC BY-SA 3.0."),
+      S.local ? el("p", {}, "Removed hexes: ", el("a", { href: "https://arammayhem.com/augments/", target: "_blank", rel: "noopener" }, "arammayhem.com"),
+        " (its Deleted marks), read by your copy of Augur.") : null,
       S.local ? el("p", {}, "Lines marked OP.GG: ARAM hex stats from ", el("a", { href: "https://op.gg", target: "_blank", rel: "noopener" }, "OP.GG"),
         " (official public data server), fetched by your copy of Augur.") : null);
   }

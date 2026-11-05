@@ -17,3 +17,4 @@ data/opgg/
 build/
 dist/
 *.spec.bak
+data/arammayhem/

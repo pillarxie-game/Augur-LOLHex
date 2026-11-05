@@ -142,7 +142,9 @@ All numbers are win-rate points (+1.0 ≈ one percent more wins).
 | Hex descriptions | [League of Legends Wiki](https://wiki.leagueoflegends.com/en-us/ARAM:_Mayhem/Augments), CC BY-SA 3.0 |
 | Champions, items | Riot Data Dragon |
 
-Run `python -m augur update` after each patch to pick up new or changed hexes.
+Run `python -m augur update` after each patch to pick up new or changed hexes (the app does this by itself).
+
+**Only hexes that can be chosen.** The hex list comes from the live game version's files (CommunityDragon's `16.22` folder, not "latest", which can follow the test server). Riot's files still contain some disabled hexes, so Augur also leaves out the ones in `augur/removed_hexes.json` (e.g. Sneakerhead) and the ones arammayhem.com marks as Deleted, unless OP.GG's data for the current version shows players picking them. You can hide any other hex yourself in Settings → Hidden hexes.
 
 ## Commands
 
@@ -205,6 +207,8 @@ Augur 是免费开源的**海克斯大乱斗**助手：海克斯排行、英雄�
 **每个英雄的推荐海克斯：** OP.GG 的顶级梯队每个英雄大约有 116 个海克斯（占一半），单靠它分不出最好和还不错。Augur 用一个小模型（`augur/model.py`，用 173 个英雄的真实 OP.GG 梯队训练），按**相似英雄**的表现给同一梯队内的海克斯排序，并估计 OP.GG 没有数据的组合（标「≈」）。验证：在留出的真实梯队上准确率 54%（简单基线 35%）；和独立排行对比，拉克丝的 14 个推荐海克斯在她 105 个顶级海克斯中中位排名第 12（随机约第 52）。最后按该英雄自己所有海克斯中的位置打分：前 5% S+，接下来 15% S、20% A、25% B、20% C，最后 15% D。真实的 OP.GG 梯队不会被改写；你收集的对局会在此基础上继续修正。
 
 **Augur 评分（0–100）：** 每个「英雄 + 海克斯」都有一个分数，表示它在这个英雄所有海克斯中的位置（96 = 强于约 96% 的海克斯）。每次游戏更新、下载新版本的 OP.GG 数据后由模型重新计算。某英雄几乎没人选的海克斯（因此没被列出，或列出但热度约 0%）排在最后；需要远距离的海克斯（如「600 码以外命中」）对近战英雄算作几乎没人选；没有说明的海克斯根据 OP.GG 把它列为弱势的英雄判断类型（巫妖大脑在 AD 英雄上弱，所以是 AP 海克斯）。大多数英雄的 OP.GG 大乱斗对局较少（中位数约 2,200 场），对局少于 20,000 场的英雄，不会只因「未列出」就算顶级，而是参考对局多的相似英雄。
+
+**只显示能选的海克斯：** 海克斯列表来自当前正式服版本的游戏文件（CommunityDragon 的 `16.22` 目录，而不是可能跟随测试服的 "latest"）。Riot 的文件里仍有一些已禁用的海克斯，所以 Augur 还会去掉 `augur/removed_hexes.json` 中的（如「王中王，靴中靴」）以及 arammayhem.com 标记为已删除的——除非 OP.GG 当前版本的数据显示仍有玩家在选。你也可以在设置 → 隐藏的海克斯里自己隐藏任何海克斯。
 
 **AP / AD 两种出装：** 对 OP.GG 数据显示 AP 和 AD 装备都有大量出装的英雄（各占出装次数 12% 以上：卡莎、凯尔、克格莫、卡特琳娜、希瓦娜、崔斯特、巴德……），OP.GG 的数字把两种玩法混在一起。Augur 为每种出装单独评分：同类伤害的海克斯算顶级，另一类排到最后；AP 攻击特效出装（例如出纳什之牙的卡莎）中，让技能触发攻击特效的海克斯（虚幻武器）排最高。英雄页面可以切换「混合 / AP / AD」；对局中会根据你已有的装备自动判断。
 
