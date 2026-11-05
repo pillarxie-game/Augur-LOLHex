@@ -270,6 +270,34 @@ def fetch_items(version, log=print):
     return out, alias
 
 
+def _opgg_has_version(cfg, version, minimum=100):
+    folder = cfg["data_path"] / "opgg"
+    n = 0
+    for f in folder.glob("[0-9]*.json"):
+        try:
+            n += json.loads(f.read_text(encoding="utf-8")).get("game_version") == version
+        except (OSError, ValueError):
+            pass
+    return n >= minimum
+
+
+def apply_deleted(cfg, log=print):
+    """After OP.GG data for this version is downloaded: drop hexes arammayhem.com marks deleted that
+    nobody picks this version, and save the game data again."""
+    data = load(cfg)
+    if not data or not cfg.get("use_arammayhem", True) or not _opgg_has_version(cfg, data["version"]):
+        return 0
+    from . import arammayhem
+    gone = {h for h in arammayhem.deleted(data, arammayhem.hex_list()) if not _picked_this_version(cfg, h, data["version"])}
+    for h in gone:
+        log(f"  left out (deleted, per arammayhem.com): {data['augments'][h]['name']}")
+        data["augments"].pop(h)
+    if gone:
+        with open(cfg["data_path"] / "gamedata.json", "w", encoding="utf-8") as f:
+            json.dump(data, f, ensure_ascii=False, separators=(",", ":"))
+    return len(gone)
+
+
 def _picked_this_version(cfg, hex_id, version):
     """True if OP.GG's cached data for this game version shows champions picking the hex (1%+ of games)."""
     folder = cfg["data_path"] / "opgg"
@@ -296,7 +324,8 @@ def update(cfg, log=print):
         "champions": fetch_champions(version, log),
     }
     data["items"], data["item_alias"] = fetch_items(version, log)
-    if cfg.get("use_arammayhem", True):
+    if cfg.get("use_arammayhem", True) and _opgg_has_version(cfg, version):
+        # (without current-version OP.GG data we can't check its marks, so they wait until it's downloaded)
         try:  # hexes still in Riot's files but marked deleted on arammayhem.com
             from . import arammayhem
             gone = arammayhem.deleted(data, arammayhem.hex_list())

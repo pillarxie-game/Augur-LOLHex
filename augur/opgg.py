@@ -235,6 +235,12 @@ def fetch_all(gamedata, log=print, pause=0.4):
             log(f"  {c['name']}: {e}")
         if i % 20 == 0 or i == len(champs):
             log(f"  {i}/{len(champs)} champions")
+    try:  # now that current-version picks are known, apply arammayhem.com's Deleted marks
+        from . import gamedata as gamedata_mod
+        if gamedata_mod.apply_deleted(config.load(), log=log):
+            gamedata = gamedata_mod.load(config.load()) or gamedata
+    except Exception as e:
+        log(f"  removed-hex check skipped: {e}")
     summary = summarize(gamedata)
     log(f"OP.GG data for {ok} champions ({failed} failed); {len(summary['hexes'])} hexes summarized.")
     try:
